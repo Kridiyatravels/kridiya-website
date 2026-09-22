@@ -1,222 +1,112 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My Account - Kridiya Travel and Tourism</title>
-<meta name="description" content="Manage your Kridiya Travel profile and view your enquiry history.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Great+Vibes&family=Playfair+Display:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
-<link rel="icon" href="assets/favicon-32.png" sizes="32x32">
-<link rel="apple-touch-icon" href="assets/favicon-180.png">
-<link rel="canonical" href="https://www.kridiyatravel.com/account.html">
-<link rel="stylesheet" href="css/styles.css?v=20260921social-outline">
-<link rel="stylesheet" href="css/motion.css?v=20260921social-outline">
-<link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260921complete2">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="theme-color" content="#fdf8f0">
+  <title>Website under maintenance | Kridiya Travel</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #2f2415;
+      background: #fdf8f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #fdf8f0;
+    }
+
+    main {
+      width: min(100%, 560px);
+      padding: clamp(28px, 6vw, 48px);
+      text-align: center;
+      background: #fff;
+      border: 1px solid #e8ded0;
+      border-radius: 18px;
+      box-shadow: 0 14px 40px rgb(47 36 21 / 0.08);
+    }
+
+    img {
+      display: block;
+      width: 84px;
+      height: auto;
+      margin: 0 auto 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 5vw, 2.25rem);
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+    }
+
+    .message {
+      max-width: 42ch;
+      margin: 14px auto 0;
+      color: #665b4d;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .contact {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 18px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #ece4d9;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .contact a {
+      color: #2f2415;
+      font-weight: 600;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    .contact a:hover { color: #2f2415; }
+
+    .contact a:focus-visible {
+      outline: 2px solid #2f2415;
+      outline-offset: 4px;
+      border-radius: 2px;
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 16px; }
+      main { padding: 28px 20px; border-radius: 14px; }
+      img { width: 72px; margin-bottom: 20px; }
+      h1 { font-size: 1.65rem; }
+      .message { font-size: 0.95rem; }
+      .contact {
+        flex-direction: column;
+        gap: 10px;
+        font-size: 0.875rem;
+      }
+    }
+  </style>
 </head>
-<body data-page="account">
-<header id="site-header" class="site-header"></header>
-<main>
-  <section class="section">
-    <div class="container">
-      <div class="account-head">
-        <div>
-          <h1>My account</h1>
-          <p>Manage your Kridiya Travel profile, booking updates, and account security.</p>
-        </div>
-        <a class="btn btn-primary" href="index.html">New enquiry</a>
-      </div>
-      <div class="account-grid">
-        <aside class="account-side account-profile-card">
-          <div class="avatar" id="acc-avatar" aria-hidden="true">?</div>
-          <h2 class="account-profile-name" id="acc-name">Loading...</h2>
-          <p class="account-profile-email" id="acc-email">Loading...</p>
-          <p class="account-profile-since" id="acc-since"></p>
-          <a class="btn btn-primary btn-block" href="index.html">New enquiry</a>
-          <button class="btn btn-outline btn-block" id="logout-btn" type="button">Log out</button>
-        </aside>
-
-        <div class="account-content-stack">
-          <div class="account-main customer-portal-overview">
-            <div class="account-section-head">
-              <div>
-                <h2>Portal overview</h2>
-                <p>View travel requests, quotes, bookings and required actions linked to your account.</p>
-              </div>
-              <a href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp team</a>
-            </div>
-            <div class="account-summary" id="portal-summary">
-              <div><span>0</span><b>Total items</b><small>Bookings and enquiries</small></div>
-              <div><span>0</span><b>Quotes</b><small>Options from our team</small></div>
-              <div><span>0</span><b>Requests</b><small>Documents or replies needed</small></div>
-            </div>
-            <div id="portal-next-action" class="portal-next-action"></div>
-          </div>
-
-          <div class="account-main">
-            <div class="account-section-head">
-              <div>
-                <h2>My travellers</h2>
-                <p>Save traveller details for future requests. Saved passport numbers are masked in the account view.</p>
-              </div>
-            </div>
-            <div id="traveller-list"><p class="form-note">Loading travellers...</p></div>
-            <form id="traveller-form" class="form-grid" novalidate>
-              <input type="hidden" name="traveller_id"><input type="hidden" name="expected_updated_at">
-              <div class="form-banner error" hidden role="alert"></div>
-              <div class="field-row">
-                <div class="field col-6"><label for="tr-name">FULL NAME</label><input id="tr-name" name="full_name" required minlength="2" autocomplete="name"></div>
-                <div class="field date-field col-6" data-date-name="date_of_birth" data-max-today="1"><label for="tr-dob">DATE OF BIRTH</label><input type="hidden" name="date_of_birth"><button type="button" class="fake-input date-btn placeholder" id="tr-dob" aria-haspopup="true" aria-expanded="false">Select date</button></div>
-              </div>
-              <div class="field-row">
-                <div class="field col-6"><label for="tr-nationality">NATIONALITY</label><input id="tr-nationality" name="nationality" autocomplete="country-name"></div>
-                <div class="field col-6"><label for="tr-passport">NEW PASSPORT NUMBER</label><input id="tr-passport" name="passport_number" autocomplete="off"><span class="sub">Leave blank while editing to keep the saved passport.</span></div>
-              </div>
-              <div class="field-row">
-                <div class="field date-field col-6" data-date-name="passport_expiry" data-min-today="1"><label for="tr-expiry">PASSPORT EXPIRY</label><input type="hidden" name="passport_expiry"><button type="button" class="fake-input date-btn placeholder" id="tr-expiry" aria-haspopup="true" aria-expanded="false">Select date</button></div>
-              </div>
-              <div class="account-actions"><button class="btn btn-primary" type="submit" data-label="Save traveller">Save traveller</button><button class="btn btn-outline" id="traveller-cancel" type="button" hidden>Cancel edit</button></div>
-            </form>
-          </div>
-
-          <div class="account-main">
-            <div class="account-section-head">
-              <div>
-                <h2>My bookings and enquiries</h2>
-                <p>Enquiries you send while signed in are added automatically. Confirmed bookings appear here once our team sets them up.</p>
-              </div>
-              <a href="contact.html">Need a booking added?</a>
-            </div>
-            <div id="enq-list">
-              <div class="empty-state">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12h-4a3 3 0 0 1-6 0H5V5h14v10z"/></svg>
-                <p><b>No bookings linked yet.</b><br>Send an enquiry or ask our team to attach an existing booking to your account.</p>
-                <div class="empty-actions">
-                  <a class="btn btn-primary" href="index.html">Start planning</a>
-                  <a class="btn btn-outline" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="account-main">
-            <div class="account-section-head">
-              <div>
-                <h2>Request help</h2>
-                <p>Send an amendment, cancellation, complaint, privacy, or emergency request directly to our operations team.</p>
-              </div>
-              <a href="https://wa.me/971509413873" target="_blank" rel="noopener">Travel emergency? WhatsApp now</a>
-            </div>
-            <div id="support-request-list"><p class="form-note">Loading support requests...</p></div>
-            <form id="support-request-form" class="form-grid" novalidate>
-              <div class="form-banner error" hidden role="alert"></div>
-              <div class="field-row">
-                <div class="field col-6"><label for="sr-category">REQUEST TYPE</label><select id="sr-category" name="category" required><option value="amendment">Amendment</option><option value="cancellation">Cancellation</option><option value="complaint">Complaint</option><option value="privacy">Privacy request</option><option value="emergency">Travel emergency</option><option value="other">Other</option></select></div>
-                <div class="field col-6"><label for="sr-linked">LINKED TRAVEL</label><select id="sr-linked" name="linked_item"><option value="">Account-level request</option></select></div>
-              </div>
-              <div class="field-row">
-                <div class="field col-6"><label for="sr-urgency">URGENCY</label><select id="sr-urgency" name="urgency" required><option value="normal">Normal</option><option value="urgent">Urgent</option><option value="emergency">Emergency</option></select></div>
-                <div class="field col-6"><label for="sr-subject">SUBJECT</label><input id="sr-subject" name="subject" required minlength="3" maxlength="180"></div>
-              </div>
-              <div class="field"><label for="sr-description">WHAT DO YOU NEED?</label><textarea id="sr-description" name="description" rows="4" required minlength="10" maxlength="4000"></textarea><span class="sub">Submitting creates a tracked request. For immediate danger, contact local emergency services first.</span></div>
-              <div><button class="btn btn-primary" type="submit" data-label="Submit request">Submit request</button></div>
-            </form>
-          </div>
-
-          <div class="account-main">
-            <div class="account-section-head">
-              <div>
-                <h2>Profile</h2>
-                <p>Keep this updated so quotes and booking follow-ups reach the right person.</p>
-              </div>
-            </div>
-            <form id="profile-form" class="form-grid" novalidate>
-              <div class="field-row">
-                <div class="field col-6"><label for="pf-name">FULL NAME</label><input id="pf-name" name="name" required></div>
-                <div class="field col-6"><label for="pf-phone">PHONE / WHATSAPP</label><input id="pf-phone" name="phone" type="tel" required></div>
-              </div>
-              <div><button class="btn btn-primary" type="submit">Save changes</button></div>
-            </form>
-          </div>
-
-          <div class="account-main">
-            <div class="account-section-head">
-              <div>
-                <h2>Notifications</h2>
-                <p>Choose how Kridiya should contact you and review portal communication status.</p>
-              </div>
-            </div>
-            <form id="notification-form" class="form-grid" novalidate>
-              <div class="form-banner error" hidden role="alert"></div>
-              <div class="notification-options">
-                <label><input type="checkbox" name="email_enabled"><span><b>Email service updates</b><small>Quotes, bookings, payments, documents and support.</small></span></label>
-                <label><input type="checkbox" name="whatsapp_enabled"><span><b>WhatsApp service updates</b><small>Operational messages when available.</small></span></label>
-                <label><input type="checkbox" name="booking_updates"><span><b>Booking updates</b></span></label>
-                <label><input type="checkbox" name="payment_updates"><span><b>Payment updates</b></span></label>
-                <label><input type="checkbox" name="document_updates"><span><b>Document updates</b></span></label>
-                <label><input type="checkbox" name="support_updates"><span><b>Support updates</b></span></label>
-                <label><input type="checkbox" name="marketing_email"><span><b>Offers and travel inspiration</b><small>Optional marketing consent. You can turn this off anytime.</small></span></label>
-              </div>
-              <p class="form-note">Essential security, legal, or urgent booking messages may still be sent when required to provide your service.</p>
-              <div><button class="btn btn-primary" type="submit">Save notification settings</button></div>
-            </form>
-            <div class="account-section-head communication-head"><div><h3>Communication history</h3><p>“Available” means the message is posted in this account. Email or WhatsApp delivery appears only after confirmation from the delivery service.</p></div></div>
-            <div id="communication-history"><p class="form-note">Loading communication history...</p></div>
-          </div>
-
-          <div class="account-main">
-            <div class="account-section-head"><div><h2>Travel disruption updates</h2><p>Verified operational updates for your affected bookings appear here.</p></div></div>
-            <div id="travel-disruption-updates"><p class="form-note">Loading disruption updates...</p></div>
-          </div>
-
-          <div class="account-main">
-            <div class="account-section-head">
-              <div>
-                <h2>Security</h2>
-                <p>Change your password here, or use email reset if you are signed out.</p>
-              </div>
-              <a href="forgot-password.html">Forgot password?</a>
-            </div>
-            <form id="password-form" class="form-grid" novalidate>
-              <div class="form-banner error" hidden role="alert"></div>
-              <div class="field-row">
-                <div class="field col-6"><label for="cp-cur">CURRENT PASSWORD</label>
-                  <div class="pw-wrap"><input id="cp-cur" name="current" type="password" autocomplete="current-password" required>
-                  <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button></div></div>
-                <div class="field col-6"><label for="cp-new">NEW PASSWORD</label>
-                  <div class="pw-wrap"><input id="cp-new" name="newpass" type="password" autocomplete="new-password" required minlength="8">
-                  <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button></div>
-                  <span class="sub">Minimum 8 characters with letters and numbers.</span></div>
-              </div>
-              <div><button class="btn btn-primary" type="submit" data-label="Update password">Update password</button></div>
-            </form>
-          </div>
-
-          <div class="account-main">
-            <div class="account-section-head">
-              <div>
-                <h2>Support</h2>
-                <p>For travel changes that need prompt attention, contact the team by WhatsApp.</p>
-              </div>
-            </div>
-            <div class="account-actions">
-              <a class="btn btn-primary" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a>
-              <a class="btn btn-outline" href="https://corporate.kridiyatravel.com/login.html?next=corporate-account.html">Corporate portal</a>
-              <a class="btn btn-outline" href="mailto:info@kridiyatravel.com">Email Kridiya</a>
-              <a class="btn btn-outline" href="privacy.html">Privacy settings</a>
-            </div>
-          </div>
-        </div>
-      </div>
+<body>
+  <main>
+    <img src="/assets/logo.png" alt="Kridiya Travel and Tourism">
+    <h1>Website under maintenance</h1>
+    <p class="message">We are updating our website. For travel enquiries, please contact us directly.</p>
+    <div class="contact" aria-label="Contact Kridiya Travel">
+      <a href="tel:+971509413873">+971 50 941 3873</a>
+      <a href="mailto:info@kridiyatravel.com">info@kridiyatravel.com</a>
     </div>
-  </section>
-</main>
-<footer id="site-footer" class="site-footer"></footer>
-<script src="js/motion.js?v=20260921complete2" defer></script>
-<script src="js/motion-controls.js?v=20260921complete2" defer></script>
-<script src="js/main.js?v=20260921complete2" defer></script>
-<script src="js/auth.js?v=20260921complete2" defer></script>
-<script src="js/search.js?v=20260921complete2" defer></script>
+  </main>
 </body>
 </html>
