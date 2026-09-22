@@ -1,0 +1,135 @@
+/* Site-specific integration for the supplied component kit. */
+.main-nav .nav-close {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  .main-nav.open .nav-close {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 1181px) {
+  .main-nav ul {
+    flex-wrap: nowrap;
+  }
+
+  .main-nav a {
+    white-space: nowrap;
+  }
+}
+
+/* Compact phone controls. This file loads last, so these rules also reconcile
+   the measured brand-kit dimensions with the site's responsive layouts. */
+@media (max-width: 560px) {
+  .btn,
+  #account-btn,
+  .btn-login {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 44px;
+    max-width: 100%;
+    padding: 0.72rem 1rem;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+  }
+
+  #account-btn,
+  .btn-login {
+    padding-inline: 1rem;
+  }
+
+  .widget-tabs.t-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    overflow: visible;
+    padding: 0.75rem 0.75rem 0.6rem;
+  }
+
+  .widget-tab.t-tab {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.4rem;
+    font-size: 0.78rem;
+  }
+
+  .widget-tab svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .widget-tabs .t-tabs-pill {
+    display: none;
+  }
+
+  .widget-tab.t-tab.active,
+  .widget-tab.t-tab[aria-selected="true"] {
+    color: #fff;
+    background: var(--brand-deep);
+  }
+
+  .hero-cta,
+  .hero-actions {
+    align-items: center;
+  }
+
+  .hero-cta .btn,
+  .hero-actions .btn {
+    width: auto;
+    flex: 0 1 auto;
+  }
+
+  .widget-actions .btn {
+    width: min(100%, 280px);
+    min-width: 0;
+  }
+
+  .cta-band .btns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .cta-band .btns .btn {
+    width: 100%;
+  }
+
+  .cta-band .btn.btn-lg {
+    min-height: 44px;
+    min-width: 0;
+    padding: 0.72rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 440px) {
+  .widget-tabs.t-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cta-band .btns {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .hero-cta,
+  .hero-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero-cta .btn,
+  .hero-actions .btn {
+    width: auto;
+  }
+
+  .cta-band .btns .btn {
+    width: min(100%, 220px);
+  }
+}

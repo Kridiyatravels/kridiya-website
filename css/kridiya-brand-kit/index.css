@@ -1,0 +1,8 @@
+/* Exact measured Kridiya kit supplied 2026-09-21.
+   This entry point is loaded after the legacy layout and motion sheets so the
+   measured kit is the final visual authority across the customer site. */
+@import url("tokens.css?v=20260921fixall");
+@import url("motion-tokens.css?v=20260921fixall");
+@import url("components.css?v=20260921fixall");
+@import url("modal.css?v=20260921fixall");
+@import url("site-integration.css?v=20260921fixall");

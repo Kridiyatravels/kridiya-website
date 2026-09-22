@@ -1,0 +1,114 @@
+/* Kridiya modal — Transitions.dev pattern (06-modal.md)
+   Classes: .t-modal, .is-open, .is-closing
+   Scale from 0.96, open 250ms, close 150ms, cubic-bezier(0.22, 1, 0.36, 1)
+   transform-origin: center (Emil: modals stay centered)
+   Only animate transform + opacity.
+   Colours from authored site tokens (tokens.css). */
+
+.t-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  /* CSV: dialog.t-modal.motion-confirm::backdrop #00000073 */
+  background: #00000073;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--overlay-open-dur, 250ms) var(--overlay-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.t-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.t-overlay.is-closing {
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--overlay-close-dur, 150ms) var(--overlay-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.t-modal {
+  position: relative;
+  z-index: 1001;
+  width: min(100%, 440px);
+  max-height: min(90vh, 640px);
+  overflow: auto;
+  background: var(--surface);
+  color: var(--text);
+  /* CSV: dialog.t-modal.motion-confirm radius 16px */
+  border-radius: 16px;
+  box-shadow: var(--shadow-pop);
+  border: 1px solid var(--line);
+  padding: 24px;
+  transform-origin: center;
+  transform: scale(var(--modal-scale, 0.96));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--modal-open-dur, 250ms) var(--modal-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    opacity   var(--modal-open-dur, 250ms) var(--modal-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  will-change: transform, opacity;
+}
+.t-modal.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.t-modal.is-closing {
+  transform: scale(var(--modal-scale-close, 0.96));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--modal-close-dur, 150ms) var(--modal-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    opacity   var(--modal-close-dur, 150ms) var(--modal-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.t-modal__title {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.t-modal__body {
+  margin: 0 0 24px;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.t-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.t-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+.t-modal__close:hover {
+  background: var(--brand-soft);
+}
+.t-modal__close:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-modal,
+  .t-overlay {
+    transition: none !important;
+  }
+}

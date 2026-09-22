@@ -1,0 +1,157 @@
+/* Shared motion only. Brand, layout, typography and resting styles live in styles.css. */
+@import url("./transitions-tokens.css?v=20260921fixall");
+@import url("./transitions-patterns.css?v=20260921fixall");
+@import url("./transitions-supplied.css?v=20260921fixall");
+:root {
+  /* Local feedback: the catalogue has no standalone colour/press/spinner pattern. */
+  --feedback-dur: 150ms;
+  --press-dur: 160ms;
+}
+.btn, .main-nav a, .widget-tab,
+.service-slide-cta, .carousel-nav-btn, .visa-card, .pkg-card, .wa-float {
+  transition: background-color var(--feedback-dur) var(--ease-out),
+    color var(--feedback-dur) var(--ease-out), border-color var(--feedback-dur) var(--ease-out),
+    box-shadow var(--feedback-dur) var(--ease-out), filter var(--feedback-dur) var(--ease-out),
+    transform var(--press-dur) var(--ease-smooth-out);
+}
+.topbar-social a, .footer-social a { transition: none; }
+.svc-link { transition: background-color var(--feedback-dur) var(--ease-out), box-shadow var(--feedback-dur) var(--ease-out); }
+.sort-pill:hover::before, .sort-pill.active::before, .mc-seg-num::before,
+.swap-btn:hover::before, .stepper button:hover:not(:disabled)::before {
+  transition: filter var(--feedback-dur) var(--ease-out);
+}
+.service-slide-cta svg, .dest-card img, .visa-flag {
+  transition: transform var(--duration-fast) var(--ease-smooth-out);
+}
+.field input, .field select, .field textarea, .fake-input {
+  transition: border-color var(--feedback-dur) var(--ease-out);
+}
+.swap-btn { transition: transform var(--icon-swap-dur) var(--icon-swap-ease), border-color var(--feedback-dur) var(--ease-out); }
+.pw-meter i { transition: width var(--resize-dur) var(--resize-ease), background-color var(--feedback-dur) var(--ease-out); }
+
+
+
+/* Specificity adapter for existing scroll-reveal markup, using the panel pattern. */
+.js .reveal.t-panel-slide {
+  --panel-translate-y: var(--distance-medium);
+  opacity: 0; transform: translateY(var(--panel-translate-y));
+  transition: transform var(--panel-close-dur) var(--panel-ease), opacity var(--panel-close-dur) var(--panel-ease), filter var(--panel-close-dur) var(--panel-ease);
+}
+.js .reveal.t-panel-slide[data-open="true"] {
+  opacity: 1; transform: translateY(0); transition-duration: var(--panel-open-dur);
+}
+.js .reveal:not(.t-panel-slide) { opacity: 1; transform: none; transition: none; }
+.t-dropdown[hidden] { display: none; }
+@media (min-width: 700px) {
+  .service-slide { transition: opacity var(--page-fade-dur) var(--page-fade-ease); }
+}
+@media (max-width: 1180px) {
+  /* Existing drawer retains its horizontal axis with panel open/close timing. */
+  .main-nav { transition: transform var(--panel-close-dur) var(--panel-ease); }
+  .main-nav.open { transition-duration: var(--panel-open-dur); }
+  .nav-backdrop { transition: opacity var(--panel-close-dur) var(--panel-ease); }
+  .nav-backdrop.show { transition-duration: var(--panel-open-dur); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  .js .reveal.t-panel-slide { opacity: 1; transform: none; filter: none; }
+}
+@media print {
+  .js .reveal.t-panel-slide { opacity: 1; transform: none; filter: none; }
+}
+
+/* Existing-site geometry and colours for the supplied control patterns. */
+.widget-tabs.t-tabs {
+  display: flex; gap: 0.4rem; padding: 0.9rem 1rem 0.55rem; background: transparent;
+  border-radius: 0; --tabs-text-muted: var(--ink-2); --tabs-text-active: #fff; --tabs-pill-bg: var(--brand-deep);
+}
+.widget-tab.t-tab { height: auto; padding: 0.65rem 1.15rem; border-radius: 999px; transition: color var(--tabs-dur) var(--tabs-ease); }
+.widget-tab.t-tab.active { background: transparent; }
+.widget-tab.t-tab:not([aria-selected="true"]):hover { color: var(--brand-deep); }
+.widget-tabs .t-tabs-pill { border-radius: 999px; }
+.t-input-wrap .t-input.is-error { border-color: var(--error); transition: border-color var(--revert-dur) ease-out; }
+.t-input-wrap.is-error .t-error-msg { display: block; }
+.t-input-wrap .err.t-error-msg:not(:empty) { display: block; }
+.motion-label.t-shimmer { --shimmer-base: currentColor; --shimmer-highlight: var(--gold); }
+.btn-primary .motion-label.t-shimmer { --shimmer-base: var(--on-brand); --shimmer-highlight: #fff; }
+.motion-label { pointer-events: none; }
+.nav-toggle .t-icon-swap { width: 22px; height: 22px; vertical-align: middle; }
+.motion-choice { position: relative; display: inline-flex; flex: 0 0 18px; width: 18px; height: 18px; vertical-align: middle; }
+.motion-choice > input.motion-native {
+  position: absolute; inset: 0; opacity: 0; z-index: 1; margin: 0 !important;
+  width: 100% !important; height: 100% !important; min-height: 0; padding: 0; cursor: pointer;
+}
+.motion-choice .t-check { width: 18px; height: 18px; border: 1px solid var(--line-strong); border-radius: 3px; background: var(--surface); color: white; padding: 3px; }
+.motion-choice .t-check[aria-checked="true"] { background: var(--brand-deep); border-color: var(--brand-deep); }
+.motion-choice svg { width: 100%; height: 100%; display: block; }
+.motion-choice:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 3px; }
+.motion-choice.is-disabled { opacity: 0.5; }
+.motion-choice.is-disabled input { cursor: default; }
+.motion-choice.motion-switch { width: 34.66px; flex-basis: 34.66px; height: 20px; }
+.motion-choice .t-toggle { width: 100%; height: 20px; padding: 2px; border-radius: 12px; background: var(--line-strong); }
+.motion-choice .t-toggle[data-on="true"] { background: var(--brand-deep); }
+.t-toggle-thumb { display: block; width: 16px; height: 16px; border-radius: 50%; background: white; }
+.t-learn-chevron { margin-left: 0.35em; vertical-align: middle; }
+.t-learn-chevron svg { width: 16px; height: 16px; fill: none; }
+.service-slide-cta .t-learn-chevron svg { width: 13px; height: 13px; fill: none; transition: none; transform: none; }
+.service-slide:hover .service-slide-cta .t-learn-chevron svg { transform: none; }
+.motion-success { width: 18px; height: 18px; margin-right: 0.5em; vertical-align: middle; color: var(--success); }
+.motion-success path { stroke-dasharray: var(--check-len); stroke-dashoffset: var(--check-len); }
+.motion-confirm { width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 24px; border: 1px solid var(--line); border-radius: var(--r-lg); color: var(--text); background: var(--surface); box-shadow: var(--shadow-pop); }
+.motion-confirm::backdrop { background: rgb(0 0 0 / 0.45); }
+.motion-confirm h2 { font-size: 1.15rem; line-height: 1.4; margin: 0 0 24px; }
+.motion-confirm-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.js .reveal.t-stagger { opacity: 1; transform: none; transition: none; }
+@media (prefers-reduced-motion: reduce), print {
+  .t-stagger .t-stagger-line { opacity: 1; transform: none; filter: none; }
+}
+
+/* Presentation adapters: keep the toast centered independently of its Y motion. */
+.toast.t-toast { translate: -50% 0; pointer-events: none; }
+.motion-skeleton { min-height: 96px; }
+.motion-skeleton > .t-skel-content { position: relative; inset: auto; }
+.motion-skeleton > .t-skel-skeleton { pointer-events: none; padding: 12px 0; }
+.motion-skeleton-bar { display: block; height: 14px; width: 85%; margin: 0 0 12px; border-radius: 4px; background: var(--line); }
+.motion-skeleton-bar:nth-child(2) { width: 65%; }
+.motion-skeleton-bar:nth-child(3) { width: 75%; }
+.quote-terms .t-acc-head { border: 0; background: transparent; padding: 0; color: var(--brand-deep); font: inherit; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.t-acc-chevron svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.t-acc-panel-inner { min-height: 0; }
+
+/* Keep keyboard selection immediate; pointer activation retains supplied motion. */
+.motion-instant *, .motion-instant *::before { transition: none !important; animation: none !important; }
+.motion-dialog-input { width: 100%; padding: 12px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); font: inherit; margin-bottom: 20px; resize: vertical; }
+.motion-dialog-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.editorial-fallback { object-fit: contain !important; padding: 24px; background: var(--brand-soft); }
+.widget-tab:active, .nav-toggle:active, .cal-nav:active, .stepper button:active { scale: 0.97; }
+.carousel-nav-btn:active { scale: 0.97; }
+.customer-doc-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; border-bottom: 1px solid var(--line); }
+.customer-doc-row > div { min-width: 0; }
+.customer-doc-row b, .customer-doc-row small { display: block; overflow-wrap: anywhere; }
+.customer-doc-row small { color: var(--text-muted); margin-top: 4px; }
+/* A bounded timeline keeps arbitrary-length results from shifting the account. */
+[data-trip-timeline-box].motion-skeleton { height: 224px; min-height: 224px; }
+[data-trip-timeline-box] > .t-skel-content { position: absolute; inset: 0; overflow: auto; overscroll-behavior: contain; padding: 12px 4px; }
+.guide-toc a, .contact-ways a, .footer-contact a { min-height: 44px; display: inline-flex; align-items: center; }
+.form-consent, .newsletter-consent { min-height: 44px; align-items: center; }
+.field .pw-wrap input { padding-right: 68px; }
+.pw-toggle { min-width: 52px; min-height: 44px; right: 4px; }
+@media (min-width: 1100px) {
+  .dest-grid, .visa-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) {
+  :root { --header-h: 68px; }
+  .site-header .topbar { display: none; }
+  .site-header .logo-art { width: 80px; height: 54px; object-fit: contain; }
+  .nav-toggle { min-width: 44px; min-height: 44px; }
+  .analytics-consent { padding: 12px; gap: 8px; left: 8px; right: 8px; bottom: 8px; }
+  .analytics-consent p { font-size: 0.8rem; }
+  .analytics-consent-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .analytics-consent-actions .btn { min-height: 44px; padding: 8px 4px; font-size: 0.72rem; white-space: normal; }
+  .customer-doc-row { align-items: flex-start; flex-direction: column; gap: 8px; }
+}
+@media (hover: none), (pointer: coarse) {
+  .topbar-social a:hover, .main-nav a:hover, .wa-float:hover, .service-slide:hover, .dest-card:hover img { transform: none; }
+  .carousel-nav-btn:hover.prev, .carousel-nav-btn:hover.next { transform: translateY(-50%); }
+  .service-slide:hover .service-slide-cta svg, .t-learn:hover .t-learn-chevron, .t-learn:hover .t-learn-arm { transform: none; }
+}

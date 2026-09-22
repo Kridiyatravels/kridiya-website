@@ -1,0 +1,82 @@
+/* Kridiya Travel — Authored site tokens
+   Source: restored site css/styles.css :root
+   Extracted to /workspace/kridiya-measured/root-tokens.json
+   Capture date: 2026-09-20
+   Hex casing normalized to lowercase to match site file; semantics unchanged.
+   Logo artwork samples are NOT declared here — see colors.md §B / tokens.json logoSamples. */
+
+:root {
+  /* Brand */
+  --brand: #f2820c;
+  --brand-deep: #b6530f;
+  --brand-soft: #fff4e6;
+  --gold: #f6c445;
+  --gold-deep: #b6810c;
+  --ember: #ef6a21;
+
+  /* Gradients (exact from :root) */
+  --grad-brand: linear-gradient(100deg, #f2820c, #f79a1c 58%, #f8b62f);
+  --grad-ring: linear-gradient(118deg, var(--brand-deep), var(--brand) 45%, var(--gold-deep));
+  --grad-soft: linear-gradient(165deg, #ffffff, #fdf6ea);
+  --grad-mild: linear-gradient(135deg, #fff6e8, #ffe9cc);
+  --grad-dark: linear-gradient(135deg, #ffeccb, #ffdfa6 52%, #f8cd78);
+  --grad-wa: linear-gradient(115deg, #126b39, #19783d);
+
+  /* Note: site names --blue-deep but value is topbar cream (measured) */
+  --blue-deep: #ffe0a6;
+
+  /* Ink / text */
+  --ink: #2f2415;
+  --ink-2: #43341f;
+  --ink-3: #5a4629;
+  --text: #574b3b;
+  --text-muted: #79694f;
+
+  /* Surfaces / lines */
+  --bg: #fdf8f0;
+  --surface: #ffffff;
+  --line: #f1e8d8;
+  --line-strong: #e3d5be;
+  --focus: #2f2415;
+
+  /* Semantic (site :root uses oklch) */
+  --success: oklch(0.55 0.14 150);
+  --error: oklch(0.55 0.19 27);
+  --error-bg: oklch(0.96 0.02 27);
+
+  /* WhatsApp (site chrome — measured) */
+  --wa: #16743c;
+  --wa-deep: #115c30;
+
+  /* Social */
+  --fb: oklch(0.55 0.19 264);
+  --fb-deep: oklch(0.45 0.17 264);
+  --ig: linear-gradient(135deg, #feda75 0%, #fa7e1e 25%, #d62976 55%, #962fbf 80%, #4f5bd5 100%);
+
+  /* On-colour text */
+  --on-brand: #3a2600;
+  --on-dark: #fff8ec;
+  --on-dark-muted: #cbb892;
+
+  /* Type (measured) */
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-script: "Great Vibes", cursive;
+  --font-swash: "Playfair Display", Georgia, serif;
+
+  /* Shadows (site :root) */
+  --shadow-card: 0 1px 2px rgb(120 82 20 / 0.06), 0 12px 24px -16px rgb(120 82 20 / 0.18);
+  --shadow-pop: 0 2px 6px rgb(120 82 20 / 0.09), 0 20px 38px -20px rgb(120 82 20 / 0.24);
+
+  /* Measured radii (from measurements.csv frequency + component rows) */
+  --radius-control: 8px;   /* inputs, login btn, cal-cell */
+  --radius-card: 12px;     /* cards-ish */
+  --radius-check: 3px;     /* span.t-check */
+  --radius-pill: 999px;    /* btn-lg CTAs, wa-float */
+
+  /* Page body gradient (CSV body row) */
+  --page-grad: linear-gradient(#ffffff, #fdf8f0 44%, #fbf0df);
+
+  /* Topbar (CSV div.topbar) */
+  --topbar-bg: #ffe0a6;
+  --topbar-text: #1e1509;
+}

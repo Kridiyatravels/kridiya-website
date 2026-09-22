@@ -1,0 +1,294 @@
+/* Kridiya components — measured selectors from restored site
+   Provenance: measurements.csv rows cited in sizes.md / PROVENANCE.md
+   Font: Plus Jakarta Sans first (site --font). Samples load via Google Fonts. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--page-grad);
+  background-attachment: fixed;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.k-logo {
+  /* Logo must not be recolored — keep original artwork */
+  height: 48px;
+  width: auto;
+}
+
+/* ── Topbar (CSV: div.topbar) ───────────────────────────────── */
+.topbar {
+  background: var(--topbar-bg);
+  background-image: var(--grad-dark);
+  color: var(--topbar-text);
+  font-size: 13.12px;
+  min-height: 41.38px;
+  display: flex;
+  align-items: center;
+}
+
+.topbar-inner {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+  padding: 7.2px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* ── Buttons (CSV: button.btn.btn-primary*) ─────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 160ms var(--ease-smooth-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color 160ms var(--ease-smooth-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Measured primary: cream fill + brand-deep text (NOT solid orange) */
+.btn-primary {
+  color: var(--brand-deep); /* #B6530F */
+  background: var(--brand-soft); /* #FFF4E6 */
+  border-radius: var(--radius-control); /* 8px — login / Join */
+  font-size: 15.2px;
+  padding: 12.8px 22.4px;
+  min-height: 40.8px;
+}
+.btn-primary:hover {
+  background: var(--surface);
+}
+
+.btn-primary.btn-lg {
+  /* CSV: "Request flight options" 300×48.8 */
+  font-size: 16.8px;
+  padding: 16px 28.8px;
+  min-height: 48.8px;
+  min-width: 300px;
+  border-radius: var(--radius-pill); /* 999px on flight CTA */
+}
+@media (max-width: 480px) {
+  .btn-primary.btn-lg {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.btn-ghost {
+  color: var(--brand-deep);
+  background: transparent;
+  border-color: var(--line-strong);
+  border-radius: var(--radius-control);
+  font-size: 15.2px;
+  padding: 12.8px 22.4px;
+  min-height: 40.8px;
+}
+.btn-ghost:hover {
+  background: var(--brand-soft);
+}
+
+/* Login control — same pair, 8px radius, ~40.8h */
+#account-btn,
+.btn-login {
+  color: #b6530f;
+  background: #fff4e6;
+  border-radius: 8px;
+  font-size: 15.2px;
+  font-weight: 700;
+  padding: 12.8px 22.4px;
+  min-height: 40.8px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+#account-btn:hover,
+.btn-login:hover {
+  background: #ffffff;
+}
+#account-btn:focus-visible,
+.btn-login:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ── WhatsApp float (REAL site chrome — include) ──────────────
+   Desktop CSV: a.wa-float 154.63×45.59
+   Mobile CSV: 48.78×48.78
+   text #FFFFFF; bg #16743C; grad 115deg #126B39→#19783D; radius 999px */
+.wa-float {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 154.63px;
+  height: 45.59px;
+  padding: 12.8px 17.6px;
+  color: #ffffff;
+  background: #16743c;
+  background-image: var(--grad-wa);
+  border-radius: 999px;
+  font-size: 14.4px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-pop);
+}
+.wa-float:hover {
+  background: #115c30;
+  background-image: none;
+}
+.wa-float:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.wa-float__label {
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .wa-float {
+    width: 48.78px;
+    height: 48.78px;
+    padding: 14.4px;
+  }
+  .wa-float__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+
+/* ── Checkbox tick (CSV: span.t-check checked) ────────────────
+   18×18; bg #B6530F; tick #FFFFFF; radius 3px */
+.t-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid var(--line-strong);
+  background: #ffffff;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.t-check[aria-checked="true"],
+.t-check.is-checked,
+.t-check.checked {
+  background: #b6530f;
+  border-color: #b6530f;
+  color: #ffffff;
+}
+
+/* Shared neutral calendar interaction states. */
+.cal-cell {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13.6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cal-cell.selected {
+  background: var(--ink);
+  color: #ffffff;
+  font-weight: 800;
+}
+.cal-cell:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.cal-cell.today {
+  position: relative;
+  background: var(--bg);
+  font-weight: 800;
+}
+.cal-cell.today::before {
+  content: none;
+}
+.cal-cell.selected.today {
+  background: var(--ink);
+  color: #ffffff;
+}
+
+/* ── Card surface ───────────────────────────────────────────── */
+.k-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 19.2px;
+}
+
+/* ── Form control ───────────────────────────────────────────── */
+.k-input {
+  width: 100%;
+  min-height: 40.8px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 15.2px;
+}
+.k-input:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  border-color: var(--brand-deep);
+}
+.k-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none !important;
+  }
+  .btn:active {
+    transform: none;
+  }
+}
