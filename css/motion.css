@@ -45,7 +45,7 @@
 @media (min-width: 700px) {
   .service-slide { transition: opacity var(--page-fade-dur) var(--page-fade-ease); }
 }
-@media (max-width: 1180px) {
+@media (max-width: 1270px) {
   /* Existing drawer retains its horizontal axis with panel open/close timing. */
   .main-nav { transition: transform var(--panel-close-dur) var(--panel-ease); }
   .main-nav.open { transition-duration: var(--panel-open-dur); }

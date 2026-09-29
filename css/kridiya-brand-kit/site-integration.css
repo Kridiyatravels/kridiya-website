@@ -3,19 +3,25 @@
   display: none;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1270px) {
   .main-nav.open .nav-close {
     display: inline-flex;
   }
 }
 
-@media (min-width: 1181px) {
+@media (min-width: 1271px) {
   .main-nav ul {
     flex-wrap: nowrap;
   }
 
   .main-nav a {
     white-space: nowrap;
+  }
+}
+
+@media (min-width: 1271px) and (max-width: 1400px) {
+  .main-nav a {
+    padding-inline: 0.7rem;
   }
 }
 
@@ -87,6 +93,14 @@
   .widget-actions .btn {
     width: min(100%, 280px);
     min-width: 0;
+    padding-inline: 1rem;
+    font-size: 1rem;
+  }
+
+  .form-grid > .btn.btn-lg {
+    padding-inline: 0.75rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
   .cta-band .btns {

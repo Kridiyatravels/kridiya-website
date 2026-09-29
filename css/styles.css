@@ -224,7 +224,13 @@ a:hover { text-decoration: underline; }
   border-bottom: 1px solid var(--line);
   box-shadow: 0 10px 24px -22px oklch(0.18 0.006 270 / 0.42);
 }
-.header-inner { display: flex; align-items: center; gap: 1.2rem; height: var(--header-h); }
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  width: min(1320px, 100% - 2.5rem);
+  height: var(--header-h);
+}
 @media (max-width: 480px) { .header-inner { gap: 0.6rem; } }
 
 .logo {
@@ -265,7 +271,7 @@ a:hover { text-decoration: underline; }
 .nav-toggle svg { width: 22px; height: 22px; fill: var(--ink); display: block; }
 .nav-close { display: none; }
 
-@media (max-width: 1180px) {
+@media (max-width: 1270px) {
   .main-nav {
     position: fixed; inset: 0 0 0 auto; width: min(320px, 85vw);
     background: var(--surface); z-index: var(--z-drawer);
@@ -2395,11 +2401,22 @@ body {
   font-size: 0.88rem;
   line-height: 1.45;
 }
+.analytics-consent > div:first-child {
+  flex: 1 1 260px;
+  min-width: 0;
+}
 .analytics-consent-actions {
   display: flex;
-  flex: 0 0 auto;
+  flex: 1 1 520px;
+  min-width: 0;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+.analytics-consent-actions .btn {
+  flex: 1 1 160px;
+  min-width: 0;
+  padding-inline: 0.75rem;
+  white-space: normal;
 }
 @media (max-width: 680px) {
   .analytics-consent {
@@ -2407,6 +2424,8 @@ body {
     flex-direction: column;
   }
   .analytics-consent-actions {
+    flex: 0 1 auto;
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr;
   }

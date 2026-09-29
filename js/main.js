@@ -472,7 +472,7 @@ function renderChrome() {
     const nav = header.querySelector(".main-nav");
     const toggle = header.querySelector(".nav-toggle");
     const backdrop = header.querySelector(".nav-backdrop");
-    const mobileNav = window.matchMedia("(max-width: 1180px)");
+    const mobileNav = window.matchMedia("(max-width: 1270px)");
     const closeButton = nav.querySelector(".nav-close");
     let background = [], previousOverflow = "";
     function setNav(open) {
