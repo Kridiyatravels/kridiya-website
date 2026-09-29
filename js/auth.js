@@ -196,7 +196,8 @@ window.KridiyaAuth = (function () {
   async function logout() {
     try {
       const sb = await client();
-      await sb.auth.signOut();
+      const result = await sb.auth.signOut({ scope: "local" });
+      if (result && result.error) throw result.error;
     } finally {
       clearSession();
     }
