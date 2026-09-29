@@ -142,7 +142,7 @@
 @media (max-width: 680px) {
   :root { --header-h: 68px; }
   .site-header .topbar { display: none; }
-  .site-header .logo-art { width: 56px; height: 32px; object-fit: contain; }
+  .site-header .logo-art { width: 80px; height: 54px; object-fit: contain; }
   .nav-toggle { min-width: 44px; min-height: 44px; }
   .analytics-consent { padding: 12px; gap: 8px; left: 8px; right: 8px; bottom: 8px; }
   .analytics-consent p { font-size: 0.8rem; }
