@@ -66,6 +66,12 @@ window.KridiyaAuth = (function () {
     sessionStorage.removeItem(SESSION_KEY);
   }
 
+  function clearSupabaseSession() {
+    const authStorageKey = "sb-jmvqqpughlzeqrcyavwz-auth-token";
+    localStorage.removeItem(authStorageKey);
+    sessionStorage.removeItem(authStorageKey);
+  }
+
   function loadSupabaseScript() {
     return new Promise(function (resolve, reject) {
       if (window.supabase && window.supabase.createClient) {
@@ -194,13 +200,9 @@ window.KridiyaAuth = (function () {
   }
 
   async function logout() {
-    try {
-      const sb = await client();
-      const result = await sb.auth.signOut({ scope: "local" });
-      if (result && result.error) throw result.error;
-    } finally {
-      clearSession();
-    }
+    clearSession();
+    clearSupabaseSession();
+    if (cachedClient) cachedClient.auth.signOut().catch(function () {});
   }
 
   async function resetPassword(email) {
