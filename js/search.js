@@ -883,16 +883,16 @@ const WIDGET_TABS = [
     "We compare available fare options and send clear prices and conditions for your approval."],
   ["hotels", "Hotels", "hotel", "Request hotel options",
     "Send the destination, dates, guests and room preference to request available hotel rates."],
-  ["holidays", "Holidays", "suitcase", "Find Packages",
+  ["holidays", "Holidays", "suitcase", "Request holiday options",
     "We combine available flights, hotels and transfers based on your dates, budget and preferences."],
-  ["umrah", "Umrah", "kaaba", "Find Umrah Packages",
+  ["umrah", "Umrah", "kaaba", "Request Umrah options",
     "Request transport, hotel, room occupancy and visa assistance options for your group."],
-  ["cruise", "Cruise", "ship", "Find Cruises",
+  ["cruise", "Cruise", "ship", "Request cruise options",
     "Send the sailing, dates, cabin preference and add-ons needed for a current quote."],
-  ["visa", "Visa", "passport", "Check Visa Options",
+  ["visa", "Visa", "passport", "Request visa guidance",
     "Send your destination and nationality to ask about available visa application assistance."],
-  ["corporate", "Corporate", "users", "Corporate Booking",
-    "Company flights, visas, hotels and group travel — billed to your company with one reference."]
+  ["corporate", "Corporate", "users", "Corporate travel request",
+    "Send a company travel request for a quote with the price and conditions."]
 ];
 
 function flightsPanelHTML() {
@@ -971,7 +971,7 @@ function holidaysPanelHTML() {
           '<select id="hd-nights" name="nights"><option>2–3</option><option selected>4–6</option><option>7–9</option><option>10+</option></select></div>' +
       "</div>" +
       '<div class="widget-actions">' +
-        '<button class="btn btn-primary btn-lg" type="submit">Find Packages</button></div>' +
+        '<button class="btn btn-primary btn-lg" type="submit">Request holiday options</button></div>' +
     "</form></div>"
   );
 }
@@ -993,7 +993,7 @@ function umrahPanelHTML() {
           '<select id="um-nights" name="nights"><option>5–6</option><option selected>7</option><option>10</option><option>14+</option></select></div>' +
       "</div>" +
       '<div class="widget-actions">' +
-        '<button class="btn btn-primary btn-lg" type="submit">Find Umrah Packages</button></div>' +
+        '<button class="btn btn-primary btn-lg" type="submit">Request Umrah options</button></div>' +
     "</form></div>"
   );
 }
@@ -1015,7 +1015,7 @@ function cruisePanelHTML() {
           '<select id="cr-nights" name="nights"><option>2–3</option><option selected>4–6</option><option>7–9</option><option>10+</option></select></div>' +
       "</div>" +
       '<div class="widget-actions">' +
-        '<button class="btn btn-primary btn-lg" type="submit">Find Cruises</button></div>' +
+        '<button class="btn btn-primary btn-lg" type="submit">Request cruise options</button></div>' +
     "</form></div>"
   );
 }
@@ -1035,7 +1035,7 @@ function visaPanelHTML() {
         dateFieldHTML("vs-date", "travel", "PLANNED TRAVEL DATE", { defaultOffset: 21, placeholder: "Add date" }).replace('class="field date-field"', 'class="field date-field seg-3"') +
       "</div>" +
       '<div class="widget-actions">' +
-        '<button class="btn btn-primary btn-lg" type="submit">Check Visa Options</button></div>' +
+        '<button class="btn btn-primary btn-lg" type="submit">Request visa guidance</button></div>' +
     "</form></div>"
   );
 }

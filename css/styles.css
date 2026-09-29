@@ -233,11 +233,11 @@ a:hover { text-decoration: underline; }
 }
 .logo:hover { text-decoration: none; }
 .logo-art {
-  width: 68px; height: 68px; flex: none; object-fit: cover; object-position: center;
-  border-radius: 16px;
+  width: 72px; height: 40px; flex: none; object-fit: contain; object-position: center;
+  border-radius: 0;
   box-shadow: 0 10px 26px -16px oklch(0.18 0.006 270 / 0.60);
 }
-@media (max-width: 480px) { .logo-art { width: 58px; height: 58px; border-radius: 14px; } }
+@media (max-width: 480px) { .logo-art { width: 56px; height: 32px; border-radius: 0; } }
 
 .main-nav ul { display: flex; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
 .main-nav a {
@@ -606,6 +606,7 @@ a:hover { text-decoration: underline; }
    consent sits inside a .field-row. */
 .form-grid > .form-consent { grid-column: 1 / -1; }
 .form-consent input { width: auto; margin-top: 0.18rem; accent-color: var(--brand); }
+.form-consent > span { min-width: 0; }
 .form-consent.invalid { color: var(--error); }
 
 @media (min-width: 720px) {
@@ -1556,6 +1557,18 @@ a:hover { text-decoration: underline; }
 .quote-actions .btn { min-height: 42px; padding: 0 1.2rem; font-size: 0.88rem; }
 .quote-confirm { display: flex; align-items: flex-start; gap: 0.55rem; margin-top: 0.9rem; color: var(--ink-2); font-size: 0.84rem; line-height: 1.45; cursor: pointer; }
 .quote-confirm input { width: 1rem; height: 1rem; margin-top: 0.1rem; flex: 0 0 auto; accent-color: var(--brand-deep); }
+.quote-acceptance-boundary {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-left: 3px solid var(--brand-deep);
+  background: var(--brand-soft);
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.quote-acceptance-boundary p { margin: 0; }
+.quote-acceptance-boundary p + p { margin-top: 0.45rem; }
+.arabic-copy { display: block; margin-top: 0.35rem; text-align: right; line-height: 1.65; }
 .trip-timeline-wrap { display: grid; gap: 1rem; }
 .trip-timeline { list-style: none; margin: 0; padding: 0 0 0 0.35rem; display: grid; }
 .trip-timeline li { position: relative; display: grid; grid-template-columns: 1.15rem 1fr; gap: 0.75rem; min-height: 4.35rem; color: var(--ink-2); }
@@ -1867,7 +1880,7 @@ a:hover { text-decoration: underline; }
 .footer-links a:hover { color: var(--blue); }
 .footer-brand { display: grid; align-content: start; justify-items: start; gap: 0.65rem; }
 .footer-brand .logo { justify-content: flex-start; margin-right: 0; width: fit-content; }
-.footer-brand .logo-art { width: 84px; height: 72px; border-radius: 0; object-fit: contain; }
+.footer-brand .logo-art { width: 72px; height: 40px; border-radius: 0; object-fit: contain; }
 .footer-brand p {
   max-width: 32ch; margin: 0; font-size: 0.88rem; line-height: 1.45;
 }
@@ -2156,6 +2169,7 @@ body {
   transform: none;
   filter: none;
 }
+.footer-identity-ar { flex: 1 1 100%; max-width: 92ch; line-height: 1.65; text-align: right; }
 .topbar-social svg,
 .footer-social svg { fill: currentColor; }
 
@@ -2238,6 +2252,20 @@ body {
   .legal-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .legal-nav a { padding: 0.45rem 0.5rem; font-size: 0.82rem; }
 }
+.legal-language-link { display: inline-flex; margin-top: 0.9rem; font-weight: 700; }
+.legal-arabic {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--line-strong);
+  scroll-margin-top: calc(var(--header-h) + 1rem);
+  text-align: right;
+}
+.legal-arabic h2,
+.legal-arabic h3,
+.legal-arabic p,
+.legal-arabic li { text-align: right; }
+.legal-arabic h3 { margin-top: 1.5rem; font-size: 1.05rem; }
+.legal-arabic ul { padding-right: 1.25rem; padding-left: 0; }
 
 @media (max-width: 360px) {
   main, .container, .search-widget, .form-grid, .field-row, .auth-shell, .auth-card, .auth-assist { min-width: 0; }

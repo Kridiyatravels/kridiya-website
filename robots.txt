@@ -1,2 +1,5 @@
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /admin.html
+Disallow: /thanks.html
+Sitemap: https://www.kridiyatravel.com/sitemap.xml

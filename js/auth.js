@@ -974,9 +974,10 @@ window.KridiyaAuth = (function () {
           addonsHtml +
           termsHtml +
           (validity ? '<p class="quote-valid">Valid until ' + KridiyaAuth.escapeHTML(validity) + "</p>" : "") +
-          '<label class="quote-confirm"><input type="checkbox" data-quote-terms="' + q.id + '"> <span>I confirm I reviewed this quote and its terms.</span></label>' +
+          '<div class="quote-acceptance-boundary"><p>Accepting this quote records your agreement to the shown service, price, inclusions, exclusions, supplier conditions and any Kridiya Travel service fee stated separately from supplier prices. This quote is not a booking and acceptance is not a confirmed booking. Booking proceeds only after written acceptance, required traveller details and documents, cleared payment where required, supplier confirmation and any applicable verification. A receipt or uploaded payment proof is evidence only and does not by itself mean funds have cleared.</p><p lang="ar" dir="rtl">عرض السعر هذا ليس حجزًا ولا يحجز التوافر. قد تُبيَّن رسوم خدمة كريديا للسفر بشكل منفصل عن أسعار المورّدين. لا يُؤكَّد الحجز إلا بعد قبولكم الكتابي، وتقديم معلومات المسافر والمستندات المطلوبة، ووصول المبلغ المحصّل فعليًا حيث يُطلب ذلك، وتأكيد المورّد، وأي تحقق معمول به. لا يعني إيصال الدفع أو إثبات الدفع المرفوع بذاته أن الأموال قد حُصّلت فعليًا.</p></div>' +
+          '<label class="quote-confirm"><input type="checkbox" data-quote-terms="' + q.id + '"> <span>I confirm I reviewed this quote and its terms.<span class="arabic-copy" lang="ar" dir="rtl">أؤكد أنني راجعت عرض السعر وشروطه.</span></span></label>' +
           '<div class="quote-actions">' +
-            '<button class="btn btn-primary" type="button" data-quote-id="' + q.id + '" data-quote-updated="' + KridiyaAuth.escapeHTML(q.updated_at) + '" data-action="accepted">Accept quote</button>' +
+            '<button class="btn btn-primary" type="button" data-quote-id="' + q.id + '" data-quote-updated="' + KridiyaAuth.escapeHTML(q.updated_at) + '" data-action="accepted">Accept quote / <span lang="ar" dir="rtl">قبول عرض السعر</span></button>' +
             '<button class="btn btn-outline" type="button" data-quote-id="' + q.id + '" data-quote-updated="' + KridiyaAuth.escapeHTML(q.updated_at) + '" data-action="revision">Request changes</button>' +
             '<button class="btn btn-outline" type="button" data-quote-id="' + q.id + '" data-quote-updated="' + KridiyaAuth.escapeHTML(q.updated_at) + '" data-action="declined">Decline</button>' +
           "</div></div>";

@@ -171,11 +171,11 @@ function initAnalyticsConsentBanner() {
   banner.className = "analytics-consent";
   banner.setAttribute("aria-label", "Website measurement privacy choice");
   banner.innerHTML =
-    '<div><b>Privacy choices</b><p>Allow analytics and advertising measurement? <a href="privacy.html#measurement">Details</a></p></div>' +
+    '<div><b>Privacy choices <span lang="ar" dir="rtl">/ خيارات الخصوصية</span></b><p>Allow analytics and advertising measurement? <span lang="ar" dir="rtl">هل تسمح بقياس التحليلات والإعلانات؟</span> <a href="privacy.html#measurement">Details / <span lang="ar" dir="rtl">التفاصيل</span></a></p></div>' +
     '<div class="analytics-consent-actions">' +
-      '<button class="btn btn-outline" type="button" data-measurement-choice="denied">No thanks</button>' +
-      '<button class="btn btn-outline" type="button" data-measurement-choice="analytics">Analytics only</button>' +
-      '<button class="btn btn-primary" type="button" data-measurement-choice="all">Allow both</button>' +
+      '<button class="btn btn-outline" type="button" data-measurement-choice="denied">No thanks <span lang="ar" dir="rtl">/ لا شكرًا</span></button>' +
+      '<button class="btn btn-outline" type="button" data-measurement-choice="analytics">Analytics only <span lang="ar" dir="rtl">/ التحليلات فقط</span></button>' +
+      '<button class="btn btn-primary" type="button" data-measurement-choice="all">Allow both <span lang="ar" dir="rtl">/ السماح بكليهما</span></button>' +
     "</div>";
 
   banner.addEventListener("click", function (event) {
@@ -419,11 +419,11 @@ function icon(name, cls) {
   return '<svg class="' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' + ICONS[name] + '"/></svg>';
 }
 
-/* ---------- Logo (uploaded KD artwork, shared by header and footer) ---------- */
+/* ---------- Logo (shared by header and footer) ---------- */
 function logoHTML(footer) {
   return (
     '<a class="logo" href="index.html" aria-label="Kridiya Travel — home">' +
-      '<img class="logo-art" src="assets/logo.png" alt="Kridiya Travel and Tourism" width="256" height="256" decoding="async">' +
+      '<img class="logo-art" src="assets/logo-wordmark.png" alt="Kridiya Travel and Tourism" width="780" height="323" decoding="async">' +
     "</a>"
   );
 }
@@ -582,7 +582,7 @@ function renderChrome() {
           '<div class="newsletter-row"><input type="email" name="email" placeholder="Email address" required aria-label="Email address for travel updates">' +
           '<button class="btn btn-primary" type="submit">Subscribe</button></div>' +
           '<label class="newsletter-consent"><input type="checkbox" name="Marketing_consent" value="Yes" required>' +
-          '<span>I agree to receive travel offers by email. I can unsubscribe at any time. <a href="privacy.html">Privacy policy</a></span></label>' +
+          '<span>I agree to receive travel offers by email. I can unsubscribe at any time. <a href="privacy.html">Privacy policy</a><span class="arabic-copy" lang="ar" dir="rtl">أوافق على استلام عروض السفر عبر البريد الإلكتروني. يمكنني إلغاء الاشتراك في أي وقت. <a href="privacy.html#arabic">سياسة الخصوصية</a>.</span></span></label>' +
           '<p class="newsletter-status" aria-live="polite"></p>' +
         "</form></div>" +
         "</div>" +
@@ -599,6 +599,7 @@ function renderChrome() {
       "</div>" +
       '<div class="footer-bar"><div class="container footer-legal">' +
         "<span>© " + new Date().getFullYear() + " " + KRIDIYA.legal + ". All rights reserved.</span>" +
+        '<span class="footer-identity-ar" lang="ar" dir="rtl"><strong>هوية التاجر / المتحكم:</strong> الاسم القانوني: KRIDIYA Travel and Tourism FZ-LLC (كريديا للسفر). الشكل القانوني: شركة منطقة حرة ذات مسؤولية محدودة (FZ-LLC). مكان التسجيل: هيئة مناطق رأس الخيمة الاقتصادية (RAKEZ)، رأس الخيمة، الإمارات العربية المتحدة. رقم الرخصة التجارية: 5033347. العنوان: FDRK7105، مبنى Compass Building، طريق الشهداء (Al Shohada Road)، منطقة الحمرا الصناعية الحرة (Al Hamra Industrial Zone-FZ)، رأس الخيمة، الإمارات العربية المتحدة. البريد الإلكتروني: <a href="mailto:contact@kridiyatravel.com">contact@kridiyatravel.com</a>. واتساب: <a href="https://wa.me/971509413873" target="_blank" rel="noopener">+971 50 941 3873</a>. الموقع: <a href="https://www.kridiyatravel.com">www.kridiyatravel.com</a>.</span>' +
       "</div></div>";
     prepareFormSubmit(footer.querySelector("#newsletter-form"));
   }
@@ -911,7 +912,7 @@ function prepareFormSubmit(form) {
         travellers.forEach(function (traveller) {
           const option = document.createElement("option");
           option.value = traveller.id;
-          option.textContent = [traveller.full_name, traveller.nationality, traveller.date_of_birth ? "Born " + traveller.date_of_birth : ""].filter(Boolean).join(" · ");
+          option.textContent = traveller.full_name;
           option.dataset.nationality = traveller.nationality || "";
           select.appendChild(option);
         });
@@ -927,17 +928,17 @@ function prepareFormSubmit(form) {
     const submitButton = form.querySelector('button[type="submit"]');
     if (submitButton) {
       submitButton.insertAdjacentHTML("beforebegin",
-        '<label class="form-consent"><input type="checkbox" name="Marketing_consent" value="Yes"> ' +
-        "Send me occasional travel offers by email. I can opt out at any time.</label>");
+        '<label class="form-consent"><input type="checkbox" name="Marketing_consent" value="Yes">' +
+        '<span>Send me optional offers and travel ideas by email.<span class="arabic-copy" lang="ar" dir="rtl">أرسلوا إليّ عروضًا وأفكار سفر اختيارية عبر البريد الإلكتروني.</span></span></label>');
     }
   }
-  if (form.dataset.enquiryType && KridiyaAuth.session() && !form.querySelector('[name="Enquiry_attachments"]')) {
+  if (form.dataset.enquiryType && !form.querySelector('.enquiry-data-note')) {
     const submitButton = form.querySelector('button[type="submit"]');
     if (submitButton) {
-      const uploadId = (form.id || "enquiry") + "-attachments";
-      submitButton.insertAdjacentHTML("beforebegin", '<div class="field enquiry-upload-field"><label for="' + uploadId + '">SUPPORTING DOCUMENTS (OPTIONAL)</label><input id="' + uploadId + '" type="file" name="Enquiry_attachments" multiple accept="application/pdf,image/jpeg,image/png,image/webp" aria-describedby="' + uploadId + '-help"><span class="sub" id="' + uploadId + '-help">Up to 3 PDF or image files, 10 MB each. Uploaded privately after the enquiry is saved.</span></div>');
-      const uploadInput = form.querySelector('[name="Enquiry_attachments"]');
-      uploadInput.addEventListener("change", function () { setFieldError(uploadInput, enquiryAttachmentError(uploadInput.files)); });
+      const note = document.createElement('p');
+      note.className = 'form-note enquiry-data-note';
+      note.innerHTML = 'By sending this enquiry, you ask us to use your details to reply and prepare a quote. This is not a booking. See our <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms and Conditions</a>. Do not include passport copies, card details or ID numbers.<span class="arabic-copy" lang="ar" dir="rtl">بإرسال هذا الاستفسار، فإنك تطلب منا استخدام بياناتك للرد عليك وإعداد عرض سعر. هذا الاستفسار ليس حجزًا. راجع <a href="privacy.html#arabic">سياسة الخصوصية</a> و<a href="terms.html#arabic">الشروط والأحكام</a>. لا تُرسل نسخ جوازات السفر أو بيانات البطاقات أو أرقام الهوية.</span>';
+      submitButton.insertAdjacentElement('beforebegin', note);
     }
   }
   let next = form.querySelector('input[name="_next"]');
@@ -1158,7 +1159,7 @@ function todayISO(offsetDays) {
 function initDateMins() {
   document.querySelectorAll('input[type="date"][data-min-today]').forEach(function (el) {
     el.min = todayISO(0);
-    if (!el.value) el.value = todayISO(parseInt(el.dataset.defaultOffset || "3", 10));
+    if (!el.value && el.dataset.defaultOffset) el.value = todayISO(parseInt(el.dataset.defaultOffset, 10));
   });
 }
 
