@@ -1224,6 +1224,11 @@ window.KridiyaAuth = (function () {
 
   if (page === "account") {
     document.addEventListener("DOMContentLoaded", async function () {
+      document.getElementById("logout-btn").addEventListener("click", async function () {
+        await KridiyaAuth.logout();
+        location.href = "index.html";
+      });
+
       let user;
       try { user = await KridiyaAuth.currentUser(); }
       catch (error) {
@@ -1544,10 +1549,6 @@ window.KridiyaAuth = (function () {
         busy(pwf, false);
       });
 
-      document.getElementById("logout-btn").addEventListener("click", async function () {
-        await KridiyaAuth.logout();
-        location.href = "index.html";
-      });
     });
   }
 
