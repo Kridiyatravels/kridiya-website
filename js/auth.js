@@ -155,6 +155,9 @@ window.KridiyaAuth = (function () {
   }
 
   async function currentUser() {
+    // Anonymous visitors do not need a network round trip. This also keeps the
+    // signed-out account state usable when Supabase is temporarily unavailable.
+    if (!hasPersistedAuth()) return null;
     const sb = await client();
     const authResult = await sb.auth.getUser();
     if (authResult.error) throw authResult.error;
