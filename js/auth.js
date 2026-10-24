@@ -157,7 +157,8 @@ window.KridiyaAuth = (function () {
   async function currentUser() {
     // Anonymous visitors do not need a network round trip. This also keeps the
     // signed-out account state usable when Supabase is temporarily unavailable.
-    if (!hasPersistedAuth()) return null;
+    if (restorePromise) return restorePromise;
+    if (!hasPersistedAuth() && !hasAuthCallbackInUrl()) return null;
     const sb = await client();
     const authResult = await sb.auth.getUser();
     if (authResult.error) throw authResult.error;
@@ -192,9 +193,19 @@ window.KridiyaAuth = (function () {
     }
   }
 
+  function hasAuthCallbackInUrl() {
+    try {
+      const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+      const search = new URLSearchParams(location.search);
+      return (hash.has("access_token") && hash.has("refresh_token")) || search.has("code");
+    } catch (error) {
+      return false;
+    }
+  }
+
   function restoreSession() {
     if (restorePromise) return restorePromise;
-    restorePromise = client().then(async function (sb) {
+    const pending = client().then(async function (sb) {
       const result = await sb.auth.getSession();
       if (result.error) throw result.error;
       const authUser = result.data && result.data.session && result.data.session.user;
@@ -210,7 +221,11 @@ window.KridiyaAuth = (function () {
       setSession(user);
       announceAuthState(user);
       return user;
-    }).catch(function (error) {
+    });
+    restorePromise = pending.then(function (user) {
+      restorePromise = null;
+      return user;
+    }, function (error) {
       restorePromise = null;
       throw error;
     });
@@ -762,6 +777,7 @@ window.KridiyaAuth = (function () {
     session: session,
     currentUser: currentUser,
     hasPersistedAuth: hasPersistedAuth,
+    hasAuthCallbackInUrl: hasAuthCallbackInUrl,
     restoreSession: restoreSession,
     register: register,
     login: login,
@@ -819,7 +835,9 @@ window.KridiyaAuth = (function () {
   const page = document.body.dataset.page;
 
   document.addEventListener("DOMContentLoaded", function () {
-    if (KridiyaAuth.hasPersistedAuth()) KridiyaAuth.restoreSession().catch(function () {});
+    if (KridiyaAuth.hasPersistedAuth() || KridiyaAuth.hasAuthCallbackInUrl()) {
+      KridiyaAuth.restoreSession().catch(function () {});
+    }
   });
 
   function banner(form, msg, kind) {
