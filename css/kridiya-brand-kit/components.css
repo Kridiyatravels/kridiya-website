@@ -69,8 +69,8 @@ img {
   transform: scale(0.97);
 }
 .btn:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline: none;
+  filter: brightness(.92);
 }
 
 /* Measured primary: cream fill + brand-deep text (NOT solid orange) */
@@ -134,8 +134,8 @@ img {
 }
 #account-btn:focus-visible,
 .btn-login:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline: none;
+  text-decoration: underline;
 }
 
 /* ── WhatsApp float (REAL site chrome — include) ──────────────
@@ -168,8 +168,8 @@ img {
   background-image: none;
 }
 .wa-float:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 3px;
+  outline: none;
+  filter: brightness(.92);
 }
 .wa-float__label {
   white-space: nowrap;
@@ -234,8 +234,9 @@ img {
   font-weight: 800;
 }
 .cal-cell:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 1px;
+  outline: none;
+  background: var(--bg);
+  text-decoration: underline;
 }
 .cal-cell.today {
   position: relative;
@@ -272,8 +273,7 @@ img {
   font-size: 15.2px;
 }
 .k-input:focus {
-  outline: 2px solid var(--focus);
-  outline-offset: 1px;
+  outline: none;
   border-color: var(--brand-deep);
 }
 .k-label {

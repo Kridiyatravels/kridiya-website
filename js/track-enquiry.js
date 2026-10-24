@@ -64,13 +64,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
   if (!window.KridiyaAuth) {
-    message(errorBox, "Enquiry tracking is temporarily unavailable. Please try again in a moment.");
+    if (savedRef) message(errorBox, "Enquiry tracking is temporarily unavailable. Please try again in a moment.");
     return;
   }
   try {
     const user = await KridiyaAuth.currentUser();
     if (user && savedRef) await claim(savedRef);
   } catch (error) {
-    message(errorBox, "We could not connect to enquiry tracking. Please try again in a moment.");
+    if (savedRef) message(errorBox, "We could not connect to enquiry tracking. Please try again in a moment.");
   }
 });

@@ -113,7 +113,7 @@ h3 { font-size: 1.15rem; }
 p { margin: 0 0 1em; max-width: 70ch; text-wrap: pretty; }
 a { color: var(--blue); text-decoration: none; }
 a:hover { text-decoration: underline; }
-:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: none; outline-offset: 0; }
 
 .container { width: min(1160px, 100% - 2.5rem); margin-inline: auto; }
 .visually-hidden {
@@ -517,8 +517,8 @@ a:hover { text-decoration: underline; }
 .seg-row .field input:focus, .seg-row .field select:focus, .seg-row .field .fake-input:focus {
   box-shadow: none; outline: none;
 }
-.seg-row .field:focus-within { box-shadow: inset 0 0 0 2px var(--ink); border-radius: var(--r-sm); }
-.seg-row .field.invalid { box-shadow: inset 0 0 0 2px var(--error); border-radius: var(--r-sm); }
+.seg-row .field:focus-within { box-shadow: none; }
+.seg-row .field.invalid { box-shadow: none; background: rgb(193 35 35 / .04); }
 @media (min-width: 760px) {
   .seg-row .field { border-bottom: none; border-right: 1px solid var(--line-strong); }
   .seg-row .field:last-child { border-right: none; }
@@ -596,7 +596,7 @@ a:hover { text-decoration: underline; }
 .field textarea { resize: vertical; min-height: 96px; font-weight: 500; }
 .field input::placeholder, .field textarea::placeholder { color: oklch(0.48 0.006 270); font-weight: 500; }
 .field input:hover, .field select:hover { border-color: var(--brand); }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--ink); outline: none; box-shadow: 0 0 0 3px rgb(47 36 21 / 0.14); }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--ink); outline: none; box-shadow: none; }
 .field .sub { display: block; font-size: 0.78rem; font-weight: 500; color: var(--text-muted); margin-top: 0.25rem; }
 .field.invalid input, .field.invalid select, .field.invalid textarea { border-color: var(--error); }
 .field .err { display: none; font: 600 0.78rem/1.3 var(--font); color: var(--error); margin-top: 0.3rem; }
@@ -744,7 +744,7 @@ a:hover { text-decoration: underline; }
 .cal-cell:hover:not(:disabled) { background: var(--bg); }
 .cal-cell.today:not(.selected) { background: var(--bg); font-weight: 800; }
 .cal-cell.selected { background: var(--ink); background-image: none; color: #fff; font-weight: 800; }
-.cal-cell:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.cal-cell:focus-visible { outline: none; background: var(--bg); text-decoration: underline; text-underline-offset: 2px; }
 .cal-cell:disabled { color: var(--line-strong); cursor: not-allowed; }
 .month-field { position: relative; }
 .month-btn.placeholder { color: var(--text-muted); font-weight: 500; }
@@ -756,7 +756,7 @@ a:hover { text-decoration: underline; }
 }
 .month-cell:hover:not(:disabled) { border-color: var(--line-strong); background: var(--bg); }
 .month-cell.selected { border-color: var(--ink); background: var(--ink); color: #fff; }
-.month-cell:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.month-cell:focus-visible { outline: none; background: var(--bg); text-decoration: underline; text-underline-offset: 2px; }
 .month-cell:disabled { color: var(--line-strong); cursor: not-allowed; }
 @media (max-width: 640px) {
   .cal-pop { width: min(100%, 340px); padding: 0.75rem; }
@@ -2369,7 +2369,7 @@ body {
 /* Focus / selection tints */
 .field input:focus,
 .field select:focus,
-.field textarea:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgb(47 36 21 / 0.14); }
+.field textarea:focus { border-color: var(--ink); box-shadow: none; }
 ::selection { background: rgb(245 197 66 / 0.40); color: var(--ink); }
 
 .analytics-consent {
@@ -2480,10 +2480,15 @@ body {
 
 .preference-honeypot {
   position: absolute !important;
-  left: -10000px !important;
   width: 1px !important;
   height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
   overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .preference-status {
@@ -2521,9 +2526,12 @@ body {
 .skip-link:focus { transform: translateY(0); }
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 3px;
+  outline: none;
+  outline-offset: 0;
 }
+:where(a, summary):focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+:where(button):focus-visible { filter: brightness(.92); }
+:where(input, select, textarea):focus-visible { border-color: var(--ink); box-shadow: none; }
 
 .why-visual picture,
 .why-visual picture img { display: block; width: 100%; height: 100%; }

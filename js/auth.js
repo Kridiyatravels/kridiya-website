@@ -26,6 +26,21 @@ window.KridiyaAuth = (function () {
     return String(email || "").trim().toLowerCase();
   }
 
+  function normalizeLoginIdentifier(identifier) {
+    const raw = String(identifier || "").trim();
+    const email = cleanEmail(raw);
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      return { kind: "email", value: email };
+    }
+
+    const phone = raw.replace(/[\s()-]/g, "");
+    if (/^\+[1-9]\d{7,14}$/.test(phone)) {
+      return { kind: "phone", value: phone };
+    }
+
+    throw new Error("Enter a valid email address or a mobile number with country code, for example +971 50 123 4567.");
+  }
+
   function publicURL(path) {
     return new URL(path, PUBLIC_SITE_URL).href;
   }
@@ -133,7 +148,7 @@ window.KridiyaAuth = (function () {
       id: authUser.id,
       email: authUser.email || (profile && profile.preferred_email) || "",
       name: nameFromProfile(profile, authUser),
-      phone: (profile && (profile.whatsapp || profile.phone)) || "",
+      phone: (profile && (profile.whatsapp || profile.phone)) || authUser.phone || "",
       createdAt: (profile && profile.created_at) || authUser.created_at || new Date().toISOString()
     };
   }
@@ -186,17 +201,71 @@ window.KridiyaAuth = (function () {
     return user;
   }
 
-  async function login(email, password) {
+  async function login(identifier, password) {
     const sb = await client();
-    const result = await sb.auth.signInWithPassword({
-      email: cleanEmail(email),
-      password: password
-    });
+    const identity = normalizeLoginIdentifier(identifier);
+    const credentials = { password: password };
+    credentials[identity.kind] = identity.value;
+    const result = await sb.auth.signInWithPassword(credentials);
     if (result.error) throw result.error;
 
     const user = await profileFor(result.data.user);
     setSession(user);
     return user;
+  }
+
+  function safeAccountDestination(path) {
+    const destination = String(path || "");
+    return (/^[a-z-]+\.html$/.test(destination) || /^account\.html#[a-z-]+$/.test(destination))
+      ? destination
+      : "account.html";
+  }
+
+  async function requestLoginOtp(identifier, nextPath) {
+    const sb = await client();
+    const identity = normalizeLoginIdentifier(identifier);
+    const input = { options: { shouldCreateUser: false } };
+    input[identity.kind] = identity.value;
+    if (identity.kind === "email") {
+      const callback = new URL("login.html", PUBLIC_SITE_URL);
+      callback.searchParams.set("next", safeAccountDestination(nextPath));
+      input.options.emailRedirectTo = callback.href;
+    }
+    const result = await sb.auth.signInWithOtp(input);
+    if (result.error) throw result.error;
+    return identity;
+  }
+
+  async function verifyLoginOtp(identifier, token) {
+    const sb = await client();
+    const identity = normalizeLoginIdentifier(identifier);
+    const input = {
+      token: String(token || "").replace(/\s/g, ""),
+      type: identity.kind === "email" ? "email" : "sms"
+    };
+    input[identity.kind] = identity.value;
+    const result = await sb.auth.verifyOtp(input);
+    if (result.error) throw result.error;
+    if (!result.data || !result.data.user) throw new Error("The code could not be verified. Request a new code and try again.");
+
+    const user = await profileFor(result.data.user);
+    setSession(user);
+    return user;
+  }
+
+  async function loginWithGoogle(nextPath) {
+    const sb = await client();
+    const callback = new URL("login.html", PUBLIC_SITE_URL);
+    callback.searchParams.set("next", safeAccountDestination(nextPath));
+    const result = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: callback.href,
+        scopes: "openid email profile"
+      }
+    });
+    if (result.error) throw result.error;
+    return result.data;
   }
 
   async function logout() {
@@ -306,7 +375,7 @@ window.KridiyaAuth = (function () {
       .select("id, booking_id, enquiry_id, payment_reference, payment_direction, amount, currency, method, status, payment_link, receipt_document_id, proof_file_name, proof_uploaded_at, proof_source, refund_amount, refund_reason, refund_method, refund_reference, refund_requested_at, refund_approved_at, refund_completed_at, received_at, created_at")
       .or(ids.join(","))
       .order("created_at", { ascending: false });
-    if (result.error) return [];
+    if (result.error) throw result.error;
     return result.data || [];
   }
   async function openBookingDocument(documentId, storagePath, storageProvider) {
@@ -641,6 +710,10 @@ window.KridiyaAuth = (function () {
     currentUser: currentUser,
     register: register,
     login: login,
+    normalizeLoginIdentifier: normalizeLoginIdentifier,
+    requestLoginOtp: requestLoginOtp,
+    verifyLoginOtp: verifyLoginOtp,
+    loginWithGoogle: loginWithGoogle,
     logout: logout,
     resetPassword: resetPassword,
     completePasswordReset: completePasswordReset,
@@ -733,6 +806,21 @@ window.KridiyaAuth = (function () {
     if (/failed to fetch|network|load failed/i.test(text)) {
       return "Could not reach the secure account service. Please check your internet connection and try again.";
     }
+    if (/provider.+not enabled|unsupported provider|google.+disabled/i.test(text)) {
+      return "Google sign-in is not available right now. Use your email and password instead.";
+    }
+    if (/sms.+provider|phone.+disabled|phone.+not enabled|unsupported phone/i.test(text)) {
+      return "Phone code sign-in is not available right now. Use your email or password, or contact Kridiya Travel.";
+    }
+    if (/otp_expired|token.+expired|invalid.+token|token.+invalid|invalid.+otp/i.test(text)) {
+      return "That one-time code is invalid or expired. Request a new code and try again.";
+    }
+    if (/rate limit|too many requests|over_email_send_rate_limit|over_sms_send_rate_limit/i.test(text)) {
+      return "Too many code requests. Please wait a minute and try again.";
+    }
+    if (/signups? not allowed|user not found|no user found/i.test(text)) {
+      return "We could not send a code to those account details. Check them or use password sign-in.";
+    }
     return fallback;
   }
 
@@ -744,6 +832,9 @@ window.KridiyaAuth = (function () {
     if (!code && !description) return "";
     if (/otp_expired|expired/i.test(code + " " + description)) {
       return "This sign-in or password-reset link has expired. Request a new link and use the newest email.";
+    }
+    if (/access_denied|oauth|provider/i.test(code + " " + description)) {
+      return "Google sign-in was cancelled or could not be completed. Try again or use your email and password.";
     }
     return "This sign-in or password-reset link is invalid. Request a new link or contact Kridiya Travel for help.";
   }
@@ -785,34 +876,157 @@ window.KridiyaAuth = (function () {
     }
   }
 
-  function loginRedirectTarget() {
-    const dest = new URLSearchParams(location.search).get("next");
-    return dest && /^[a-z-]+\.html$/.test(dest) ? dest : "account.html";
+  function loginRedirectTarget(form) {
+    const dest = (form && form.dataset.authNext) || new URLSearchParams(location.search).get("next");
+    return dest && (/^[a-z-]+\.html$/.test(dest) || /^account\.html#[a-z-]+$/.test(dest)) ? dest : "account.html";
   }
 
-  if (page === "login") {
-    document.addEventListener("DOMContentLoaded", async function () {
-      existingUserOrNull().then(user => { if (user) location.replace(loginRedirectTarget()); });
-
-      const form = document.getElementById("login-form");
+  async function initializeLoginForm(form) {
+      if (!form || form.dataset.loginInitialized === "true") return;
+      form.dataset.loginInitialized = "true";
+      if (window.KridiyaLocale && KridiyaLocale.ready) await KridiyaLocale.ready;
       initPwToggles(form);
+      const identifierInput = form.elements.identifier;
+      const passwordInput = form.elements.password;
+      const codeInput = form.elements.code;
+      const passwordField = document.getElementById("login-password-field");
+      const codeField = document.getElementById("login-code-field");
+      const forgotRow = document.getElementById("login-forgot-row");
+      const methodToggle = document.getElementById("auth-method-toggle");
+      const changeIdentifier = document.getElementById("otp-change-identifier");
+      const submitButton = form.querySelector('button[type="submit"]');
+      const googleBtn = document.getElementById("google-login-btn");
+      let mode = "otp-request";
+
+      function loginText(english) {
+        return window.KridiyaLocale ? KridiyaLocale.text(english) : english;
+      }
+
+      function setLoginButtonLabel(english) {
+        const label = loginText(english);
+        submitButton.dataset.label = label;
+        submitButton.textContent = label;
+        submitButton.setAttribute("aria-label", label);
+      }
+
+      function setLoginMode(nextMode) {
+        mode = nextMode;
+        form.dataset.mode = mode;
+        const passwordMode = mode === "password";
+        const codeMode = mode === "otp-verify";
+        passwordField.hidden = !passwordMode;
+        forgotRow.hidden = !passwordMode;
+        codeField.hidden = !codeMode;
+        passwordInput.required = passwordMode;
+        codeInput.required = codeMode;
+        identifierInput.readOnly = codeMode;
+        changeIdentifier.hidden = !codeMode;
+        methodToggle.textContent = loginText(passwordMode ? "Use a one-time code" : "Use password instead");
+        setLoginButtonLabel(passwordMode ? "Log in" : codeMode ? "Verify code" : "Send one-time code");
+        banner(form, "");
+      }
+
+      function setLoginBusy(on, label) {
+        busy(form, on, label);
+        methodToggle.disabled = on;
+        changeIdentifier.disabled = on;
+        if (googleBtn) googleBtn.disabled = on;
+      }
+
+      function validIdentity() {
+        try {
+          const identity = KridiyaAuth.normalizeLoginIdentifier(identifierInput.value);
+          setFieldError(identifierInput, "");
+          return identity;
+        } catch (error) {
+          setFieldError(identifierInput, loginText(error.message));
+          identifierInput.focus();
+          return null;
+        }
+      }
+
+      methodToggle.addEventListener("click", function () {
+        setLoginMode(mode === "password" ? "otp-request" : "password");
+        (mode === "password" ? passwordInput : identifierInput).focus();
+      });
+
+      changeIdentifier.addEventListener("click", function () {
+        codeInput.value = "";
+        setFieldError(codeInput, "");
+        setLoginMode("otp-request");
+        identifierInput.focus();
+        identifierInput.select();
+      });
+
+      setLoginMode("otp-request");
       const linkError = authLinkError();
       if (linkError) banner(form, linkError, "error");
       form.addEventListener("submit", async function (e) {
         e.preventDefault();
-        if (!validateForm(form)) return;
+        const identity = validIdentity();
+        if (!identity) return;
+
+        if (mode === "password" && !passwordInput.value) {
+          setFieldError(passwordInput, loginText("Enter your password."));
+          passwordInput.focus();
+          return;
+        }
+        if (mode === "otp-verify" && !/^\d{6}$/.test(codeInput.value.replace(/\s/g, ""))) {
+          setFieldError(codeInput, loginText("Enter the 6-digit code."));
+          codeInput.focus();
+          return;
+        }
+
         banner(form, "");
-        busy(form, true, "Signing in...");
+        setLoginBusy(true, loginText(mode === "otp-request" ? "Sending code..." : mode === "otp-verify" ? "Verifying code..." : "Signing in..."));
         try {
-          const user = await KridiyaAuth.login(form.email.value, form.password.value);
-          if (typeof trackEvent === "function") trackEvent("login", { method: "email" });
+          if (mode === "otp-request") {
+            await KridiyaAuth.requestLoginOtp(identity.value, loginRedirectTarget(form));
+            if (typeof trackEvent === "function") trackEvent("login_otp_requested", { channel: identity.kind });
+            setLoginBusy(false);
+            setLoginMode("otp-verify");
+            banner(form, loginText("We sent a one-time code. Enter it below."), "success");
+            codeInput.focus();
+            return;
+          }
+
+          const user = mode === "otp-verify"
+            ? await KridiyaAuth.verifyLoginOtp(identity.value, codeInput.value)
+            : await KridiyaAuth.login(identity.value, passwordInput.value);
+          if (typeof trackEvent === "function") trackEvent("login", { method: mode === "otp-verify" ? identity.kind + "_otp" : identity.kind + "_password" });
           toast("Welcome back, " + user.name.split(" ")[0] + "!");
-          location.href = loginRedirectTarget();
+          location.href = loginRedirectTarget(form);
         } catch (err) {
-          banner(form, errorMessage(err, "Could not sign in. Please check your email and password."), "error");
-          busy(form, false);
+          const fallback = mode === "otp-request"
+            ? "Could not send a one-time code. Check your details and try again."
+            : mode === "otp-verify"
+              ? "Could not verify that code. Check it or request a new one."
+              : "Could not sign in. Check your account details and password.";
+          banner(form, loginText(errorMessage(err, fallback)), "error");
+          setLoginBusy(false);
         }
       });
+
+      if (googleBtn) {
+        googleBtn.addEventListener("click", async function () {
+          const label = googleBtn.querySelector(".auth-provider-label");
+          const idleLabel = label ? label.textContent : "Continue with Google";
+          banner(form, "");
+          googleBtn.disabled = true;
+          googleBtn.setAttribute("aria-busy", "true");
+          if (label) label.textContent = "Opening Google...";
+          try {
+            if (typeof trackEvent === "function") trackEvent("login_start", { method: "google" });
+            await KridiyaAuth.loginWithGoogle(loginRedirectTarget(form));
+          } catch (err) {
+            banner(form, loginText(errorMessage(err, "Could not start Google sign-in. Try again or use another sign-in method.")), "error");
+          } finally {
+            googleBtn.disabled = false;
+            googleBtn.removeAttribute("aria-busy");
+            if (label) label.textContent = idleLabel;
+          }
+        });
+      }
 
       const resetBtn = document.getElementById("reset-password-btn");
       if (resetBtn) {
@@ -836,6 +1050,16 @@ window.KridiyaAuth = (function () {
           resetBtn.textContent = "Send password reset email";
         });
       }
+  }
+
+  document.addEventListener("kridiya:login-dialog-ready", function (event) {
+    initializeLoginForm(event.detail && event.detail.form);
+  });
+
+  if (page === "login") {
+    document.addEventListener("DOMContentLoaded", function () {
+      existingUserOrNull().then(user => { if (user) location.replace(loginRedirectTarget()); });
+      initializeLoginForm(document.getElementById("login-form"));
     });
   }
 
@@ -845,6 +1069,28 @@ window.KridiyaAuth = (function () {
 
       const form = document.getElementById("register-form");
       initPwToggles(form);
+
+      const googleBtn = document.getElementById("register-google-btn");
+      if (googleBtn) {
+        googleBtn.addEventListener("click", async function () {
+          const label = googleBtn.querySelector(".auth-provider-label");
+          const idleLabel = label ? label.textContent : "Continue with Google";
+          banner(form, "");
+          googleBtn.disabled = true;
+          googleBtn.setAttribute("aria-busy", "true");
+          if (label) label.textContent = "Opening Google...";
+          try {
+            if (typeof trackEvent === "function") trackEvent("register_account", { method: "google", status: "started" });
+            await KridiyaAuth.loginWithGoogle("account.html#personal");
+          } catch (err) {
+            banner(form, errorMessage(err, "Could not start Google account setup. Try again or continue with email."), "error");
+          } finally {
+            googleBtn.disabled = false;
+            googleBtn.removeAttribute("aria-busy");
+            if (label) label.textContent = idleLabel;
+          }
+        });
+      }
 
       const pwInput = form.password;
       const meter = form.querySelector(".pw-meter i");
@@ -1224,6 +1470,7 @@ window.KridiyaAuth = (function () {
 
   if (page === "account") {
     document.addEventListener("DOMContentLoaded", async function () {
+      const accountBody = document.body;
       document.getElementById("logout-btn").addEventListener("click", async function () {
         await KridiyaAuth.logout();
         location.href = "index.html";
@@ -1232,6 +1479,7 @@ window.KridiyaAuth = (function () {
       let user;
       try { user = await KridiyaAuth.currentUser(); }
       catch (error) {
+        accountBody.classList.remove("account-auth-loading");
         const host = document.querySelector("main");
         host.replaceChildren();
         const message = document.createElement("section"); message.className = "container section";
@@ -1240,17 +1488,51 @@ window.KridiyaAuth = (function () {
         host.append(message); return;
       }
       if (!user) {
-        location.replace("login.html?next=account.html");
+        const signedOutPhone = window.matchMedia("(max-width: 820px)").matches;
+        if (signedOutPhone && (location.hash === "#support" || location.hash === "#contact-team")) {
+          location.replace("contact.html");
+          return;
+        }
+        const showBookingsGate = signedOutPhone && location.hash === "#bookings";
+        if (showBookingsGate) {
+          accountBody.classList.remove("account-auth-loading", "account-menu-view");
+          accountBody.classList.add("account-signed-out-bookings");
+          const gate = document.getElementById("signed-out-bookings");
+          gate.hidden = false;
+          const refresh = gate.querySelector("[data-bookings-refresh]");
+          if (refresh) refresh.addEventListener("click", function () { location.reload(); });
+          const bottom = document.querySelector(".account-bottom-nav");
+          if (bottom) {
+            bottom.querySelectorAll("a").forEach(function (link) {
+              if (link.getAttribute("href") === "#bookings") link.setAttribute("aria-current", "page");
+              else link.removeAttribute("aria-current");
+            });
+            const helpLink = bottom.querySelector('a[href="#support"]');
+            const accountLink = bottom.querySelector('a[href="#account-menu"]');
+            if (helpLink) helpLink.setAttribute("href", "contact.html");
+            if (accountLink) accountLink.setAttribute("href", "login.html");
+          }
+          return;
+        }
+        accountBody.classList.remove("account-auth-loading");
+        const accountHash = /^#[a-z-]+$/.test(location.hash) ? location.hash : "";
+        location.replace("login.html?next=" + encodeURIComponent("account.html" + accountHash));
         return;
       }
 
+      accountBody.classList.remove("account-auth-loading", "account-signed-out-bookings");
+      accountBody.classList.add("account-authenticated");
+      const givenName = String(user.name || "").trim().split(/\s+/)[0] || "Traveller";
       document.getElementById("acc-avatar").textContent = (user.name || "T").trim().charAt(0).toUpperCase();
       document.getElementById("acc-name").textContent = user.name;
       document.getElementById("acc-email").textContent = user.email;
       const since = user.createdAt ? new Date(user.createdAt) : null;
-      document.getElementById("acc-since").textContent = since
+      const memberSince = since
         ? "Member since " + since.toLocaleDateString("en-GB", { month: "long", year: "numeric" })
         : "";
+      document.getElementById("acc-since").textContent = memberSince;
+      document.getElementById("acc-given-name").textContent = givenName;
+      document.getElementById("acc-head-since").textContent = memberSince;
       refreshHeaderName(user);
       if (new URLSearchParams(location.search).get("claimed") === "1") {
         toast("Enquiry connected to your verified account.");
@@ -1338,8 +1620,16 @@ window.KridiyaAuth = (function () {
       }
 
       const listEl = document.getElementById("enq-list");
+      const paymentList = document.getElementById("account-payment-list");
+      const refreshTravel = document.getElementById("refresh-travel");
       let supportInitialized = false;
+      let travelLoading = false;
       listEl.refresh = async function () {
+      if (travelLoading) return;
+      travelLoading = true;
+      listEl.setAttribute("aria-busy", "true");
+      paymentList.setAttribute("aria-busy", "true");
+      if (refreshTravel) refreshTravel.disabled = true;
       const oldFocus = document.activeElement;
       const restoreListFocus = listEl.contains(oldFocus);
       const oldScroll = window.scrollY;
@@ -1387,9 +1677,6 @@ window.KridiyaAuth = (function () {
           }
         });
 
-        const openRequests = results[2].filter(function (r) {
-          return !/submitted|completed|done|closed/i.test(String(r.status || ""));
-        });
         const activeQuotes = results[3].filter(function (q) {
           return !/declined|expired|cancelled/i.test(String(q.status || "")) && (!q.valid_until || new Date(q.valid_until).getTime() > Date.now());
         });
@@ -1425,10 +1712,11 @@ window.KridiyaAuth = (function () {
 
         const summaryBookings = document.getElementById("summary-bookings");
         if (summaryBookings) summaryBookings.textContent = String(combined.length);
-        renderPortalOverview(combined, activeQuotes, openRequests);
-
-        if (combined.length) {
-          listEl.innerHTML = combined.map(function (item) {
+        const totals = { bookings: bookings.length, enquiries: enquiries.length, quotes: activeQuotes.length };
+        document.querySelectorAll("[data-account-total]").forEach(function (node) {
+          node.textContent = String(totals[node.dataset.accountTotal]);
+        });
+        function renderTravelItem(item) {
             const created = new Date(item.created_at);
             const requests = item.isEnquiry ? (requestsByEnquiry[item.id] || []) : [];
             const quotes = item.isEnquiry ? (quotesByEnquiry[item.id] || []) : [];
@@ -1437,7 +1725,7 @@ window.KridiyaAuth = (function () {
             const itemType = item.isEnquiry ? "Enquiry" : "Booking";
             const attention = requests.length ? "Needs your reply" : quotes.length ? "Quote ready" : itemDocs.length ? "Documents released" : itemPayments.length ? "Payment updated" : "In progress";
             const detailText = item.detail || "Team will update";
-            return '<article class="enq-item">' +
+            return '<article class="enq-item" data-travel-kind="' + (item.isEnquiry ? 'enquiry' : 'booking') + '">' +
               '<div class="enq-top"><div><span class="account-chip">' + KridiyaAuth.escapeHTML(itemType) + '</span><b>' + KridiyaAuth.escapeHTML(item.title || item.reference || itemType) + "</b></div>" +
               '<time datetime="' + KridiyaAuth.escapeHTML(item.created_at) + '">' +
               created.toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) +
@@ -1464,13 +1752,24 @@ window.KridiyaAuth = (function () {
               customerPaymentsHTML(itemPayments) +
               (!item.isEnquiry ? '<div class="enq-extra trip-timeline-wrap"><button class="btn btn-outline btn-sm" type="button" data-trip-timeline="' + KridiyaAuth.escapeHTML(item.id) + '">View trip timeline</button><div data-trip-timeline-box="' + KridiyaAuth.escapeHTML(item.id) + '" hidden></div></div>' : '') +
               "</article>";
-          }).join("");
-          wireEnquiryExtras(listEl);
-        } else {
-          listEl.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12h-4a3 3 0 0 1-6 0H5V5h14v10z"/></svg><p><b>No bookings linked yet.</b><br>Send an enquiry while signed in, or ask our team to attach an existing booking to this account.</p><div class="empty-actions"><a class="btn btn-primary" href="index.html">Start planning</a><a class="btn btn-outline" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a></div></div>';
         }
+        listEl.innerHTML = combined.length ? combined.map(renderTravelItem).join("")
+          : '<div class="empty-state"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12h-4a3 3 0 0 1-6 0H5V5h14v10z"/></svg><p><b>No bookings linked yet.</b><br>Send an enquiry while signed in, or ask our team to attach an existing booking to this account.</p><div class="empty-actions"><a class="btn btn-primary" href="index.html">Start planning</a><a class="btn btn-outline" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a></div></div>';
+        listEl.dataset.loaded = "true";
+        paymentList.innerHTML = customerPaymentsHTML(payments);
+        paymentList.refresh = listEl.refresh;
+        wireEnquiryExtras(paymentList);
+        wireEnquiryExtras(listEl);
       } catch (err) {
-        listEl.innerHTML = '<div class="form-banner error" role="alert">Could not load your enquiries yet: ' + KridiyaAuth.escapeHTML(errorMessage(err, "Please refresh and try again.")) + "</div>";
+        listEl.dataset.loaded = "false";
+        listEl.innerHTML = '<div class="form-banner error" role="alert">Could not load your travel: ' + KridiyaAuth.escapeHTML(errorMessage(err, "Please try again.")) + '</div><button type="button" class="btn btn-outline" data-retry-travel>Try again</button>';
+        paymentList.innerHTML = '<div class="form-banner error" role="alert">Could not load payment records. Please try again.</div><button type="button" class="btn btn-outline" data-retry-travel>Try again</button>';
+      } finally {
+        travelLoading = false;
+        listEl.setAttribute("aria-busy", "false");
+        paymentList.setAttribute("aria-busy", "false");
+        if (refreshTravel) refreshTravel.disabled = false;
+        document.dispatchEvent(new CustomEvent("kridiya:travel-updated"));
       }
 
       if (restoreListFocus) {
@@ -1478,26 +1777,37 @@ window.KridiyaAuth = (function () {
         window.scrollTo({ top: oldScroll, behavior: "instant" });
       }
       };
+      document.querySelector('.account-content-stack').addEventListener('click', function (event) {
+        if (event.target.closest('[data-retry-travel]')) listEl.refresh();
+      });
+      if (refreshTravel) refreshTravel.addEventListener("click", function () { listEl.refresh(); });
       await listEl.refresh();
 
       const pf = document.getElementById("profile-form");
       pf.name.value = user.name || "";
       pf.phone.value = user.phone || "";
+      const profileEmail = document.getElementById("pf-email");
+      if (profileEmail) profileEmail.value = user.email || "";
       pf.addEventListener("submit", async function (e) {
         e.preventDefault();
         if (!validateForm(pf)) return;
         const btn = pf.querySelector('button[type="submit"]');
         btn.disabled = true;
+        btn.textContent = "Saving…";
+        banner(pf, "");
         try {
           const updated = await KridiyaAuth.updateProfile(user.email, { name: pf.name.value, phone: pf.phone.value });
           toast("Profile updated.");
+          banner(pf, "Your details have been saved.", "success");
           document.getElementById("acc-name").textContent = updated.name;
           document.getElementById("acc-avatar").textContent = updated.name.trim().charAt(0).toUpperCase();
+          document.getElementById("acc-given-name").textContent = String(updated.name || "").trim().split(/\s+/)[0] || "Traveller";
           refreshHeaderName(updated);
         } catch (err) {
-          toast(errorMessage(err, "Could not update your profile."));
+          banner(pf, errorMessage(err, "Could not update your profile. Please try again."), "error");
         }
         btn.disabled = false;
+        btn.textContent = "Save changes";
       });
 
       const nf = document.getElementById("notification-form");
@@ -1656,41 +1966,6 @@ window.KridiyaAuth = (function () {
       }
       busy(form, false);
     });
-  }
-
-  function renderPortalOverview(items, quotes, requests) {
-    const summary = document.getElementById("portal-summary");
-    const next = document.getElementById("portal-next-action");
-    if (!summary || !next) return;
-    const bookings = items.filter(function (item) { return !item.isEnquiry; }).length;
-    const enquiries = items.length - bookings;
-    summary.innerHTML =
-      '<div><span>' + KridiyaAuth.escapeHTML(String(items.length)) + '</span><b>Total items</b><small>' + KridiyaAuth.escapeHTML(bookings + " booking(s), " + enquiries + " enquiry(s)") + '</small></div>' +
-      '<div><span>' + KridiyaAuth.escapeHTML(String(quotes.length)) + '</span><b>Quotes</b><small>Active options from our team</small></div>' +
-      '<div><span>' + KridiyaAuth.escapeHTML(String(requests.length)) + '</span><b>Requests</b><small>Documents or replies needed</small></div>';
-    let tone = "ok";
-    let title = "Your portal is ready";
-    let text = "You can start a new enquiry or message our team for an update.";
-    let href = "index.html";
-    let cta = "New enquiry";
-    if (requests.length) {
-      tone = "warn";
-      title = "Action needed";
-      text = requests.length + " request(s) need your reply or document update.";
-      href = "#enq-list";
-      cta = "Review requests";
-    } else if (quotes.length) {
-      tone = "info";
-      title = "Quote available";
-      text = quotes.length + " quote option(s) are waiting for your review.";
-      href = "#enq-list";
-      cta = "View quotes";
-    } else if (!items.length) {
-      tone = "neutral";
-      title = "No linked travel yet";
-      text = "Send your first enquiry, or ask our team to attach an existing booking to this account.";
-    }
-    next.innerHTML = '<div class="portal-next portal-next-' + tone + '"><div><b>' + KridiyaAuth.escapeHTML(title) + '</b><p>' + KridiyaAuth.escapeHTML(text) + '</p></div><a class="btn btn-primary" href="' + KridiyaAuth.escapeHTML(href) + '">' + KridiyaAuth.escapeHTML(cta) + '</a></div>';
   }
 
   if (page === "reset-password") {

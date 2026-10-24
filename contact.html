@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="js/locale-boot.js"></script>
 <title>Contact Us - Kridiya Travel and Tourism | RAK, UAE</title>
 <meta name="description" content="Contact Kridiya Travel and Tourism FZ-LLC, Ras Al Khaimah UAE. Call or WhatsApp +971 50 941 3873, or email contact@kridiyatravel.com.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,10 +45,57 @@
 <link rel="stylesheet" href="css/styles.css?v=20260929release2">
 <link rel="stylesheet" href="css/motion.css?v=20260929release2">
 <link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
+<link rel="stylesheet" href="css/homepage.css?v=20261004all1">
+<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive8">
 </head>
-<body data-page="contact">
+<body class="consumer-site" data-page="contact">
+<a class="home-skip" href="#main-content">Skip to content</a>
 <header id="site-header" class="site-header"></header>
-<main>
+<main id="main-content">
+  <section class="mobile-help-hub" aria-labelledby="mobile-help-title">
+    <div class="container">
+      <h1 id="mobile-help-title">Help</h1>
+      <div class="mobile-help-account">
+        <p>Manage bookings, documents and support requests from My Kridiya.</p>
+        <a class="btn btn-primary" href="login.html?next=account.html%23bookings">Sign in to your account</a>
+      </div>
+
+      <section class="mobile-help-contact" aria-labelledby="mobile-help-contact-title">
+        <h2 id="mobile-help-contact-title">Contact Kridiya</h2>
+        <div class="mobile-help-contact-list">
+          <a href="https://wa.me/971509413873?text=Hello%20Kridiya%20Travel!" target="_blank" rel="noopener"><span><b>WhatsApp</b><small>Send a message to the travel desk</small></span><span aria-hidden="true">›</span></a>
+          <a href="tel:+971509413873"><span><b>Call us</b><small>+971 50 941 3873</small></span><span aria-hidden="true">›</span></a>
+          <a href="mailto:contact@kridiyatravel.com"><span><b>Email</b><small>contact@kridiyatravel.com</small></span><span aria-hidden="true">›</span></a>
+        </div>
+      </section>
+
+      <section class="mobile-help-topics" aria-labelledby="mobile-help-faq-title">
+        <h2 id="mobile-help-faq-title">Common questions</h2>
+        <div class="mobile-help-faq-list">
+          <details>
+            <summary>Where are my quotes and travel documents?</summary>
+            <p>Sign in and open My bookings. Quotes, tickets, vouchers, payment records and refund updates linked to your account appear there.</p>
+          </details>
+          <details>
+            <summary>How do I change or cancel a trip?</summary>
+            <p>Open Help &amp; requests in My Kridiya, or WhatsApp us with your booking reference. Available changes and refunds depend on the supplier rules and current availability.</p>
+          </details>
+          <details>
+            <summary>How do I follow up on an enquiry?</summary>
+            <p>Use <a href="track-enquiry.html">Track an enquiry</a> with your KRD reference and the same email address used for the request.</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="mobile-help-other" aria-labelledby="mobile-help-other-title">
+        <h2 id="mobile-help-other-title">More help</h2>
+        <a href="track-enquiry.html"><span><b>Track an enquiry</b><small>Use your KRD reference</small></span><span aria-hidden="true">›</span></a>
+        <a href="guides/index.html"><span><b>Travel guides</b><small>Practical information before you travel</small></span><span aria-hidden="true">›</span></a>
+        <a href="terms.html"><span><b>Booking terms</b><small>Payment, change and cancellation conditions</small></span><span aria-hidden="true">›</span></a>
+      </section>
+    </div>
+  </section>
+
   <section class="hero page-hero">
     <div class="container">
       <p class="crumbs"><a href="index.html">Home</a> / Contact</p>
@@ -56,32 +104,42 @@
     </div>
   </section>
 
-  <section class="section">
-    <div class="container contact-grid">
-      <div class="contact-details reveal">
-        <h2>Contact details</h2>
-        <ul class="contact-ways">
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg>
-            <div><b>Call us</b><a href="tel:+971509413873">+971 50 941 3873</a></div></li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm4.5 12.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.4-3c-.3-.4 0-.5.2-.7l.4-.5c.1-.2.2-.3.3-.5v-.5c0-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 1.9 3 4.7 4.2 2.1.9 2.6.8 3.4.7.6-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.3z"/></svg>
-            <div><b>WhatsApp</b><a href="https://wa.me/971509413873?text=Hello%20Kridiya%20Travel!" target="_blank" rel="noopener">+971 50 941 3873</a></div></li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
-            <div><b>Email</b><a href="mailto:contact@kridiyatravel.com">contact@kridiyatravel.com</a></div></li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
-            <div><b>Service area</b><span>United Arab Emirates</span></div></li>
-        </ul>
-        <div class="contact-social">
-          <h3>Social channels</h3>
-          <ul>
-            <li><a href="https://www.instagram.com/kridiyatravel/" target="_blank" rel="noopener">Instagram <span>@kridiyatravel</span></a></li>
-            <li><a href="https://www.facebook.com/profile.php?id=61592086520680" target="_blank" rel="noopener">Facebook <span>Kridiya Travel</span></a></li>
-            <li><a href="https://www.linkedin.com/company/kridiya-travel/" target="_blank" rel="noopener">LinkedIn <span>Kridiya Travel</span></a></li>
-          </ul>
-        </div>
+  <section class="section contact-first" aria-labelledby="contact-first-title">
+    <div class="container">
+      <div class="contact-first-heading reveal">
+        <h2 id="contact-first-title">Contact us</h2>
+        <p>Choose the fastest way to reach the Kridiya travel desk.</p>
       </div>
+      <div class="contact-first-actions reveal">
+        <a href="https://wa.me/971509413873?text=Hello%20Kridiya%20Travel!" target="_blank" rel="noopener"><b>WhatsApp</b><span>+971 50 941 3873</span></a>
+        <a href="tel:+971509413873"><b>Call us</b><span>+971 50 941 3873</span></a>
+        <a href="mailto:contact@kridiyatravel.com"><b>Email</b><span>contact@kridiyatravel.com</span></a>
+      </div>
+      <p class="contact-service-area">Service area: United Arab Emirates</p>
+    </div>
+  </section>
 
+  <section class="section tight contact-faq-section" aria-labelledby="contact-faq-title">
+    <div class="container contact-faq-layout">
+      <div>
+        <h2 id="contact-faq-title">Frequently asked questions</h2>
+        <p>Answers for common enquiry, booking and account questions.</p>
+      </div>
+      <div class="faq contact-faq-list">
+        <details id="faq-changes"><summary>I need to change or cancel a trip. What should I do?</summary><p>Sign in to My Kridiya and open Help &amp; requests, or WhatsApp us with your booking reference. Changes, cancellations and refunds depend on the supplier rules, current availability and any applicable charges.</p></details>
+        <details id="faq-bookings"><summary>Where can I find my quote, documents and payment updates?</summary><p>Sign in and open My bookings. Quotes, available travel documents, payment records and refund updates linked to your account appear there.</p></details>
+        <details id="faq-track"><summary>How do I track an enquiry?</summary><p>Open <a href="track-enquiry.html">Track an enquiry</a> and enter your KRD reference with the same email address used for the request.</p></details>
+        <details><summary>Can I send passport or card details in the contact form?</summary><p>No. Do not send passport copies, card details or ID numbers in this form. The travel team will provide the appropriate secure instructions when documents or payment are required.</p></details>
+        <details><summary>When should I call instead of using the form?</summary><p>Call or WhatsApp if you are travelling soon or an existing trip needs prompt attention. For a new trip or a general question, the form below is suitable.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <nav class="container consumer-help-links" aria-label="Travel help"><a href="track-enquiry.html"><b>Track an enquiry</b><span>Follow up using your KRD reference.</span></a><a href="account.html#bookings"><b>My bookings &amp; documents</b><span>See travel linked to your account.</span></a><a href="account.html#support"><b>Changes &amp; cancellations</b><span>Send a request to the travel team.</span></a></nav>
+  <section class="section contact-form-section">
+    <div class="container contact-grid contact-grid-form-only">
       <div class="contact-card reveal">
-        <h2 style="font-size:1.35rem">Send us a message</h2>
+        <h2 id="contact-form-title">Send us a message</h2>
         <form class="form-grid" method="POST" action="https://formsubmit.co/contact@kridiyatravel.com" data-formsubmit data-enquiry-type="Contact message" novalidate>
           <input type="hidden" name="_subject" value="Contact Form - kridiyatravel.com">
           <input type="hidden" name="_captcha" value="false">
@@ -124,11 +182,23 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   var requestedTopic = new URLSearchParams(location.search).get("topic");
   if (requestedTopic && form && Array.from(form.Topic.options).some(function (option) { return option.value === requestedTopic; })) form.Topic.value = requestedTopic;
+  document.querySelectorAll("[data-help-faq-target]").forEach(function (link) {
+    link.addEventListener("click", function (event) {
+      var details = document.getElementById(link.dataset.helpFaqTarget);
+      if (!details) return;
+      event.preventDefault();
+      details.open = true;
+      details.scrollIntoView({ block: "start", behavior: "smooth" });
+      details.querySelector("summary").focus({ preventScroll: true });
+      history.replaceState(null, "", "#" + details.id);
+    });
+  });
 });
 </script>
 <script src="js/motion.js?v=20260921complete2" defer></script>
 <script src="js/motion-controls.js?v=20260921complete2" defer></script>
-<script src="js/main.js?v=20260929release2" defer></script>
-<script src="js/auth.js?v=20260921complete2" defer></script>
+<script src="js/main.js?v=20261024consent7" defer></script>
+<script src="js/auth.js?v=20261004all1" defer></script>
+<script src="js/consumer-ui.js?v=20261004account3" defer></script>
 </body>
 </html>

@@ -84,7 +84,7 @@
 .motion-choice .t-check { width: 18px; height: 18px; border: 1px solid var(--line-strong); border-radius: 3px; background: var(--surface); color: white; padding: 3px; }
 .motion-choice .t-check[aria-checked="true"] { background: var(--brand-deep); border-color: var(--brand-deep); }
 .motion-choice svg { width: 100%; height: 100%; display: block; }
-.motion-choice:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 3px; }
+.motion-choice:has(input:focus-visible) { outline: none; background: var(--brand-soft); }
 .motion-choice.is-disabled { opacity: 0.5; }
 .motion-choice.is-disabled input { cursor: default; }
 .motion-choice.motion-switch { width: 34.66px; flex-basis: 34.66px; height: 20px; }
@@ -121,7 +121,7 @@
 /* Keep keyboard selection immediate; pointer activation retains supplied motion. */
 .motion-instant *, .motion-instant *::before { transition: none !important; animation: none !important; }
 .motion-dialog-input { width: 100%; padding: 12px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); font: inherit; margin-bottom: 20px; resize: vertical; }
-.motion-dialog-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.motion-dialog-input:focus-visible { outline: none; border-color: var(--ink); }
 .editorial-fallback { object-fit: contain !important; padding: 24px; background: var(--brand-soft); }
 .widget-tab:active, .nav-toggle:active, .cal-nav:active, .stepper button:active { scale: 0.97; }
 .carousel-nav-btn:active { scale: 0.97; }

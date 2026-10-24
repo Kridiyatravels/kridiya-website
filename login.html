@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="js/locale-boot.js"></script>
 <title>Customer Login - Kridiya Travel and Tourism</title>
 <meta name="description" content="Log in to your Kridiya Travel account to view your enquiries and manage your profile.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,44 +15,129 @@
 <link rel="stylesheet" href="css/styles.css?v=20260929release2">
 <link rel="stylesheet" href="css/motion.css?v=20260929release2">
 <link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
+<link rel="stylesheet" href="css/homepage.css?v=20261004all1">
+<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive8">
 </head>
-<body data-page="login">
+<body class="consumer-site" data-page="login">
+<a class="home-skip" href="#main-content">Skip to content</a>
 <header id="site-header" class="site-header"></header>
-<main>
+<main id="main-content">
   <div class="container auth-wrap">
     <div class="auth-shell">
-      <section class="auth-card auth-card--login">
-        <h1>Sign in</h1>
-        <form id="login-form" class="form-grid" method="post" novalidate>
+      <section class="auth-card auth-card--login" id="sign-in-form" role="dialog" aria-modal="true" aria-labelledby="sign-in-title">
+        <div class="auth-sheet-head">
+          <span class="auth-sheet-handle" aria-hidden="true"></span>
+          <h1 id="sign-in-title">Sign in</h1>
+          <button class="auth-close" type="button" data-auth-close aria-label="Close sign in"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+        <p class="auth-intro">Use the email address or mobile number saved on your Kridiya account.</p>
+        <form id="login-form" class="form-grid" method="post" data-mode="otp-request" novalidate>
           <div class="form-banner error" hidden role="alert"></div>
           <div class="field">
-            <label for="lg-email">EMAIL</label>
-            <input id="lg-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+            <label for="lg-identifier">EMAIL OR PHONE</label>
+            <input id="lg-identifier" name="identifier" type="text" autocomplete="username" required aria-describedby="login-identifier-hint" dir="ltr" placeholder="name@example.com / +971 50 123 4567">
+            <span class="field-hint" id="login-identifier-hint">Include the country code for mobile numbers.</span>
           </div>
-          <div class="field">
+          <div class="field" id="login-password-field" hidden>
             <label for="lg-pass">PASSWORD</label>
             <div class="pw-wrap">
-              <input id="lg-pass" name="password" type="password" autocomplete="current-password" required placeholder="Your password">
+              <input id="lg-pass" name="password" type="password" autocomplete="current-password" placeholder="Your password">
               <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button>
             </div>
           </div>
-          <div class="auth-form-row auth-form-row--end">
+          <div class="field" id="login-code-field" hidden>
+            <label for="lg-code">ONE-TIME CODE</label>
+            <input id="lg-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" dir="ltr" placeholder="6-digit code">
+          </div>
+          <div class="auth-form-row auth-form-row--end" id="login-forgot-row" hidden>
             <a href="forgot-password.html">Forgot password?</a>
           </div>
-          <button class="btn btn-primary btn-block btn-lg" type="submit" data-label="Log in">Log in</button>
+          <button class="btn btn-primary btn-block btn-lg" type="submit" data-label="Send one-time code">Send one-time code</button>
+          <div class="auth-method-row">
+            <button class="auth-method-toggle" id="auth-method-toggle" type="button">Use password instead</button>
+            <button class="auth-method-toggle" id="otp-change-identifier" type="button" hidden>Change email or phone</button>
+          </div>
         </form>
+        <div class="auth-provider-divider" role="separator" aria-label="Alternative sign-in option">
+          <span>or</span>
+        </div>
+        <button class="auth-google-btn" id="google-login-btn" type="button">
+          <svg aria-hidden="true" viewBox="0 0 18 18" focusable="false">
+            <path fill="#4285F4" d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.715v2.259h2.909c1.702-1.567 2.684-3.876 2.684-6.615Z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.91-2.259c-.805.54-1.835.859-3.046.859-2.344 0-4.328-1.585-5.037-3.714H.956v2.332A9 9 0 0 0 9 18Z"/>
+            <path fill="#FBBC05" d="M3.963 10.706A5.42 5.42 0 0 1 3.681 9c0-.592.102-1.167.282-1.706V4.962H.956A9 9 0 0 0 0 9c0 1.452.347 2.827.956 4.038l3.007-2.332Z"/>
+            <path fill="#EA4335" d="M9 3.58c1.322 0 2.508.455 3.441 1.346l2.582-2.582C13.463.892 11.427 0 9 0A9 9 0 0 0 .956 4.962l3.007 2.332C4.672 5.165 6.656 3.58 9 3.58Z"/>
+          </svg>
+          <span class="auth-provider-label">Continue with Google</span>
+        </button>
         <div class="auth-actions" aria-label="Other account options">
           <a href="register.html">Create account</a>
           <a href="track-enquiry.html">Track an enquiry</a>
         </div>
       </section>
+      <nav class="account-access-directory" aria-labelledby="account-access-title">
+        <div class="account-access-intro">
+          <h1 id="account-access-title">Log in to manage your bookings</h1>
+          <a class="btn btn-primary account-access-login" href="#sign-in-form">Log in</a>
+          <p>Don't have an account? <a href="register.html">Sign up</a></p>
+        </div>
+        <section class="account-access-group">
+          <h3>My details</h3>
+          <a data-account-icon="suitcase" href="login.html?next=account.html%23bookings"><span><b>Bookings</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="passport" href="login.html?next=account.html%23profile"><span><b>Personal information</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="passport" href="login.html?next=account.html%23travellers"><span><b>Saved travellers</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="shield" href="forgot-password.html"><span><b>Security</b><small>Password help</small></span><span aria-hidden="true">›</span></a>
+        </section>
+        <section class="account-access-group">
+          <h3>Payments</h3>
+          <a data-account-icon="payment" href="login.html?next=account.html%23payments"><span><b>Payments &amp; refunds</b></span><span aria-hidden="true">›</span></a>
+        </section>
+        <section class="account-access-group">
+          <h3>Preferences</h3>
+          <a data-account-icon="plane" href="login.html?next=account.html%23travel-updates"><span><b>Travel updates</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="mail" href="login.html?next=account.html%23notifications"><span><b>Notifications</b></span><span aria-hidden="true">›</span></a>
+          <div class="account-access-language">
+            <button type="button" data-account-icon="globe" data-language-menu-trigger aria-expanded="false" aria-controls="account-language-menu">
+              <span><b>Language</b><small translate="no">English / العربية</small></span><span aria-hidden="true">⌄</span>
+            </button>
+            <div class="account-language-menu" id="account-language-menu" hidden>
+              <button type="button" lang="en" translate="no" data-site-language-switch="en">English</button>
+              <button type="button" lang="ar" dir="rtl" translate="no" data-site-language-switch="ar">العربية</button>
+            </div>
+          </div>
+        </section>
+        <section class="account-access-group">
+          <h3>Help and information</h3>
+          <a data-account-icon="phone" href="contact.html"><span><b>Help &amp; requests</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="whatsapp" href="contact.html#contact-form-title"><span><b>Contact the team</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="search" href="track-enquiry.html"><span><b>Track an enquiry</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="document" href="guides/index.html"><span><b>Travel guides</b></span><span aria-hidden="true">›</span></a>
+        </section>
+        <section class="account-access-group">
+          <h3>Legal</h3>
+          <a data-account-icon="shield" href="privacy.html"><span><b>Privacy policy</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="document" href="terms.html"><span><b>Terms &amp; conditions</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="mail" href="unsubscribe.html"><span><b>Unsubscribe from offers</b></span><span aria-hidden="true">›</span></a>
+        </section>
+        <section class="account-access-group account-access-travel">
+          <h3>Plan travel</h3>
+          <a data-account-icon="plane" href="flights.html"><span><b>Flights</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="hotel" href="hotels.html"><span><b>Hotels</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="suitcase" href="holidays.html"><span><b>Holidays</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="passport" href="visa.html"><span><b>Visa</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="kaaba" href="umrah.html"><span><b>Umrah</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="ship" href="cruise.html"><span><b>Cruise</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="briefcase" href="https://corporate.kridiyatravel.com"><span><b>Corporate travel</b></span><span aria-hidden="true">↗</span></a>
+        </section>
+      </nav>
     </div>
   </div>
 </main>
 <footer id="site-footer" class="site-footer"></footer>
 <script src="js/motion.js?v=20260921complete2" defer></script>
 <script src="js/motion-controls.js?v=20260921complete2" defer></script>
-<script src="js/main.js?v=20260929release2" defer></script>
-<script src="js/auth.js?v=20260921complete2" defer></script>
+<script src="js/main.js?v=20261024consent7" defer></script>
+<script src="js/auth.js?v=20261004all1" defer></script>
+<script src="js/consumer-ui.js?v=20261004account3" defer></script>
 </body>
 </html>

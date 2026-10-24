@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="js/locale-boot.js"></script>
 <title>My Account - Kridiya Travel and Tourism</title>
 <meta name="description" content="Manage your Kridiya Travel profile and view your enquiry history.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,47 +15,71 @@
 <link rel="stylesheet" href="css/styles.css?v=20260929release2">
 <link rel="stylesheet" href="css/motion.css?v=20260929release2">
 <link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
+<link rel="stylesheet" href="css/homepage.css?v=20261004all1">
+<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive8">
 </head>
-<body data-page="account">
+<body class="consumer-site account-auth-loading" data-page="account">
+<a class="home-skip" href="#main-content">Skip to content</a>
 <header id="site-header" class="site-header"></header>
-<main>
+<main id="main-content">
+  <section class="signed-out-bookings" id="signed-out-bookings" hidden aria-labelledby="signed-out-bookings-title">
+    <header class="signed-out-bookings-head">
+      <a href="index.html" aria-label="Back to home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10 5-7 7 7 7M3 12h18"/></svg></a>
+      <h1 id="signed-out-bookings-title">My bookings</h1>
+      <button type="button" aria-label="Refresh bookings" data-bookings-refresh><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+    </header>
+    <div class="signed-out-bookings-empty">
+      <h2>Log in to manage your trips</h2>
+      <p>Track your requests, confirmed bookings, documents and support updates.</p>
+      <a class="btn btn-primary" href="login.html?next=account.html%23bookings#sign-in-form">Log in</a>
+    </div>
+  </section>
   <section class="section">
     <div class="container">
       <div class="account-head">
         <div>
-          <h1>My account</h1>
-          <p>Manage your Kridiya Travel profile, booking updates, and account security.</p>
+          <h1 id="acc-given-name">My account</h1>
+          <p id="acc-head-since">Your travel, details and support in one place.</p>
         </div>
         <a class="btn btn-primary" href="index.html">New enquiry</a>
       </div>
       <div class="account-grid">
         <aside class="account-side account-profile-card">
+          <div class="account-identity">
           <div class="avatar" id="acc-avatar" aria-hidden="true">?</div>
           <h2 class="account-profile-name" id="acc-name">Loading...</h2>
           <p class="account-profile-email" id="acc-email">Loading...</p>
           <p class="account-profile-since" id="acc-since"></p>
+          </div>
+          <div class="account-side-stats" aria-label="Your travel at a glance">
+            <div><b data-account-total="bookings">—</b><span>Bookings</span></div>
+            <div><b data-account-total="enquiries">—</b><span>Enquiries</span></div>
+            <div><b data-account-total="quotes">—</b><span>Quotes</span></div>
+          </div>
+          <nav class="consumer-account-nav" aria-label="My Kridiya">
+            <h3>My details</h3>
+            <a href="#bookings">Bookings</a>
+            <a href="#profile">Personal information</a>
+            <a href="#travellers">Saved travellers</a>
+            <a href="#security">Security</a>
+            <h3>Payments</h3>
+            <a href="#payments">Payments &amp; refunds</a>
+            <h3>Preferences</h3>
+            <a href="#travel-updates">Travel updates</a>
+            <a href="#notifications">Notifications</a>
+            <h3>Help and information</h3>
+            <a href="#support">Help &amp; requests</a>
+            <a href="#contact-team">Contact the team</a>
+          </nav>
           <a class="btn btn-primary btn-block" href="index.html">New enquiry</a>
-          <button class="btn btn-outline btn-block" id="logout-btn" type="button">Log out</button>
+          <button class="btn btn-outline btn-block" id="logout-btn" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M14 8l4 4-4 4m4-4H8"/></svg>
+            <span>Log out</span>
+          </button>
         </aside>
 
         <div class="account-content-stack">
-          <div class="account-main customer-portal-overview">
-            <div class="account-section-head">
-              <div>
-                <h2>Portal overview</h2>
-                <p>View travel requests, quotes, bookings and required actions linked to your account.</p>
-              </div>
-              <a href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp team</a>
-            </div>
-            <div class="account-summary" id="portal-summary">
-              <div><span>0</span><b>Total items</b><small>Bookings and enquiries</small></div>
-              <div><span>0</span><b>Quotes</b><small>Options from our team</small></div>
-              <div><span>0</span><b>Requests</b><small>Documents or replies needed</small></div>
-            </div>
-            <div id="portal-next-action" class="portal-next-action"></div>
-          </div>
-
-          <div class="account-main">
+          <div class="account-main" id="travellers" data-account-section role="region" aria-label="Travellers">
             <div class="account-section-head">
               <div>
                 <h2>My travellers</h2>
@@ -80,7 +105,7 @@
             </form>
           </div>
 
-          <div class="account-main">
+          <div class="account-main" id="bookings" data-account-section role="region" aria-label="Bookings & enquiries">
             <div class="account-section-head">
               <div>
                 <h2>My bookings and enquiries</h2>
@@ -88,19 +113,26 @@
               </div>
               <a href="contact.html">Need a booking added?</a>
             </div>
-            <div id="enq-list">
-              <div class="empty-state">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12h-4a3 3 0 0 1-6 0H5V5h14v10z"/></svg>
-                <p><b>No bookings linked yet.</b><br>Send an enquiry or ask our team to attach an existing booking to your account.</p>
-                <div class="empty-actions">
-                  <a class="btn btn-primary" href="index.html">Start planning</a>
-                  <a class="btn btn-outline" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a>
-                </div>
+            <div class="account-booking-toolbar">
+              <div class="account-booking-filters" role="group" aria-label="Filter your travel" hidden>
+                <button type="button" data-travel-filter="all" aria-pressed="true">All</button>
+                <button type="button" data-travel-filter="booking" aria-pressed="false">Bookings</button>
+                <button type="button" data-travel-filter="enquiry" aria-pressed="false">Enquiries</button>
               </div>
+              <button type="button" class="account-refresh" id="refresh-travel" disabled><span aria-hidden="true">↻</span> Refresh</button>
             </div>
+            <p class="account-filter-status" id="travel-filter-status" role="status"></p>
+            <div id="enq-list" aria-busy="true"><p class="form-note" role="status">Loading your bookings and enquiries…</p></div>
+            <div class="empty-state" id="travel-filter-empty" hidden><p>No items in this view.</p><button class="btn btn-outline" type="button" data-travel-filter="all">Show all travel</button></div>
           </div>
 
-          <div class="account-main">
+          <div class="account-main" id="payments" data-account-section role="region" aria-label="Payments and refunds">
+            <div class="account-section-head"><div><h2>Payments &amp; refunds</h2><p>Payment records, receipts and refund updates linked to your bookings and enquiries.</p></div></div>
+            <div id="account-payment-list" aria-busy="true"><p class="form-note" role="status">Loading payments…</p></div>
+            <a class="btn btn-outline" href="#bookings">View bookings</a>
+          </div>
+
+          <div class="account-main" id="support" data-account-section role="region" aria-label="Help & requests">
             <div class="account-section-head">
               <div>
                 <h2>Request help</h2>
@@ -124,23 +156,29 @@
             </form>
           </div>
 
-          <div class="account-main">
+          <div class="account-main" id="profile" data-account-section role="region" aria-label="My profile">
             <div class="account-section-head">
               <div>
-                <h2>Profile</h2>
+                <h2>Personal information</h2>
                 <p>Keep this updated so quotes and booking follow-ups reach the right person.</p>
               </div>
             </div>
             <form id="profile-form" class="form-grid" novalidate>
-              <div class="field-row">
-                <div class="field col-6"><label for="pf-name">FULL NAME</label><input id="pf-name" name="name" required></div>
-                <div class="field col-6"><label for="pf-phone">PHONE / WHATSAPP</label><input id="pf-phone" name="phone" type="tel" required></div>
-              </div>
+              <div class="form-banner" role="status" hidden></div>
+              <fieldset class="account-form-section">
+                <legend>Personal details</legend>
+                <div class="field"><label for="pf-name">Full name</label><input id="pf-name" name="name" required autocomplete="name"></div>
+              </fieldset>
+              <fieldset class="account-form-section">
+                <legend>Contact details</legend>
+                <div class="field"><label for="pf-phone">Phone / WhatsApp</label><input id="pf-phone" name="phone" type="tel" required autocomplete="tel"></div>
+                <div class="field"><label for="pf-email">Email address</label><input id="pf-email" type="email" readonly aria-describedby="pf-email-note"><span class="sub" id="pf-email-note">Your sign-in email. Contact our team if you need to change it.</span></div>
+              </fieldset>
               <div><button class="btn btn-primary" type="submit">Save changes</button></div>
             </form>
           </div>
 
-          <div class="account-main">
+          <div class="account-main" id="notifications" data-account-section role="region" aria-label="Notifications">
             <div class="account-section-head">
               <div>
                 <h2>Notifications</h2>
@@ -165,12 +203,12 @@
             <div id="communication-history"><p class="form-note">Loading communication history...</p></div>
           </div>
 
-          <div class="account-main">
+          <div class="account-main" id="travel-updates" data-account-section role="region" aria-label="Travel updates">
             <div class="account-section-head"><div><h2>Travel disruption updates</h2><p>Verified operational updates for your affected bookings appear here.</p></div></div>
             <div id="travel-disruption-updates"><p class="form-note">Loading disruption updates...</p></div>
           </div>
 
-          <div class="account-main">
+          <div class="account-main" id="security" data-account-section role="region" aria-label="Security">
             <div class="account-section-head">
               <div>
                 <h2>Security</h2>
@@ -193,7 +231,7 @@
             </form>
           </div>
 
-          <div class="account-main">
+          <div class="account-main" id="contact-team" data-account-section role="region" aria-label="Contact the team">
             <div class="account-section-head">
               <div>
                 <h2>Support</h2>
@@ -215,8 +253,9 @@
 <footer id="site-footer" class="site-footer"></footer>
 <script src="js/motion.js?v=20260921complete2" defer></script>
 <script src="js/motion-controls.js?v=20260921complete2" defer></script>
-<script src="js/main.js?v=20260929release2" defer></script>
-<script src="js/auth.js?v=20260921complete2" defer></script>
-<script src="js/search.js?v=20260921complete2" defer></script>
+<script src="js/main.js?v=20261024consent7" defer></script>
+<script src="js/auth.js?v=20261004account3" defer></script>
+<script src="js/search.js?v=20260920motion" defer></script>
+<script src="js/consumer-ui.js?v=20261004account3" defer></script>
 </body>
 </html>

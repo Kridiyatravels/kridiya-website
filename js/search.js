@@ -198,7 +198,10 @@ function initMonthPickers(scope) {
         }).join('') + '</div>';
     }
     function open() {
-      scope.querySelectorAll('.cal-pop').forEach(function (other) { if (other !== pop && other._close) other._close(); });
+      document.querySelectorAll('.cal-pop').forEach(function (other) { if (other !== pop && other._close) other._close(); });
+      const phoneHome = window.matchMedia('(max-width: 560px)').matches && document.body.matches('.consumer-site[data-page="home"]');
+      const host = phoneHome ? document.body : field;
+      if (pop.parentElement !== host) host.appendChild(pop);
       year = hidden.value ? Number(hidden.value.slice(0, 4)) : new Date().getFullYear();
       render();
       if (window.KridiyaMotion) KridiyaMotion.dropdown(pop, true); else pop.hidden = false;
@@ -236,7 +239,9 @@ function initMonthPickers(scope) {
       const next = enabled[enabled.indexOf(month) + offset];
       if (next) next.focus();
     });
-    document.addEventListener('pointerdown', function (event) { if (!pop.hidden && !field.contains(event.target)) close(); });
+    document.addEventListener('pointerdown', function (event) {
+      if (!pop.hidden && !field.contains(event.target) && !pop.contains(event.target)) close();
+    });
     document.addEventListener('keydown', function (event) { if (!pop.hidden && event.key === 'Escape') { close(); btn.focus(); } });
     if (form && field.dataset.required) {
       form.addEventListener('submit', function (event) {
@@ -336,7 +341,10 @@ function initDatePickers(scope) {
     }
 
     function open() {
-      scope.querySelectorAll(".cal-pop").forEach(function (p) { if (p !== pop) { if (p._close) p._close(); else p.hidden = true; } });
+      document.querySelectorAll(".cal-pop").forEach(function (p) { if (p !== pop) { if (p._close) p._close(); else p.hidden = true; } });
+      const phoneHome = window.matchMedia("(max-width: 560px)").matches && document.body.matches('.consumer-site[data-page="home"]');
+      const host = phoneHome ? document.body : field;
+      if (pop.parentElement !== host) host.appendChild(pop);
       const min = minISO();
       const max = maxISO();
       const base = hidden.value || min || max || todayISO(0);
@@ -376,7 +384,7 @@ function initDatePickers(scope) {
       if (cell) { setValue(cell.dataset.iso); close(); }
     });
     document.addEventListener("pointerdown", function (e) {
-      if (!pop.hidden && !field.contains(e.target)) close();
+      if (!pop.hidden && !field.contains(e.target) && !pop.contains(e.target)) close();
     });
     document.addEventListener("keydown", function (e) {
       if (!pop.hidden && e.key === "Escape") { close(); btn.focus(); }

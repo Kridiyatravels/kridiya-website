@@ -5,6 +5,86 @@
 
 document.documentElement.classList.add("js");
 
+/* ---------- Region and language boundary ----------
+   UAE hosts may offer English and Arabic. India and international hosts stay
+   English-only. The query parameter is a local/preview aid and is not needed
+   on the regional production hosts. Privacy and terms remain bilingual legal
+   documents, with English first and Arabic following in the same page. */
+const KRIDIYA_LOCALE = (function () {
+  const boot = window.KRIDIYA_LOCALE_BOOT;
+  const params = new URLSearchParams(location.search);
+  const host = location.hostname.toLowerCase();
+  const firstPathSegment = location.pathname.split("/").filter(Boolean)[0]?.toLowerCase() || "";
+  const previewRegion = params.get("region");
+  const region = boot?.region || (["ae", "in", "en"].includes(previewRegion) ? previewRegion
+    : host.endsWith(".in") || firstPathSegment === "in" ? "in"
+    : firstPathSegment === "en" || host.startsWith("global.") ? "en"
+    : "ae");
+  const page = location.pathname.split("/").pop() || "index.html";
+  const bilingualLegalPage = page === "privacy.html" || page === "terms.html";
+  const storageKey = "kridiya_language_ae";
+  let stored = "";
+  try { stored = localStorage.getItem(storageKey) || ""; } catch (error) { /* Storage can be unavailable. */ }
+  const requested = params.get("lang");
+  const browserPrefersArabic = (navigator.languages || [navigator.language || "en"])
+    .some(function (value) { return /^ar(?:-|$)/i.test(value); });
+  const language = boot?.language || (region === "ae" && !bilingualLegalPage
+    ? (["en", "ar"].includes(requested) ? requested : ["en", "ar"].includes(stored) ? stored : browserPrefersArabic ? "ar" : "en")
+    : "en");
+
+  document.documentElement.dataset.siteRegion = region;
+  document.documentElement.dataset.siteLanguage = language;
+  document.documentElement.lang = language;
+  document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+
+  let ready = Promise.resolve();
+  if (language === "ar") {
+    ready = new Promise(function (resolve) {
+      const script = document.createElement("script");
+      const mainSource = document.currentScript && document.currentScript.src
+        ? document.currentScript.src
+        : new URL("js/main.js", document.baseURI).href;
+      const localizationSource = new URL("localization-ar.js", mainSource);
+      localizationSource.search = new URL(mainSource).search;
+      script.src = localizationSource.href;
+      script.defer = true;
+      script.onload = resolve;
+      script.onerror = function () {
+        console.error("Arabic localisation could not be loaded. Returning to English.");
+        try { localStorage.setItem(storageKey, "en"); } catch (error) { /* Storage can be unavailable. */ }
+        document.documentElement.lang = "en";
+        document.documentElement.dir = "ltr";
+        document.documentElement.dataset.siteLanguage = "en";
+        resolve();
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  function setLanguage(next) {
+    if (region !== "ae" || bilingualLegalPage || !["en", "ar"].includes(next)) return;
+    try { localStorage.setItem(storageKey, next); } catch (error) { /* Storage can be unavailable. */ }
+    const nextURL = new URL(location.href);
+    nextURL.searchParams.delete("lang");
+    location.assign(nextURL.href);
+  }
+
+  return {
+    region: region,
+    language: language,
+    isBilingualLegalPage: bilingualLegalPage,
+    canChooseArabic: region === "ae" && !bilingualLegalPage,
+    ready: ready,
+    setLanguage: setLanguage,
+    text: function (english) {
+      return language === "ar" && window.KRIDIYA_AR_TRANSLATIONS
+        ? (window.KRIDIYA_AR_TRANSLATIONS[english] || english)
+        : english;
+    }
+  };
+})();
+window.KridiyaLocale = KRIDIYA_LOCALE;
+
 /* ---------- Business config ---------- */
 const KRIDIYA = {
   brand: "Kridiya Travel",
@@ -30,6 +110,10 @@ const KRIDIYA_GA4_MEASUREMENT_ID = "G-LB1TW8J03E";
 const KRIDIYA_META_DATASET_ID = "1584188866628210";
 const ANALYTICS_CONSENT_KEY = "kridiya_analytics_consent";
 const MARKETING_CONSENT_KEY = "kridiya_marketing_measurement_consent";
+const COOKIE_CONSENT_RECORD_KEY = "kridiya_cookie_consent_record";
+const COOKIE_CONSENT_MANAGE_KEY = "kridiya_cookie_manage_on_load";
+const COOKIE_CONSENT_VERSION = "2026-10-24";
+const COOKIE_CONSENT_MAX_AGE_MS = 180 * 24 * 60 * 60 * 1000;
 
 function isPublicMeasurementPage() {
   return /^\/(?:index|about|contact|flights|hotels|holidays|umrah|cruise|visa|privacy|terms)?(?:\.html)?$/.test(location.pathname) ||
@@ -56,9 +140,75 @@ const ATTRIBUTION_LAST_KEY = "kridiya_last_touch";
 function safeStorage(storage, action, key, value) {
   try {
     if (action === "get") return storage.getItem(key);
+    if (action === "remove") return storage.removeItem(key);
     storage.setItem(key, value);
   } catch (e) { /* Storage may be blocked; attribution stays best-effort. */ }
   return null;
+}
+
+function globalPrivacyControlEnabled() {
+  return navigator.globalPrivacyControl === true;
+}
+
+function readCookieConsentRecord() {
+  const raw = safeStorage(localStorage, "get", COOKIE_CONSENT_RECORD_KEY);
+  if (!raw) return null;
+  try {
+    const record = JSON.parse(raw);
+    const updatedAt = Date.parse(record.updatedAt || "");
+    const validChoice = function (value) { return value === "granted" || value === "denied"; };
+    if (record.version !== COOKIE_CONSENT_VERSION ||
+        !validChoice(record.analytics) || !validChoice(record.advertising) ||
+        !Number.isFinite(updatedAt) || Date.now() - updatedAt > COOKIE_CONSENT_MAX_AGE_MS) {
+      return null;
+    }
+    return record;
+  } catch (error) {
+    return null;
+  }
+}
+
+function hasAnalyticsConsent() {
+  const record = readCookieConsentRecord();
+  return Boolean(record && record.analytics === "granted");
+}
+
+function hasMarketingConsent() {
+  const record = readCookieConsentRecord();
+  return Boolean(record && record.advertising === "granted" && !globalPrivacyControlEnabled());
+}
+
+function clearMeasurementCookies(prefixes) {
+  const cookieNames = document.cookie.split(";").map(function (part) {
+    return part.split("=")[0].trim();
+  }).filter(function (name) {
+    return prefixes.some(function (prefix) { return name === prefix || name.startsWith(prefix); });
+  });
+  const host = location.hostname;
+  const domains = [""];
+  if (host && host !== "localhost" && !/^\d+(?:\.\d+){3}$/.test(host)) {
+    domains.push(host, "." + host, "." + host.split(".").slice(-2).join("."));
+  }
+  cookieNames.forEach(function (name) {
+    domains.forEach(function (domain) {
+      document.cookie = name + "=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" +
+        (domain ? "; domain=" + domain : "") + "; SameSite=Lax";
+    });
+  });
+}
+
+function writeCookieConsentRecord(analytics, advertising, source) {
+  const record = {
+    version: COOKIE_CONSENT_VERSION,
+    updatedAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + COOKIE_CONSENT_MAX_AGE_MS).toISOString(),
+    analytics: analytics,
+    advertising: advertising,
+    source: source,
+    globalPrivacyControl: globalPrivacyControlEnabled()
+  };
+  safeStorage(localStorage, "set", COOKIE_CONSENT_RECORD_KEY, JSON.stringify(record));
+  return record;
 }
 
 function setAnalyticsConsent(value, persist) {
@@ -69,6 +219,7 @@ function setAnalyticsConsent(value, persist) {
       localStorage.removeItem(ATTRIBUTION_FIRST_KEY);
       sessionStorage.removeItem(ATTRIBUTION_LAST_KEY);
     } catch (e) { /* Storage can be unavailable. */ }
+    clearMeasurementCookies(["_ga"]);
   }
   if (granted) initGoogleAnalytics();
   if (typeof window.gtag === "function") {
@@ -83,6 +234,7 @@ function setAnalyticsConsent(value, persist) {
 
 function initMetaPixel() {
   // The browser pixel reads the full URL itself. Do not load it on private or parameterised pages.
+  if (!hasMarketingConsent()) return;
   if (!isPublicMeasurementPage() || location.search || location.hash) return;
   if (window.kridiyaMetaPixelLoaded) return;
   window.kridiyaMetaPixelLoaded = true;
@@ -118,20 +270,31 @@ function setMarketingMeasurementConsent(value, persist) {
     safeStorage(localStorage, "set", MARKETING_CONSENT_KEY, granted ? "granted" : "denied");
   }
   if (granted) initMetaPixel();
-  else if (window.fbq) window.fbq("consent", "revoke");
+  else {
+    if (window.fbq) window.fbq("consent", "revoke");
+    clearMeasurementCookies(["_fbp", "_fbc"]);
+  }
+}
+
+function applyCookieConsent(analytics, advertising, source) {
+  const analyticsChoice = analytics === "granted" ? "granted" : "denied";
+  const advertisingChoice = advertising === "granted" && !globalPrivacyControlEnabled() ? "granted" : "denied";
+  writeCookieConsentRecord(analyticsChoice, advertisingChoice, source);
+  setAnalyticsConsent(analyticsChoice, true);
+  setMarketingMeasurementConsent(advertisingChoice, true);
 }
 
 function resetMeasurementConsent() {
-  try {
-    localStorage.removeItem(ANALYTICS_CONSENT_KEY);
-    localStorage.removeItem(MARKETING_CONSENT_KEY);
-  } catch (e) { /* A reload still leaves the existing choice if storage is blocked. */ }
+  setAnalyticsConsent("denied", true);
+  setMarketingMeasurementConsent("denied", true);
+  safeStorage(localStorage, "remove", COOKIE_CONSENT_RECORD_KEY);
+  safeStorage(sessionStorage, "set", COOKIE_CONSENT_MANAGE_KEY, "true");
   location.reload();
 }
 
 function initGoogleAnalytics() {
   if (!isPublicMeasurementPage()) return;
-  if (safeStorage(localStorage, "get", ANALYTICS_CONSENT_KEY) !== "granted") return;
+  if (!hasAnalyticsConsent()) return;
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
 
@@ -161,33 +324,190 @@ function initGoogleAnalytics() {
 }
 
 function initAnalyticsConsentBanner() {
-  const savedAnalytics = safeStorage(localStorage, "get", ANALYTICS_CONSENT_KEY);
-  const savedMarketing = safeStorage(localStorage, "get", MARKETING_CONSENT_KEY);
-  if (savedAnalytics === "granted") initGoogleAnalytics();
-  if (savedMarketing === "granted") initMetaPixel();
-  if (savedAnalytics && savedMarketing) return;
+  const manageOnLoad = safeStorage(sessionStorage, "get", COOKIE_CONSENT_MANAGE_KEY) === "true";
+  if (manageOnLoad) safeStorage(sessionStorage, "remove", COOKIE_CONSENT_MANAGE_KEY);
+  let consentRecord = readCookieConsentRecord();
+  if (consentRecord && globalPrivacyControlEnabled() && consentRecord.advertising === "granted") {
+    applyCookieConsent(consentRecord.analytics, "denied", "global_privacy_control");
+    consentRecord = readCookieConsentRecord();
+  }
+  const savedAnalytics = consentRecord ? consentRecord.analytics : "denied";
+  const savedMarketing = consentRecord ? consentRecord.advertising : "denied";
+  if (consentRecord && !manageOnLoad) {
+    if (savedAnalytics === "granted") initGoogleAnalytics();
+    if (savedMarketing === "granted") initMetaPixel();
+    return;
+  }
 
   const banner = document.createElement("aside");
   banner.className = "analytics-consent";
-  banner.setAttribute("aria-label", "Website measurement privacy choice");
+  banner.setAttribute("role", "dialog");
+  banner.setAttribute("aria-modal", "true");
+  banner.setAttribute("aria-label", "Cookie preferences");
   banner.innerHTML =
-    '<div><b>Privacy choices <span lang="ar" dir="rtl">/ خيارات الخصوصية</span></b><p>Allow analytics and advertising measurement? <span lang="ar" dir="rtl">هل تسمح بقياس التحليلات والإعلانات؟</span> <a href="privacy.html#measurement">Details / <span lang="ar" dir="rtl">التفاصيل</span></a></p></div>' +
+    '<div class="analytics-consent-copy"><b>Cookies</b><p>Essential storage keeps this website working. With your choice, Google Analytics helps us understand visits and Meta helps us measure advertising. Optional technologies stay off until you allow them. You can accept all, reject optional cookies or choose each category. Change your choice at any time in our <a href="privacy.html#measurement" data-cookie-policy>Cookies Policy</a>.</p></div>' +
     '<div class="analytics-consent-actions">' +
-      '<button class="btn btn-outline" type="button" data-measurement-choice="denied">No thanks <span lang="ar" dir="rtl">/ لا شكرًا</span></button>' +
-      '<button class="btn btn-outline" type="button" data-measurement-choice="analytics">Analytics only <span lang="ar" dir="rtl">/ التحليلات فقط</span></button>' +
-      '<button class="btn btn-primary" type="button" data-measurement-choice="all">Allow both <span lang="ar" dir="rtl">/ السماح بكليهما</span></button>' +
+      '<button class="btn" type="button" data-measurement-choice="denied">Reject optional</button>' +
+      '<button class="btn" type="button" data-cookie-preferences aria-expanded="false" aria-controls="cookie-preference-options">Choose your preferences</button>' +
+      '<button class="btn btn-primary" type="button" data-measurement-choice="all">Accept all</button>' +
+    "</div>" +
+    '<div class="analytics-consent-preferences" id="cookie-preference-options" hidden>' +
+      '<div class="analytics-consent-preferences-head"><div><b>Cookie preferences</b><p>Choose how KRIDIYA Travel uses optional technologies. Analytics processes page URLs, referrers, campaign details, device information and interaction events. Advertising measurement processes public-page visits, click identifiers and event identifiers. We do not send enquiry text or contact, passport or payment details. Change your choice at any time in our <a href="privacy.html#measurement" data-cookie-policy>Cookies Policy</a>.</p><p class="analytics-consent-gpc" data-cookie-gpc hidden>Global Privacy Control is enabled. Advertising measurement will remain off.</p></div><button type="button" class="analytics-consent-close" data-cookie-preferences-close aria-label="Back to cookie notice">&times;</button></div>' +
+      '<div class="analytics-consent-tabs" role="tablist" aria-label="Cookie preference details"><button type="button" role="tab" aria-selected="true" aria-controls="cookie-categories-panel" id="cookie-categories-tab" data-cookie-tab="categories">Categories</button><button type="button" role="tab" aria-selected="false" aria-controls="cookie-services-panel" id="cookie-services-tab" data-cookie-tab="services" tabindex="-1">Services</button></div>' +
+      '<div class="analytics-consent-tab-panel" id="cookie-categories-panel" role="tabpanel" aria-labelledby="cookie-categories-tab" data-cookie-panel="categories">' +
+        '<div class="analytics-consent-option analytics-consent-option--essential"><span><b>Essential cookies</b><small>Keep core site features, language choices and secure account access working.</small></span><strong>Always active</strong></div>' +
+        '<div class="analytics-consent-option"><span><b>Analytics cookies</b><small>Help us understand visits and improve the website.</small></span><button class="analytics-consent-switch" type="button" role="switch" aria-checked="false" data-cookie-analytics aria-label="Allow analytics cookies"></button></div>' +
+        '<div class="analytics-consent-option"><span><b>Advertising measurement</b><small>Helps us measure whether our advertising leads to useful visits.</small></span><button class="analytics-consent-switch" type="button" role="switch" aria-checked="false" data-cookie-marketing aria-label="Allow advertising measurement"></button></div>' +
+      '</div>' +
+      '<div class="analytics-consent-tab-panel analytics-consent-services" id="cookie-services-panel" role="tabpanel" aria-labelledby="cookie-services-tab" data-cookie-panel="services" hidden>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-kridiya" data-cookie-service><span><b>KRIDIYA browser storage</b><small>Essential</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-kridiya" hidden>Remembers your cookie choice, language, sign-in state and in-progress enquiry details on this device.</div>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-supabase" data-cookie-service><span><b>Supabase</b><small>Essential when you request account or enquiry services</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-supabase" hidden>Provides account authentication, secure sessions, enquiries and customer account services that you request.</div>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-jsdelivr" data-cookie-service><span><b>jsDelivr</b><small>Essential service delivery</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-jsdelivr" hidden>Delivers the Supabase browser library when account or enquiry features need it.</div>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-google-signin" data-cookie-service><span><b>Google sign-in</b><small>Essential when selected</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-google-signin" hidden>Connects to Google only when you choose Continue with Google for account access.</div>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-fonts" data-cookie-service><span><b>Google Fonts</b><small>Site delivery</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-fonts" hidden>Delivers the website typefaces. Google receives ordinary connection data, such as the requesting IP address and browser information.</div>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-unsplash" data-cookie-service><span><b>Unsplash Images</b><small>Site content delivery</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-unsplash" hidden>Delivers travel photographs used on some pages. Unsplash receives ordinary connection data when your browser requests an image.</div>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-formsubmit" data-cookie-service><span><b>FormSubmit</b><small>Requested form delivery</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-formsubmit" hidden>Receives the form details you choose to submit so Kridiya can receive enquiry and newsletter email notifications.</div>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-ga4" data-cookie-service><span><b>Google Analytics 4</b><small>Analytics</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-ga4" hidden>Measures visits and interactions after you allow analytics cookies. Advertising storage and personalisation remain disabled.</div>' +
+        '<button class="analytics-consent-service" type="button" aria-expanded="false" aria-controls="cookie-service-meta" data-cookie-service><span><b>Meta Pixel and Conversions API</b><small>Advertising measurement</small></span><i aria-hidden="true"></i></button><div class="analytics-consent-service-detail" id="cookie-service-meta" hidden>Measures public-page visits and enquiry events after you allow advertising measurement. Contact, passport and payment details are not sent in these events.</div>' +
+      '</div>' +
+      '<div class="analytics-consent-preference-actions"><button class="btn" type="button" data-measurement-choice="denied">Reject optional</button><button class="btn" type="button" data-cookie-save>Save choices</button><button class="btn btn-primary" type="button" data-measurement-choice="all">Accept all</button></div>' +
     "</div>";
 
+  banner.querySelector("[data-cookie-analytics]").setAttribute("aria-checked", savedAnalytics === "granted" ? "true" : "false");
+  banner.querySelector("[data-cookie-marketing]").setAttribute("aria-checked", savedMarketing === "granted" ? "true" : "false");
+  if (globalPrivacyControlEnabled()) {
+    const marketingSwitch = banner.querySelector("[data-cookie-marketing]");
+    marketingSwitch.setAttribute("aria-checked", "false");
+    marketingSwitch.setAttribute("aria-disabled", "true");
+    marketingSwitch.disabled = true;
+    banner.querySelector("[data-cookie-gpc]").hidden = false;
+    banner.querySelectorAll('[data-measurement-choice="all"]').forEach(function (button) {
+      button.textContent = "Accept analytics";
+    });
+  }
+
+  function setPageLocked(locked) {
+    document.body.classList.toggle("cookie-consent-pending", locked);
+    Array.from(document.body.children).forEach(function (element) {
+      if (element === banner || element.tagName === "SCRIPT") return;
+      if (locked && !element.inert) {
+        element.inert = true;
+        element.dataset.cookieConsentInert = "true";
+      } else if (!locked && element.dataset.cookieConsentInert === "true") {
+        element.inert = false;
+        delete element.dataset.cookieConsentInert;
+      }
+    });
+  }
+
+  function closeBanner() {
+    setPageLocked(false);
+    banner.remove();
+  }
+
   banner.addEventListener("click", function (event) {
+    const policyLink = event.target.closest("[data-cookie-policy]");
+    if (policyLink) safeStorage(sessionStorage, "set", "kridiya_cookie_policy_access", "true");
+
+    const preferencesButton = event.target.closest("[data-cookie-preferences]");
+    if (preferencesButton) {
+      const preferences = banner.querySelector(".analytics-consent-preferences");
+      const opening = preferences.hidden;
+      preferences.hidden = !opening;
+      banner.classList.toggle("is-customizing", opening);
+      preferencesButton.setAttribute("aria-expanded", opening ? "true" : "false");
+      if (opening) banner.querySelector('[data-cookie-tab="categories"]').focus();
+      return;
+    }
+
+    const preferencesClose = event.target.closest("[data-cookie-preferences-close]");
+    if (preferencesClose) {
+      const preferences = banner.querySelector(".analytics-consent-preferences");
+      preferences.hidden = true;
+      banner.classList.remove("is-customizing");
+      const chooser = banner.querySelector("[data-cookie-preferences]");
+      chooser.setAttribute("aria-expanded", "false");
+      chooser.focus();
+      return;
+    }
+
+    const tabButton = event.target.closest("[data-cookie-tab]");
+    if (tabButton) {
+      const selected = tabButton.dataset.cookieTab;
+      banner.querySelectorAll("[data-cookie-tab]").forEach(function (button) {
+        const active = button === tabButton;
+        button.setAttribute("aria-selected", active ? "true" : "false");
+        button.tabIndex = active ? 0 : -1;
+      });
+      banner.querySelectorAll("[data-cookie-panel]").forEach(function (panel) {
+        panel.hidden = panel.dataset.cookiePanel !== selected;
+      });
+      return;
+    }
+
+    const serviceButton = event.target.closest("[data-cookie-service]");
+    if (serviceButton) {
+      const detail = banner.querySelector("#" + serviceButton.getAttribute("aria-controls"));
+      const opening = serviceButton.getAttribute("aria-expanded") !== "true";
+      serviceButton.setAttribute("aria-expanded", opening ? "true" : "false");
+      detail.hidden = !opening;
+      return;
+    }
+
+    const consentSwitch = event.target.closest(".analytics-consent-switch");
+    if (consentSwitch) {
+      consentSwitch.setAttribute("aria-checked", consentSwitch.getAttribute("aria-checked") === "true" ? "false" : "true");
+      return;
+    }
+
+    const saveButton = event.target.closest("[data-cookie-save]");
+    if (saveButton) {
+      applyCookieConsent(
+        banner.querySelector("[data-cookie-analytics]").getAttribute("aria-checked") === "true" ? "granted" : "denied",
+        banner.querySelector("[data-cookie-marketing]").getAttribute("aria-checked") === "true" ? "granted" : "denied",
+        "save_choices"
+      );
+      closeBanner();
+      return;
+    }
+
     const button = event.target.closest("[data-measurement-choice]");
     if (!button) return;
     const choice = button.dataset.measurementChoice;
-    setAnalyticsConsent(choice === "denied" ? "denied" : "granted", true);
-    setMarketingMeasurementConsent(choice === "all" ? "granted" : "denied", true);
-    banner.remove();
+    applyCookieConsent(
+      choice === "denied" ? "denied" : "granted",
+      choice === "all" ? "granted" : "denied",
+      choice === "denied" ? "reject_optional" : "accept_all"
+    );
+    closeBanner();
+  });
+
+  banner.addEventListener("keydown", function (event) {
+    const currentTab = event.target.closest && event.target.closest("[data-cookie-tab]");
+    if (currentTab && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+      const tabs = Array.from(banner.querySelectorAll("[data-cookie-tab]"));
+      const currentIndex = tabs.indexOf(currentTab);
+      const nextIndex = event.key === "Home" ? 0
+        : event.key === "End" ? tabs.length - 1
+        : event.key === "ArrowRight" ? (currentIndex + 1) % tabs.length
+        : (currentIndex - 1 + tabs.length) % tabs.length;
+      event.preventDefault();
+      tabs[nextIndex].click();
+      tabs[nextIndex].focus();
+      return;
+    }
+    if (event.key !== "Escape" || !banner.classList.contains("is-customizing")) return;
+    banner.querySelector("[data-cookie-preferences-close]").click();
   });
 
   document.body.appendChild(banner);
+  const policyAccess = /\/privacy(?:\.html)?$/.test(location.pathname) &&
+    safeStorage(sessionStorage, "get", "kridiya_cookie_policy_access") === "true";
+  if (!policyAccess) {
+    setPageLocked(true);
+    requestAnimationFrame(function () { banner.querySelector("[data-cookie-preferences]").focus(); });
+  }
+  if (manageOnLoad) banner.querySelector("[data-cookie-preferences]").click();
 }
 
 function readStoredJSON(storage, key) {
@@ -219,7 +539,7 @@ function sourceFromTouch(touch) {
 }
 
 function captureAttribution() {
-  if (safeStorage(localStorage, "get", ANALYTICS_CONSENT_KEY) !== "granted") return null;
+  if (!hasAnalyticsConsent()) return null;
   const params = new URLSearchParams(location.search);
   const safeLanding = location.pathname;
   const touch = {
@@ -249,7 +569,7 @@ function captureAttribution() {
 }
 
 function attributionPayload() {
-  const enabled = safeStorage(localStorage, "get", ANALYTICS_CONSENT_KEY) === "granted";
+  const enabled = hasAnalyticsConsent();
   const empty = { source: "direct", medium: "none", campaign: "", landing_page: location.pathname,
     referrer: "", traffic_type: "direct", source_basis: "direct", source_confidence: "low" };
   function sanitize(touch) {
@@ -306,7 +626,7 @@ function trackEvent(name, properties, meta) {
     const value = properties && properties[key];
     if (typeof value === "string" && /^[a-zA-Z0-9 _-]{1,80}$/.test(value)) payload[key] = value;
   });
-  if (safeStorage(localStorage, "get", ANALYTICS_CONSENT_KEY) === "granted" && typeof window.gtag === "function") {
+  if (hasAnalyticsConsent() && typeof window.gtag === "function") {
     window.gtag("event", name, payload);
   }
   trackMetaEvent(name, payload, meta);
@@ -314,7 +634,7 @@ function trackEvent(name, properties, meta) {
 
 function trackMetaEvent(name, properties, meta) {
   if (!isPublicMeasurementPage() || location.search || location.hash) return;
-  if (safeStorage(localStorage, "get", MARKETING_CONSENT_KEY) !== "granted" ||
+  if (!hasMarketingConsent() ||
       typeof window.fbq !== "function") return;
 
   const safe = {
@@ -355,7 +675,7 @@ function readCookie(name) {
 
 async function sendMetaLeadServerEvent(eventId, serviceType, enquiryType) {
   if (!isPublicMeasurementPage()) return;
-  if (safeStorage(localStorage, "get", MARKETING_CONSENT_KEY) !== "granted") return;
+  if (!hasMarketingConsent()) return;
   const sb = await KridiyaAuth.client();
   const result = await sb.functions.invoke("meta-conversions", {
     body: {
@@ -411,6 +731,9 @@ const ICONS = {
   plus: "M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z",
   trash: "M6 7h12l-1 13.1c-.1 1-.9 1.9-2 1.9H9c-1.1 0-1.9-.9-2-1.9zm3-3h6l1 2H8zM4 5h16v2H4z",
   route: "M4 6a3 3 0 1 1 4.9 2.3l3 3.6L18 9c-.6-.5-1-1.3-1-2.1a3 3 0 1 1 3.9 2.9l-6.6 6.6a1 1 0 0 1-1.4 0L7 10.6 4 14.3V19h13v2H4a2 2 0 0 1-2-2v-5.3a2 2 0 0 1 .4-1.2l3-4A3 3 0 0 1 4 6z",
+  home: "M12 2.5 2 11h2v10h6v-6h4v6h6V11h2L12 2.5z",
+  help: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 17.8a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6zm1.5-5.2v.6h-3v-1c0-1.8.9-2.7 2-3.5.8-.6 1.3-1 1.3-1.8 0-1-.7-1.7-1.9-1.7-1.1 0-2 .6-2.8 1.6L7 7.1A6 6 0 0 1 12 4.8c3 0 5 1.6 5 4 0 2.1-1.2 3.2-2.5 4.1-.7.6-1 .9-1 1.7z",
+  account: "M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z",
   ship: "M20 21c-1.4 0-2.8-.5-4-1.3-2.4 1.7-5.6 1.7-8 0-1.2.8-2.6 1.3-4 1.3H2v2h2c1.4 0 2.7-.3 4-1 2.5 1.3 5.5 1.3 8 0 1.3.7 2.6 1 4 1h2v-2h-2zM4 11l1.3.4L4 12l-.3-.2-.6 2.1c0 .2 0 .5.1.7L4 15c1.6 0 3-.9 4-2 1 1.1 2.4 2 4 2s3-.9 4-2c1 1.1 2.4 2 4 2l.8-.5c.1-.2.2-.5.1-.7l-1.9-6.7c-.1-.3-.3-.5-.6-.6L20 6.6V4c0-1.1-.9-2-2-2h-3V1H9v3H6c-1.1 0-2 .9-2 2v.6L4 11zM6 6h12v3.9L12 8 6 9.9V6z",
   kaaba: "M12 2 4 6.5v11L12 22l8-4.5v-11L12 2zm0 2.3 5.8 3.3L12 10.9 6.2 7.6 12 4.3zM6 9.2l5 2.9v6.8l-5-2.8V9.2zm7 9.7v-6.8l5-2.9v6.8l-5 2.9z"
 };
@@ -429,6 +752,156 @@ function logoHTML(footer) {
 }
 
 /* ---------- Site chrome ---------- */
+function organizeConsumerFooter(footer) {
+  const container = footer.querySelector(':scope > .container');
+  const grid = footer.querySelector('.footer-grid');
+  const brand = grid.querySelector('.footer-brand');
+  const connect = grid.querySelector('.footer-connect');
+  const newsletter = connect.querySelector('.newsletter-form');
+
+  function link(label, href, options) {
+    const anchor = document.createElement('a');
+    anchor.textContent = label;
+    anchor.href = href;
+    if (options?.external) {
+      anchor.target = '_blank';
+      anchor.rel = 'noopener';
+    }
+    return anchor;
+  }
+
+  function directoryGroup(title, sections, key) {
+    const details = document.createElement('details');
+    details.className = 'footer-directory-group';
+    details.dataset.footerGroup = key;
+    details.open = true;
+    const summary = document.createElement('summary');
+    summary.textContent = title;
+    const body = document.createElement('div');
+    body.className = 'footer-directory-body';
+    sections.forEach(function (section) {
+      const sectionElement = document.createElement('section');
+      sectionElement.className = 'footer-directory-section';
+      const heading = document.createElement('h5');
+      heading.textContent = section.title;
+      const list = document.createElement('ul');
+      list.className = 'footer-links';
+      section.links.forEach(function (item) {
+        const listItem = document.createElement('li');
+        listItem.append(item instanceof HTMLAnchorElement ? item : link(item[0], item[1], item[2]));
+        list.append(listItem);
+      });
+      sectionElement.append(heading, list);
+      body.append(sectionElement);
+    });
+    details.append(summary, body);
+    return details;
+  }
+
+  const identityStrip = document.createElement('section');
+  identityStrip.className = 'footer-identity-strip';
+  identityStrip.setAttribute('aria-label', 'Kridiya Travel');
+  brand.classList.add('footer-identity-main');
+  const quickActions = document.createElement('nav');
+  quickActions.className = 'footer-quick-actions';
+  quickActions.setAttribute('aria-label', 'Contact and account');
+  const whatsapp = link('WhatsApp', waLink(), { external: true });
+  whatsapp.className = 'footer-quick-action footer-quick-action-primary';
+  whatsapp.innerHTML = icon('whatsapp') + '<span class="footer-quick-action-copy"><small>WhatsApp</small><strong>Send your route</strong></span>';
+  const call = link('Call us', 'tel:' + KRIDIYA.phoneTel);
+  call.className = 'footer-quick-action';
+  call.innerHTML = icon('phone') + '<span class="footer-quick-action-copy"><small>Call</small><strong dir="ltr">' + KRIDIYA.phoneDisplay + '</strong></span>';
+  const email = link('Email us', 'mailto:' + KRIDIYA.emails.info);
+  email.className = 'footer-quick-action';
+  email.innerHTML = icon('mail') + '<span class="footer-quick-action-copy"><small>Email</small><strong dir="ltr">' + KRIDIYA.emails.info + '</strong></span>';
+  const account = link('My Kridiya', 'login.html');
+  account.className = 'footer-quick-action';
+  account.innerHTML = '<span class="footer-quick-action-copy"><small>Account</small><strong>My Kridiya</strong></span>';
+  quickActions.append(whatsapp, call, email, account);
+  identityStrip.append(brand, quickActions);
+
+  const routeLinks = [...footer.querySelectorAll('.footer-routes a')];
+  const selectedRoutes = [0, 1, 3, 8].map(function (index) { return routeLinks[index]; }).filter(Boolean);
+  grid.classList.add('footer-directory');
+  grid.replaceChildren(
+    directoryGroup('Book travel', [
+      { title: 'Leisure', links: [
+        ['Flight Booking', 'flights.html'], ['Hotel Booking', 'hotels.html'],
+        ['Holiday Packages', 'holidays.html'], ['Cruise Packages', 'cruise.html'],
+        ['Umrah Packages', 'umrah.html'], ['Visa Services', 'visa.html'],
+        ['Travel Insurance', 'contact.html?topic=Travel%20insurance'],
+      ] },
+      { title: 'For companies', links: [
+        ['Business Travel', 'https://corporate.kridiyatravel.com', { external: true }],
+        ['Corporate Portal', 'https://corporate.kridiyatravel.com/login.html?next=corporate-account.html', { external: true }],
+      ] },
+    ], 'book'),
+    directoryGroup('Manage your trip', [
+      { title: 'Your account', links: [
+        ['Customer Login', 'login.html'], ['Create Account', 'register.html'],
+        ['My bookings', 'account.html#bookings'],
+      ] },
+      { title: 'Booking help', links: [
+        ['Track Enquiry', 'track-enquiry.html'], ['Travel support', 'account.html#support'],
+      ] },
+    ], 'manage'),
+    directoryGroup('Plan and explore', [
+      { title: 'Travel planning', links: [
+        ['Travel Guides', 'guides/'], ['Contact an adviser', 'contact.html'],
+      ] },
+      { title: 'Popular routes', links: selectedRoutes },
+    ], 'plan'),
+    directoryGroup('Kridiya', [
+      { title: 'Company', links: [
+        ['About Us', 'about.html'], ['Contact Us', 'contact.html'],
+      ] },
+      { title: 'Policies', links: [
+        ['Privacy Policy', 'privacy.html'], ['Terms & Conditions', 'terms.html'],
+        ['Unsubscribe from offers', 'unsubscribe.html'],
+      ] },
+    ], 'company')
+  );
+
+  const updates = document.createElement('section');
+  updates.className = 'footer-updates';
+  updates.setAttribute('aria-labelledby', 'footer-updates-title');
+  const title = connect.querySelector('h4:last-of-type');
+  title.id = 'footer-updates-title';
+  const updatesCopy = document.createElement('div');
+  updatesCopy.className = 'footer-updates-copy';
+  const updatesDescription = document.createElement('p');
+  updatesDescription.textContent = 'Optional fare alerts and travel ideas. Unsubscribe whenever you like.';
+  updatesCopy.append(title, updatesDescription);
+  updates.append(updatesCopy, newsletter);
+
+  function disclosure(title, content) {
+    const details = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = title;
+    details.append(summary, content);
+    return details;
+  }
+  const legal = footer.querySelector('.footer-legal');
+  const identitySelector = KRIDIYA_LOCALE.language === 'ar' ? '.footer-identity-ar' : '.footer-identity-en';
+  const identityContent = legal.querySelector(identitySelector);
+  legal.querySelectorAll('.footer-identity-en, .footer-identity-ar').forEach(function (item) {
+    if (item !== identityContent) item.remove();
+  });
+  const identity = disclosure('Company details', identityContent);
+  identity.className = 'footer-company-details';
+  legal.append(identity);
+
+  container.replaceChildren(identityStrip, grid, updates);
+  const mobileDirectory = window.matchMedia('(max-width: 720px)');
+  function syncDirectoryDisclosure() {
+    grid.querySelectorAll('.footer-directory-group').forEach(function (details) {
+      details.open = !mobileDirectory.matches;
+    });
+  }
+  syncDirectoryDisclosure();
+  mobileDirectory.addEventListener('change', syncDirectoryDisclosure);
+}
+
 const NAV_ITEMS = [
   ["index.html", "Home"],
   ["flights.html", "Flights"],
@@ -447,24 +920,85 @@ function currentPage() {
   return p === "" ? "index.html" : p;
 }
 
+function renderMobilePrimaryNavigation(page) {
+  if (!document.body.classList.contains("consumer-site") || page === "account.html") return;
+  const tripPages = ["track-enquiry.html", "thanks.html"];
+  const accountPages = ["login.html", "register.html", "forgot-password.html", "reset-password.html"];
+  const session = window.KridiyaAuth ? KridiyaAuth.session() : null;
+  const items = [
+    ["index.html", "Home", "home", !tripPages.includes(page) && page !== "contact.html" && !accountPages.includes(page)],
+    ["account.html#bookings", "Bookings", "suitcase", tripPages.includes(page)],
+    ["contact.html", "Help", "help", page === "contact.html"],
+    [session ? "account.html#account-menu" : "login.html", "My Kridiya", "account", accountPages.includes(page)]
+  ];
+  const navigation = document.createElement("nav");
+  navigation.className = "mobile-primary-nav";
+  navigation.setAttribute("aria-label", "Mobile navigation");
+  navigation.innerHTML = items.map(function (item) {
+    return '<a href="' + item[0] + '"' + (item[3] ? ' aria-current="page"' : '') + '>' +
+      icon(item[2]) + '<span>' + item[1] + '</span></a>';
+  }).join("");
+  document.body.append(navigation);
+  document.body.classList.add("mobile-primary-navigation-ready");
+}
+
+function initConsumerHeaderMorph(header) {
+  if (!header || !document.body.classList.contains("consumer-site")) return;
+
+  // Phones keep the stable compact header. Larger viewports start with the
+  // navigation integrated into the page, then condense it after the user has
+  // clearly started scrolling.
+  const supportsMorph = window.matchMedia("(min-width: 721px)");
+  let animationFrame = 0;
+  let floating = false;
+
+  function updateHeaderState() {
+    animationFrame = 0;
+    floating = supportsMorph.matches && window.scrollY > (floating ? 2 : 4);
+    header.classList.toggle("is-floating", floating);
+    header.dataset.scrollState = floating ? "floating" : "top";
+  }
+
+  function queueHeaderUpdate() {
+    if (!animationFrame) animationFrame = window.requestAnimationFrame(updateHeaderState);
+  }
+
+  updateHeaderState();
+  window.addEventListener("scroll", queueHeaderUpdate, { passive: true });
+  supportsMorph.addEventListener("change", updateHeaderState);
+}
+
 function renderChrome() {
   const page = currentPage();
+  const consumerHeader = document.body.classList.contains("consumer-site");
+  const homeServices = [
+    ["flights.html", "Flights", "plane"], ["hotels.html", "Hotels", "hotel"],
+    ["holidays.html", "Holidays", "suitcase"], ["visa.html", "Visa", "passport"],
+    ["umrah.html", "Umrah", "kaaba"], ["cruise.html", "Cruise", "ship"]
+  ];
   const header = document.getElementById("site-header");
   if (header) {
+    const session = window.KridiyaAuth ? KridiyaAuth.session() : null;
+    const accountHref = session ? "account.html#account-menu" : "login.html";
+    const accountLabel = session ? "Hi, " + session.name.split(" ")[0] : "Sign in";
     header.innerHTML =
       '<div class="container header-inner">' +
         logoHTML(false) +
         '<button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">' + icon("menu") + "</button>" +
         '<nav class="main-nav" id="main-nav" aria-label="Main navigation"><button class="nav-close btn btn-outline" type="button">Close menu</button><ul>' +
-          NAV_ITEMS.map(function (it) {
+          (consumerHeader ? homeServices : NAV_ITEMS).map(function (it) {
             const cur = it[0] === page ? ' aria-current="page"' : "";
-            return '<li><a href="' + it[0] + '"' + cur + ">" + it[1] + "</a></li>";
+            return '<li><a href="' + it[0] + '"' + cur + ">" + (consumerHeader ? icon(it[2]) + '<span>' + it[1] + '</span>' : it[1]) + "</a></li>";
           }).join("") +
+          (consumerHeader ? '<li class="home-mobile-nav-link"><a href="https://corporate.kridiyatravel.com">Corporate Travel</a></li><li class="home-mobile-nav-link"><a href="track-enquiry.html">Track enquiry</a></li><li class="home-mobile-nav-link"><a href="about.html">About Kridiya</a></li>' : "") +
         "</ul></nav>" +
         '<div class="header-actions">' +
-          '<a class="header-call" href="tel:' + KRIDIYA.phoneTel + '" aria-label="Call Kridiya Travel at ' + KRIDIYA.phoneDisplay + '">' + icon("phone") +
-            "<span>" + KRIDIYA.phoneDisplay + "</span></a>" +
-          '<a class="btn btn-primary" href="login.html" id="account-btn">Login</a>' +
+          (KRIDIYA_LOCALE.canChooseArabic
+            ? '<button class="site-language-switch" type="button" translate="no" data-site-language-switch="' + (KRIDIYA_LOCALE.language === "ar" ? "en" : "ar") + '">' + (KRIDIYA_LOCALE.language === "ar" ? "English" : "العربية") + '</button>'
+            : '') +
+          (consumerHeader ? '<a class="home-corporate-link" href="https://corporate.kridiyatravel.com">Corporate Travel</a><a class="home-help-link" href="contact.html">Help</a>' : '') +
+          '<a class="header-call" href="tel:' + KRIDIYA.phoneTel + '" aria-label="Call Kridiya Travel at ' + KRIDIYA.phoneDisplay + '">' + icon("phone") + "<span>" + KRIDIYA.phoneDisplay + "</span></a>" +
+          '<a class="btn btn-primary" href="' + accountHref + '" id="account-btn">' + (consumerHeader ? accountLabel : "Login") + '</a>' +
         "</div>" +
       "</div>" +
       '<button class="nav-backdrop" aria-hidden="true" tabindex="-1"></button>';
@@ -489,9 +1023,11 @@ function renderChrome() {
       nav.inert = mobileNav.matches && !open;
       backdrop.classList.toggle("show", open);
       toggle.setAttribute("aria-expanded", String(open));
-      if (!toggle.querySelector(".t-icon-swap")) toggle.innerHTML = '<span class="t-icon-swap" aria-hidden="true"><span class="t-icon" data-icon="a">' + icon("menu") + '</span><span class="t-icon" data-icon="b">' + icon("close") + '</span></span>';
-      toggle.querySelector(".t-icon-swap").dataset.state = open ? "b" : "a";
-      toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      // Render only the icon for the current state. Keeping both SVGs in the
+      // button made the menu and close marks appear together when motion styles
+      // were unavailable or still loading.
+      toggle.innerHTML = icon(open ? "close" : "menu");
+      toggle.setAttribute("aria-label", KRIDIYA_LOCALE.text(open ? "Close menu" : "Open menu"));
       if (open && !wasOpen) {
         previousOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
@@ -525,84 +1061,106 @@ function renderChrome() {
     });
 
     // Reflect signed-in state
-    const session = window.KridiyaAuth ? KridiyaAuth.session() : null;
     if (session) {
       const btn = document.getElementById("account-btn");
       btn.textContent = "Hi, " + session.name.split(" ")[0];
       btn.href = "account.html";
     }
+
+    initConsumerHeaderMorph(header);
   }
 
   const footer = document.getElementById("site-footer");
   if (footer) {
     footer.innerHTML =
-      '<div class="container">' +
-      '<div class="footer-grid">' +
-        '<div class="footer-brand">' + logoHTML(true) +
-          "<p>Flights, hotels, holidays, visas and Umrah support for travellers across the UAE.</p>" +
-          '<div class="footer-social">' +
-            '<a class="icon-instagram" href="' + KRIDIYA.social.instagram + '" target="_blank" rel="noopener" aria-label="Instagram">' + icon("instagram") + "</a>" +
-            '<a class="icon-facebook" href="' + KRIDIYA.social.facebook + '" target="_blank" rel="noopener" aria-label="Facebook">' + icon("facebook") + "</a>" +
-            '<a class="icon-linkedin" href="' + KRIDIYA.social.linkedin + '" target="_blank" rel="noopener" aria-label="LinkedIn">' + icon("linkedin") + "</a>" +
-            '<a class="icon-whatsapp" href="' + waLink() + '" target="_blank" rel="noopener" aria-label="WhatsApp">' + icon("whatsapp") + "</a>" +
-          "</div>" +
-        "</div>" +
-      "<div><h4>Our Services</h4><ul class=\"footer-links\">" +
-          '<li><a href="flights.html">Flight Booking</a></li>' +
-          '<li><a href="hotels.html">Hotel Booking</a></li>' +
-          '<li><a href="holidays.html">Holiday Packages</a></li>' +
-          '<li><a href="cruise.html">Cruise Packages</a></li>' +
-          '<li><a href="umrah.html">Umrah Packages</a></li>' +
-          '<li><a href="visa.html">Visa Services</a></li>' +
-          '<li><a href="https://corporate.kridiyatravel.com">Business Travel</a></li>' +
-          '<li><a href="contact.html?topic=Travel%20insurance">Travel Insurance</a></li>' +
-        "</ul></div>" +
-        "<div><h4>Company</h4><ul class=\"footer-links\">" +
-          '<li><a href="about.html">About Us</a></li>' +
-          '<li><a href="guides/">Travel Guides</a></li>' +
-          '<li><a href="contact.html">Contact Us</a></li>' +
-          '<li><a href="login.html">Customer Login</a></li>' +
-          '<li><a href="track-enquiry.html">Track Enquiry</a></li>' +
-          '<li><a href="https://corporate.kridiyatravel.com/login.html?next=corporate-account.html">Corporate Portal</a></li>' +
-          '<li><a href="register.html">Create Account</a></li>' +
-          '<li><a href="privacy.html">Privacy Policy</a></li>' +
-          '<li><a href="unsubscribe.html">Unsubscribe from offers</a></li>' +
-          '<li><a href="terms.html">Terms &amp; Conditions</a></li>' +
-          '<li><a href="contact.html">Help &amp; contact</a></li>' +
-        "</ul></div>" +
-        '<div class="footer-connect"><h4>Contact</h4><ul class="footer-contact">' +
-          "<li>" + icon("phone") + '<a href="tel:' + KRIDIYA.phoneTel + '">' + KRIDIYA.phoneDisplay + "</a></li>" +
-          "<li>" + icon("mail") + '<a href="mailto:' + KRIDIYA.emails.info + '">' + KRIDIYA.emails.info + "</a></li>" +
-        "</ul>" +
-        "<h4>Travel updates by email</h4>" +
-        '<form class="newsletter-form" id="newsletter-form" method="POST" action="https://formsubmit.co/' + KRIDIYA.emails.deals + '">' +
-          '<input type="hidden" name="_subject" value="Newsletter subscription — kridiyatravel.com">' +
-          '<input type="hidden" name="_captcha" value="false">' +
-          '<input type="hidden" name="_template" value="table">' +
-          '<div class="newsletter-row"><input type="email" name="email" placeholder="Email address" required aria-label="Email address for travel updates">' +
-          '<button class="btn btn-primary" type="submit">Subscribe</button></div>' +
-          '<label class="newsletter-consent"><input type="checkbox" name="Marketing_consent" value="Yes" required>' +
-          '<span>I agree to receive travel offers by email. I can unsubscribe at any time. <a href="privacy.html">Privacy policy</a><span class="arabic-copy" lang="ar" dir="rtl">أوافق على استلام عروض السفر عبر البريد الإلكتروني. يمكنني إلغاء الاشتراك في أي وقت. <a href="privacy.html#arabic">سياسة الخصوصية</a>.</span></span></label>' +
-          '<p class="newsletter-status" aria-live="polite"></p>' +
-        "</form></div>" +
-        "</div>" +
-      '<div class="footer-routes"><h4>Popular flight routes</h4><p>' +
-        [["DXB", "Dubai", "COK", "Kochi"], ["DXB", "Dubai", "BOM", "Mumbai"], ["DXB", "Dubai", "DEL", "Delhi"],
-         ["SHJ", "Sharjah", "MNL", "Manila"], ["DXB", "Dubai", "KHI", "Karachi"], ["DXB", "Dubai", "DAC", "Dhaka"],
-         ["DXB", "Dubai", "CAI", "Cairo"], ["DXB", "Dubai", "IST", "Istanbul"], ["DXB", "Dubai", "LHR", "London"],
-         ["DXB", "Dubai", "TBS", "Tbilisi"], ["DXB", "Dubai", "BKK", "Bangkok"], ["DXB", "Dubai", "CCJ", "Kozhikode"]]
-        .map(function (r) {
-          return '<a href="flights.html?trip=round&from=' + r[0] + "&fromCity=" + r[1] + "&to=" + r[2] + "&toCity=" + r[3] +
-            '&adults=1&children=0&infants=0&cabin=Economy">' + r[1] + " to " + r[3] + " flights</a>";
-        }).join('<span class="dot" aria-hidden="true"> · </span>') +
-      "</p></div>" +
-      "</div>" +
-      '<div class="footer-bar"><div class="container footer-legal">' +
-        "<span>© " + new Date().getFullYear() + " " + KRIDIYA.legal + ". All rights reserved.</span>" +
-        '<span class="footer-identity-ar" lang="ar" dir="rtl"><strong>هوية التاجر / المتحكم:</strong> الاسم القانوني: KRIDIYA Travel and Tourism FZ-LLC (كريديا للسفر). الشكل القانوني: شركة منطقة حرة ذات مسؤولية محدودة (FZ-LLC). مكان التسجيل: هيئة مناطق رأس الخيمة الاقتصادية (RAKEZ)، رأس الخيمة، الإمارات العربية المتحدة. رقم الرخصة التجارية: 5033347. العنوان: FDRK7105، مبنى Compass Building، طريق الشهداء (Al Shohada Road)، منطقة الحمرا الصناعية الحرة (Al Hamra Industrial Zone-FZ)، رأس الخيمة، الإمارات العربية المتحدة. البريد الإلكتروني: <a href="mailto:contact@kridiyatravel.com">contact@kridiyatravel.com</a>. واتساب: <a href="https://wa.me/971509413873" target="_blank" rel="noopener">+971 50 941 3873</a>. الموقع: <a href="https://www.kridiyatravel.com">www.kridiyatravel.com</a>.</span>' +
-      "</div></div>";
+      '<div class="container footer-main">' +
+        '<nav class="footer-grid" aria-label="Footer">' +
+          '<details class="footer-column" open><summary>Kridiya</summary><ul class="footer-links">' +
+            '<li><a href="about.html">About Us</a></li>' +
+            '<li><a href="guides/">Travel Guides</a></li>' +
+            '<li><a href="sitemap.html">Site map</a></li>' +
+            '<li><a href="contact.html">Contact Us</a></li>' +
+          '</ul></details>' +
+          '<details class="footer-column" open><summary>Book travel</summary><ul class="footer-links">' +
+            '<li><a href="flights.html">Flight Booking</a></li>' +
+            '<li><a href="hotels.html">Hotel Booking</a></li>' +
+            '<li><a href="holidays.html">Holiday Packages</a></li>' +
+            '<li><a href="cruise.html">Cruise Packages</a></li>' +
+            '<li><a href="umrah.html">Umrah Packages</a></li>' +
+            '<li><a href="visa.html">Visa Services</a></li>' +
+          '</ul></details>' +
+          '<details class="footer-column" open><summary>Manage your trip</summary><ul class="footer-links">' +
+            '<li><a href="login.html?next=account.html%23bookings">My bookings</a></li>' +
+            '<li><a href="login.html?next=account.html%23travellers">Saved travellers</a></li>' +
+            '<li><a href="login.html?next=account.html%23payments">Payments &amp; refunds</a></li>' +
+            '<li><a href="track-enquiry.html">Track Enquiry</a></li>' +
+            '<li><a href="login.html">Customer Login</a></li>' +
+            '<li><a href="register.html">Create Account</a></li>' +
+          '</ul></details>' +
+          '<details class="footer-column" open><summary>Support &amp; Legal</summary><ul class="footer-links">' +
+            '<li><a href="contact.html">Help &amp; contact</a></li>' +
+            '<li><a href="contact.html?topic=Travel%20insurance">Travel Insurance</a></li>' +
+            '<li><a href="privacy.html">Privacy Policy</a></li>' +
+            '<li><button class="footer-privacy-choice" type="button" data-reset-measurement-consent>Privacy choices</button></li>' +
+            '<li><a href="unsubscribe.html">Unsubscribe from offers</a></li>' +
+            '<li><a href="terms.html">Terms &amp; Conditions</a></li>' +
+          '</ul></details>' +
+          '<details class="footer-column" open><summary>Business</summary><ul class="footer-links">' +
+            '<li><a href="https://corporate.kridiyatravel.com">Business Travel</a></li>' +
+            '<li><a href="https://corporate.kridiyatravel.com/login.html?next=corporate-account.html">Corporate Portal</a></li>' +
+          '</ul></details>' +
+          '<details class="footer-column footer-connect" open><summary>Contact</summary><ul class="footer-contact">' +
+            '<li>' + icon("phone") + '<a href="tel:' + KRIDIYA.phoneTel + '">' + KRIDIYA.phoneDisplay + '</a></li>' +
+            '<li>' + icon("mail") + '<a href="mailto:' + KRIDIYA.emails.info + '">' + KRIDIYA.emails.info + '</a></li>' +
+            '<li>' + icon("whatsapp") + '<a href="' + waLink() + '" target="_blank" rel="noopener">WhatsApp us</a></li>' +
+          '</ul></details>' +
+        '</nav>' +
+        '<div class="footer-brand-row">' +
+          '<div class="footer-brand-summary">' + logoHTML(true) + '<p>Kridiya Travel and Tourism is a UAE travel desk for flights, hotels, holidays, visas, Umrah and cruises. Send your dates and traveller details, and our team will return available options with prices and conditions.</p></div>' +
+          '<details class="footer-newsletter" open><summary>Travel updates by email</summary>' +
+            '<form class="newsletter-form" id="newsletter-form" method="POST" action="https://formsubmit.co/' + KRIDIYA.emails.deals + '">' +
+              '<input type="hidden" name="_subject" value="Newsletter subscription — kridiyatravel.com">' +
+              '<input type="hidden" name="_captcha" value="false">' +
+              '<input type="hidden" name="_template" value="table">' +
+              '<div class="newsletter-row"><input type="email" name="email" placeholder="Email address" required aria-label="Email address for travel updates">' +
+              '<button class="btn btn-primary" type="submit">Subscribe</button></div>' +
+              '<label class="newsletter-consent"><input type="checkbox" name="Marketing_consent" value="Yes" required>' +
+              '<span>I agree to receive travel offers by email. I can unsubscribe at any time. <a href="privacy.html">Privacy policy</a>.</span></label>' +
+              '<p class="newsletter-status" aria-live="polite"></p>' +
+            '</form>' +
+          '</details>' +
+        '</div>' +
+      '</div>' +
+      '<div class="footer-bar"><div class="container footer-bottom">' +
+        '<span class="footer-copyright">© ' + new Date().getFullYear() + ' ' + KRIDIYA.legal + '. All rights reserved.</span>' +
+        '<div class="footer-social">' +
+          '<a class="icon-instagram" href="' + KRIDIYA.social.instagram + '" target="_blank" rel="noopener" aria-label="Instagram">' + icon("instagram") + '</a>' +
+          '<a class="icon-facebook" href="' + KRIDIYA.social.facebook + '" target="_blank" rel="noopener" aria-label="Facebook">' + icon("facebook") + '</a>' +
+          '<a class="icon-linkedin" href="' + KRIDIYA.social.linkedin + '" target="_blank" rel="noopener" aria-label="LinkedIn">' + icon("linkedin") + '</a>' +
+          '<a class="icon-whatsapp" href="' + waLink() + '" target="_blank" rel="noopener" aria-label="WhatsApp">' + icon("whatsapp") + '</a>' +
+        '</div>' +
+        '<details class="footer-company-details"><summary>Company details</summary><div class="footer-company-body">' +
+          '<span class="footer-identity-en" translate="no"><strong>Company details:</strong> KRIDIYA Travel and Tourism FZ-LLC is a free-zone limited-liability company registered with Ras Al Khaimah Economic Zone (RAKEZ), United Arab Emirates, trade licence 5033347. Registered address: FDRK7105, Compass Building, Al Shohada Road, Al Hamra Industrial Zone-FZ, Ras Al Khaimah, United Arab Emirates. Email: <a href="mailto:contact@kridiyatravel.com">contact@kridiyatravel.com</a>. WhatsApp: <a href="https://wa.me/971509413873" target="_blank" rel="noopener">+971 50 941 3873</a>. Website: <a href="https://www.kridiyatravel.com">www.kridiyatravel.com</a>.</span>' +
+          '<span class="footer-identity-ar" lang="ar" dir="rtl" translate="no"><strong>هوية التاجر / المتحكم:</strong> الاسم القانوني: KRIDIYA Travel and Tourism FZ-LLC (كريديا للسفر). الشكل القانوني: شركة منطقة حرة ذات مسؤولية محدودة (FZ-LLC). مكان التسجيل: هيئة مناطق رأس الخيمة الاقتصادية (RAKEZ)، رأس الخيمة، الإمارات العربية المتحدة. رقم الرخصة التجارية: 5033347. العنوان: FDRK7105، مبنى Compass Building، طريق الشهداء (Al Shohada Road)، منطقة الحمرا الصناعية الحرة (Al Hamra Industrial Zone-FZ)، رأس الخيمة، الإمارات العربية المتحدة. البريد الإلكتروني: <a href="mailto:contact@kridiyatravel.com">contact@kridiyatravel.com</a>. واتساب: <a href="https://wa.me/971509413873" target="_blank" rel="noopener">+971 50 941 3873</a>. الموقع: <a href="https://www.kridiyatravel.com">www.kridiyatravel.com</a>.</span>' +
+        '</div></details>' +
+      '</div></div>';
+
     prepareFormSubmit(footer.querySelector("#newsletter-form"));
+    const phoneFooter = window.matchMedia("(max-width: 560px)");
+    const phoneFooterSections = footer.querySelectorAll(".footer-column");
+    const phoneNewsletter = footer.querySelector(".footer-newsletter");
+    function syncPhoneFooter() {
+      phoneFooterSections.forEach(function (section) {
+        section.open = true;
+        section.querySelector("summary").tabIndex = phoneFooter.matches ? -1 : 0;
+      });
+      phoneNewsletter.open = !phoneFooter.matches;
+    }
+    syncPhoneFooter();
+    phoneFooter.addEventListener("change", syncPhoneFooter);
   }
+
+  renderMobilePrimaryNavigation(page);
 
   // Floating WhatsApp
   const wa = document.createElement("a");
@@ -613,6 +1171,26 @@ function renderChrome() {
   wa.setAttribute("aria-label", "Chat with us on WhatsApp");
   wa.innerHTML = icon("whatsapp") + "<span>WhatsApp</span>";
   document.body.appendChild(wa);
+  if (consumerHeader && footer && "IntersectionObserver" in window) {
+    const phoneFooter = window.matchMedia("(max-width: 720px)");
+    let footerVisible = false;
+    function syncFooterContact() {
+      const hidden = phoneFooter.matches && footerVisible;
+      document.body.classList.toggle("consumer-footer-visible", hidden);
+      if (hidden) {
+        wa.setAttribute("aria-hidden", "true");
+        wa.tabIndex = -1;
+      } else {
+        wa.removeAttribute("aria-hidden");
+        wa.removeAttribute("tabindex");
+      }
+    }
+    new IntersectionObserver(function (entries) {
+      footerVisible = entries.some(function (entry) { return entry.isIntersecting; });
+      syncFooterContact();
+    }, { rootMargin: "0px 0px -72px 0px" }).observe(footer);
+    phoneFooter.addEventListener("change", syncFooterContact);
+  }
 }
 
 /* ---------- Toast ---------- */
@@ -1167,7 +1745,7 @@ function initAccessibilityLandmarks() {
   const main = document.querySelector("main");
   if (!main) return;
   if (!main.id) main.id = "main-content";
-  if (!document.querySelector(".skip-link")) {
+  if (!document.querySelector(".skip-link, .home-skip")) {
     const link = document.createElement("a");
     link.className = "skip-link";
     link.href = "#" + main.id;
@@ -1184,6 +1762,9 @@ function fmtDate(iso) {
 
 /* ---------- Boot ---------- */
 document.addEventListener("DOMContentLoaded", function () {
+  KRIDIYA_LOCALE.ready.then(function () {
+  document.body.dataset.siteRegion = KRIDIYA_LOCALE.region;
+  document.body.dataset.siteLanguage = KRIDIYA_LOCALE.language;
   // Keep editorial image slots usable if their remote host is unavailable.
   document.querySelectorAll('img[src^="https://images.unsplash.com"]').forEach(function (img) {
     function fallback() {
@@ -1205,9 +1786,20 @@ document.addEventListener("DOMContentLoaded", function () {
   trackEvent("view_service", {
     service_type: document.body.dataset.widgetOnly || document.body.dataset.page || "general"
   });
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      if (window.KRIDIYA_LOCALE_BOOT) window.KRIDIYA_LOCALE_BOOT.release();
+    });
+  });
+  });
 });
 
 document.addEventListener("click", function (e) {
+  const languageSwitch = e.target.closest("[data-site-language-switch]");
+  if (languageSwitch) {
+    KRIDIYA_LOCALE.setLanguage(languageSwitch.dataset.siteLanguageSwitch);
+    return;
+  }
   const resetConsent = e.target.closest("[data-reset-measurement-consent]");
   if (resetConsent) {
     resetMeasurementConsent();
