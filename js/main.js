@@ -942,6 +942,22 @@ function renderMobilePrimaryNavigation(page) {
   document.body.classList.add("mobile-primary-navigation-ready");
 }
 
+function updateConsumerAuthChrome(user) {
+  if (!document.body.classList.contains("consumer-site")) return;
+  const signedIn = Boolean(user);
+  const account = document.getElementById("account-btn");
+  if (account) {
+    account.textContent = KRIDIYA_LOCALE.text(signedIn ? "My Kridiya" : "Sign in");
+    account.href = signedIn ? "account.html#account-menu" : "login.html";
+  }
+  const mobileAccount = document.querySelector('.mobile-primary-nav a:last-child');
+  if (mobileAccount) mobileAccount.href = signedIn ? "account.html#account-menu" : "login.html";
+}
+
+document.addEventListener("kridiya:auth-state", function (event) {
+  updateConsumerAuthChrome(event.detail && event.detail.user);
+});
+
 function initConsumerHeaderMorph(header) {
   if (!header || !document.body.classList.contains("consumer-site")) return;
 
@@ -980,7 +996,7 @@ function renderChrome() {
   if (header) {
     const session = window.KridiyaAuth ? KridiyaAuth.session() : null;
     const accountHref = session ? "account.html#account-menu" : "login.html";
-    const accountLabel = session ? "Hi, " + session.name.split(" ")[0] : "Sign in";
+    const accountLabel = session ? "My Kridiya" : "Sign in";
     header.innerHTML =
       '<div class="container header-inner">' +
         logoHTML(false) +
@@ -1060,12 +1076,7 @@ function renderChrome() {
       }
     });
 
-    // Reflect signed-in state
-    if (session) {
-      const btn = document.getElementById("account-btn");
-      btn.textContent = "Hi, " + session.name.split(" ")[0];
-      btn.href = "account.html";
-    }
+    updateConsumerAuthChrome(session);
 
     initConsumerHeaderMorph(header);
   }
@@ -1779,6 +1790,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   initAccessibilityLandmarks();
   renderChrome();
+  document.dispatchEvent(new CustomEvent("kridiya:chrome-ready"));
   initAnalyticsConsentBanner();
   initDateMins();
   document.querySelectorAll("form[data-formsubmit]").forEach(prepareFormSubmit);

@@ -21,6 +21,7 @@ window.KridiyaAuth = (function () {
 
   let clientPromise = null;
   let cachedClient = null;
+  let restorePromise = null;
 
   function cleanEmail(email) {
     return String(email || "").trim().toLowerCase();
@@ -156,13 +157,61 @@ window.KridiyaAuth = (function () {
   async function currentUser() {
     const sb = await client();
     const authResult = await sb.auth.getUser();
-    if (authResult.error || !authResult.data || !authResult.data.user) {
+    if (authResult.error) throw authResult.error;
+    if (!authResult.data || !authResult.data.user) {
       clearSession();
       return null;
     }
     const user = await profileFor(authResult.data.user);
     setSession(user);
     return user;
+  }
+
+  function announceAuthState(user) {
+    document.dispatchEvent(new CustomEvent("kridiya:auth-state", { detail: { user: user || null } }));
+  }
+
+  function userFromAuthSession(authUser) {
+    return {
+      id: authUser.id || "",
+      email: authUser.email || "",
+      name: nameFromProfile(null, authUser),
+      phone: authUser.phone || "",
+      createdAt: authUser.created_at || new Date().toISOString()
+    };
+  }
+
+  function hasPersistedAuth() {
+    try {
+      return Boolean(session() || localStorage.getItem("sb-jmvqqpughlzeqrcyavwz-auth-token"));
+    } catch (error) {
+      return Boolean(session());
+    }
+  }
+
+  function restoreSession() {
+    if (restorePromise) return restorePromise;
+    restorePromise = client().then(async function (sb) {
+      const result = await sb.auth.getSession();
+      if (result.error) throw result.error;
+      const authUser = result.data && result.data.session && result.data.session.user;
+      if (!authUser) {
+        clearSession();
+        announceAuthState(null);
+        return null;
+      }
+
+      let user;
+      try { user = await profileFor(authUser); }
+      catch (error) { user = userFromAuthSession(authUser); }
+      setSession(user);
+      announceAuthState(user);
+      return user;
+    }).catch(function (error) {
+      restorePromise = null;
+      throw error;
+    });
+    return restorePromise;
   }
 
   async function register(opts) {
@@ -271,6 +320,7 @@ window.KridiyaAuth = (function () {
   async function logout() {
     clearSession();
     clearSupabaseSession();
+    announceAuthState(null);
     if (cachedClient) cachedClient.auth.signOut().catch(function () {});
   }
 
@@ -708,6 +758,8 @@ window.KridiyaAuth = (function () {
     client: client,
     session: session,
     currentUser: currentUser,
+    hasPersistedAuth: hasPersistedAuth,
+    restoreSession: restoreSession,
     register: register,
     login: login,
     normalizeLoginIdentifier: normalizeLoginIdentifier,
@@ -762,6 +814,10 @@ window.KridiyaAuth = (function () {
    ============================================================ */
 (function () {
   const page = document.body.dataset.page;
+
+  document.addEventListener("DOMContentLoaded", function () {
+    if (KridiyaAuth.hasPersistedAuth()) KridiyaAuth.restoreSession().catch(function () {});
+  });
 
   function banner(form, msg, kind) {
     const el = form.querySelector(".form-banner");
@@ -862,9 +918,9 @@ window.KridiyaAuth = (function () {
 
   function refreshHeaderName(user) {
     const btn = document.getElementById("account-btn");
-    if (btn && user && user.name) {
-      btn.textContent = "Hi, " + user.name.split(" ")[0];
-      btn.href = "account.html";
+    if (btn && user) {
+      btn.textContent = "My Kridiya";
+      btn.href = "account.html#account-menu";
     }
   }
 

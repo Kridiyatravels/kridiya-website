@@ -68,6 +68,7 @@
     const trigger = document.getElementById('account-btn');
     if (!trigger || !document.body.classList.contains('consumer-site')) return;
     if (!(window.KridiyaAuth && typeof KridiyaAuth.session === 'function' && KridiyaAuth.session())) return;
+    if (document.querySelector('.consumer-account-drawer')) return;
     const drawer = document.createElement('dialog');
     drawer.className = 'consumer-account-drawer';
     drawer.setAttribute('aria-labelledby', 'account-drawer-title');
@@ -437,6 +438,10 @@
     document.dispatchEvent(new CustomEvent('kridiya:login-dialog-ready', { detail: { form } }));
   }
   function initialize() { initializeAccountDrawer(); initializeAccountNavigation(); initializeAccountAccessDirectory(); initializeAuthClose(); initializeInlineLoginDialog(); }
+  document.addEventListener('kridiya:auth-state', event => {
+    if (event.detail && event.detail.user) initializeAccountDrawer();
+  });
+  document.addEventListener('kridiya:chrome-ready', initializeAccountDrawer);
   // Deferred scripts run while readyState is interactive, before main.js has
   // inserted the header in its DOMContentLoaded handler.
   if (document.readyState !== 'complete') document.addEventListener('DOMContentLoaded', initialize, { once: true });
