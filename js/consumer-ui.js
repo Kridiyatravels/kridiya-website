@@ -77,7 +77,11 @@
   function initializeAccountDrawer() {
     const trigger = document.getElementById('account-btn');
     if (!trigger || !document.body.classList.contains('consumer-site')) return;
-    if (!(window.KridiyaAuth && typeof KridiyaAuth.session === 'function' && KridiyaAuth.session())) return;
+    const hasAuthHint = window.KridiyaAuth && (
+      (typeof KridiyaAuth.session === 'function' && KridiyaAuth.session()) ||
+      (typeof KridiyaAuth.hasPersistedAuth === 'function' && KridiyaAuth.hasPersistedAuth())
+    );
+    if (!hasAuthHint) return;
     if (document.querySelector('.consumer-account-drawer')) return;
     const drawer = document.createElement('dialog');
     drawer.className = 'consumer-account-drawer';
@@ -87,7 +91,7 @@
     const loginUrl = new URL('login.html', accountUrl).href;
     const registerUrl = new URL('register.html', accountUrl).href;
     drawer.innerHTML = '<div class="account-drawer-heading"><h2 id="account-drawer-title">My Kridiya</h2><button type="button" aria-label="Close account menu">×</button></div>' +
-      '<div class="account-drawer-identity"><b data-drawer-name>Log in to manage your bookings</b><a class="btn btn-primary" data-drawer-action href="' + loginUrl + '">Log in</a><p data-drawer-description>Don\'t have an account? <a data-drawer-signup href="' + registerUrl + '">Sign up</a></p></div>' +
+      '<div class="account-drawer-identity" aria-busy="true"><div class="account-drawer-loading" aria-hidden="true"><span class="auth-restore-shape account-drawer-loading-name"></span><span class="auth-restore-shape account-drawer-loading-action"></span><span class="auth-restore-shape account-drawer-loading-copy"></span></div><b data-drawer-name hidden></b><a class="btn btn-primary" data-drawer-action href="' + loginUrl + '" hidden></a><p data-drawer-description hidden><span data-drawer-description-copy></span><a data-drawer-signup href="' + registerUrl + '">Sign up</a></p></div><span class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-drawer-status>Loading your account.</span>' +
       '<nav class="consumer-account-nav" aria-label="Account menu">' + routeLinks(accountUrl) + '</nav>';
     document.body.append(drawer);
     trigger.setAttribute('aria-haspopup', 'dialog');
@@ -139,25 +143,58 @@
       drawer.showModal();
       previousOverflow = savedOverflow;
       document.body.style.overflow = 'hidden';
-      // No identity is cached in markup or local storage by this component.
+      const identity = drawer.querySelector('.account-drawer-identity');
+      const loading = drawer.querySelector('.account-drawer-loading');
       const name = drawer.querySelector('[data-drawer-name]');
       const description = drawer.querySelector('[data-drawer-description]');
+      const descriptionCopy = drawer.querySelector('[data-drawer-description-copy]');
       const action = drawer.querySelector('[data-drawer-action]');
       const signup = drawer.querySelector('[data-drawer-signup]');
-      name.textContent = 'Log in to manage your bookings';
-      description.childNodes[0].textContent = 'Don\'t have an account? ';
-      signup.hidden = false;
-      action.textContent = 'Log in'; action.href = loginUrl;
+      const status = drawer.querySelector('[data-drawer-status]');
+      function showLoading() {
+        identity.setAttribute('aria-busy', 'true');
+        loading.hidden = false;
+        name.hidden = true; action.hidden = true; description.hidden = true;
+        status.textContent = 'Loading your account.';
+      }
+      function showResolved(user) {
+        loading.hidden = true;
+        name.hidden = false; action.hidden = false; description.hidden = false;
+        if (user) {
+          name.textContent = user.name || 'My account';
+          descriptionCopy.textContent = user.email || '';
+          signup.hidden = true;
+          action.textContent = 'Open my account'; action.href = accountUrl;
+          status.textContent = 'Account loaded.';
+        } else {
+          name.textContent = 'Log in to manage your bookings';
+          descriptionCopy.textContent = 'Don\'t have an account? ';
+          signup.hidden = false;
+          action.textContent = 'Log in'; action.href = loginUrl;
+          status.textContent = 'Account options loaded.';
+        }
+        identity.setAttribute('aria-busy', 'false');
+      }
+      function showVerificationError() {
+        loading.hidden = true;
+        name.hidden = false; action.hidden = false; description.hidden = false;
+        name.textContent = 'Could not load your account';
+        descriptionCopy.textContent = 'Check your connection and try again.';
+        signup.hidden = true;
+        action.textContent = 'Try again';
+        action.href = location.href;
+        status.textContent = 'Account verification failed. Try again.';
+        identity.setAttribute('aria-busy', 'false');
+      }
+      showLoading();
       try {
         const user = await KridiyaAuth.currentUser();
-        if (!drawer.open || !user) return;
-        name.textContent = user.name || 'My account';
-        description.childNodes[0].textContent = user.email;
-        signup.hidden = true;
-        action.textContent = 'Open my account'; action.href = accountUrl;
+        if (!drawer.open) return;
+        showResolved(user);
       } catch (_) {
-        description.childNodes[0].textContent = 'Don\'t have an account? ';
-        signup.hidden = false;
+        // Do not expose a cached identity after the secure session could not be
+        // verified. A reload retries verification without implying sign-out.
+        if (drawer.open) showVerificationError();
       }
     });
   }
@@ -356,7 +393,10 @@
   }
   function initializeInlineLoginDialog() {
     if (!document.body.classList.contains('consumer-site') || document.body.dataset.page === 'login') return;
-    if (window.KridiyaAuth && typeof KridiyaAuth.session === 'function' && KridiyaAuth.session()) return;
+    if (window.KridiyaAuth && (
+      (typeof KridiyaAuth.session === 'function' && KridiyaAuth.session()) ||
+      (typeof KridiyaAuth.hasPersistedAuth === 'function' && KridiyaAuth.hasPersistedAuth())
+    )) return;
     const dialog = document.createElement('dialog');
     dialog.className = 'consumer-login-dialog t-panel-slide';
     dialog.dataset.open = 'false';

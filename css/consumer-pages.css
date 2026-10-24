@@ -1184,11 +1184,71 @@ body.consumer-site .account-main .enq-item { border: 1px solid #e2e0e5; border-r
 body.consumer-site .account-main .account-item-grid span { border: 0; padding: 8px 0; background: #fff !important; border-radius: 0; }
 body.consumer-site .account-main .customer-status-strip { background: #f7f6f9; border: 0; border-radius: 6px; }
 body.consumer-site .account-main .account-item-alerts span { border-radius: 6px; font-weight: 500; }
+.account-skeleton-shape,
+.account-total-skeleton {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #e9e7eb;
+}
+.account-skeleton-shape::after,
+.account-total-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  translate: -100% 0;
+  background: linear-gradient(90deg,transparent,rgb(255 255 255 / .72),transparent);
+  animation: account-skeleton-sweep 1.25s ease-in-out infinite;
+}
+.account-total-skeleton {
+  width: 20px;
+  height: 20px;
+  margin: 1px auto 2px;
+}
+.account-travel-skeleton { pointer-events: none; }
+body.consumer-site .account-main .account-travel-skeleton { border: 0; box-shadow: none; }
+.account-skeleton-top {
+  display: grid;
+  grid-template-columns: 68px minmax(140px,1fr) 104px;
+  align-items: center;
+  gap: 10px;
+}
+.account-skeleton-chip { width: 68px; height: 24px; border-radius: 6px; }
+.account-skeleton-title { width: min(78%,300px); height: 14px; }
+.account-skeleton-date { width: 104px; height: 11px; justify-self: end; }
+.account-skeleton-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 42px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #f7f6f9;
+}
+.account-skeleton-status .account-skeleton-shape:first-child { width: 128px; height: 12px; }
+.account-skeleton-status .account-skeleton-shape:last-child { width: 96px; height: 10px; }
+.account-skeleton-facts {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+.account-skeleton-facts > span { display: grid; gap: 8px; min-width: 0; padding: 8px 0; }
+.account-skeleton-facts i { font-style: normal; }
+.account-skeleton-facts i:first-child { width: 54px; height: 8px; }
+.account-skeleton-facts i:last-child { width: min(76%,130px); height: 13px; }
+.account-skeleton-facts .account-skeleton-detail { grid-column: 1 / -1; }
+.account-skeleton-facts .account-skeleton-detail i:last-child { width: min(88%,560px); }
+@keyframes account-skeleton-sweep { to { translate: 100% 0; } }
 .account-booking-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .account-booking-filters { display: flex; gap: 8px; flex-wrap: wrap; }
 .account-booking-filters button { min-height: 44px; padding: 8px 16px; border: 1px solid #b6b1bc; border-radius: 24px; background: #fff; color: #28262c; font: 500 13px var(--font); cursor: pointer; }
 .account-booking-filters button[aria-pressed="true"] { border-color: #853714; background: #fae8dd; color: #853714; }
 .account-refresh { margin-left: auto; display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px; background: transparent; border: 0; color: #853714; font: 600 13px var(--font); cursor: pointer; }
+.account-refresh[hidden] { display: none; }
 .account-refresh span { font-size: 24px; line-height: 1; }
 .account-refresh:disabled { opacity: .5; cursor: wait; }
 .account-filter-status { color: #68666d; font-size: 12px; margin: 0 0 16px; }
@@ -1206,7 +1266,7 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
    the account header and a short empty state remain fixed in the viewport. */
 @media (min-width: 821px) {
   body.consumer-site[data-page="account"] {
-    --account-header-h: 90px;
+    --account-header-h: 72px;
     height: 100dvh;
     overflow: hidden;
     background: #f5f5f8;
@@ -1216,20 +1276,19 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
     top: 0;
     z-index: var(--z-sticky);
     height: var(--account-header-h);
-    background: #f5f5f8;
-    box-shadow: none;
+    background: #fff;
+    box-shadow: 0 3px 10px rgb(38 31 25 / .08);
   }
   body.consumer-site[data-page="account"] #site-header .container.header-inner {
-    width: calc(100% - 48px);
-    max-width: 1316px;
-    height: 66px;
-    min-height: 66px;
-    margin-top: 12px;
+    width: min(1320px,calc(100% - 48px));
+    height: var(--account-header-h);
+    min-height: var(--account-header-h);
+    margin-top: 0;
     padding-inline: 24px;
-    border: 1px solid rgb(53 47 43 / .08);
-    border-radius: 16px;
-    background: rgb(255 255 255 / .99);
-    box-shadow: 0 14px 34px rgb(38 31 25 / .14);
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
   }
   body.consumer-site[data-page="account"] main {
     height: calc(100dvh - var(--account-header-h));
@@ -1258,9 +1317,14 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
-    border-right: 1px solid #e5e2e7;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-right: 0;
     background: #fff;
+  }
+  body.consumer-site[data-page="account"] .account-side::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
   body.consumer-site[data-page="account"] .account-identity {
     padding: 20px;
@@ -1296,6 +1360,11 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
 .account-drawer-heading h2 { margin: 0; font-size: 18px; }
 .account-drawer-heading button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: #f4f3f5; font-size: 28px; color: #28262c; cursor: pointer; }
 .account-drawer-identity { padding: 32px 0 24px; border-bottom: 1px solid #e3e2e6; }
+.account-drawer-loading { display: block; }
+.account-drawer-loading[hidden] { display: none; }
+.account-drawer-loading-name { width: min(72%,210px); height: 32px; }
+.account-drawer-loading-action { width: 100%; height: 48px; margin-top: 24px; border-radius: 8px; }
+.account-drawer-loading-copy { width: min(64%,180px); height: 12px; margin-top: 20px; }
 .account-drawer-identity b { display: block; max-width: 13ch; font-size: 24px; line-height: 1.32; letter-spacing: -.025em; }
 .account-drawer-identity > .btn { width: 100%; min-height: 48px; margin-top: 24px; }
 .account-drawer-identity p { font-size: 13px; margin: 18px 0 0; overflow-wrap: anywhere; }
@@ -1354,10 +1423,21 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
   body.consumer-site .account-summary > div { padding: 16px 0; }
   body.consumer-site .account-summary > div + div { border-left: 0; border-top: 1px solid #e7e5e9; }
   body.consumer-site .account-main .enq-item { padding: 16px; }
+  .account-skeleton-top { grid-template-columns: 68px minmax(0,1fr); }
+  .account-skeleton-date { grid-column: 1 / -1; justify-self: start; width: 88px; margin-top: 2px; }
+  .account-skeleton-status { align-items: flex-start; flex-direction: column; gap: 9px; }
+  .account-skeleton-status .account-skeleton-shape:last-child { width: 84px; }
+  .account-skeleton-facts { grid-template-columns: minmax(0,1fr); gap: 0; }
+  .account-skeleton-facts .account-skeleton-detail { grid-column: auto; }
   .account-booking-filters { gap: 6px; }
   .account-booking-filters button { padding: 8px 12px; }
   body.consumer-site #profile-form > div:last-child .btn { width: 100%; }
   .consumer-account-drawer { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-skeleton-shape::after,
+  .account-total-skeleton::after { display: none; animation: none; }
 }
 
 /* Account pages are an application workspace without the public footer. */

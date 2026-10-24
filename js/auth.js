@@ -2024,17 +2024,67 @@ window.KridiyaAuth = (function () {
       const listEl = document.getElementById("enq-list");
       const paymentList = document.getElementById("account-payment-list");
       const refreshTravel = document.getElementById("refresh-travel");
+      const accountStats = document.querySelector(".account-side-stats");
+      const accountTotalsStatus = document.querySelector("[data-account-totals-status]");
+      const travelLoadingStatus = document.getElementById("travel-loading-status");
+      const travelSkeletonHTML = '<div class="account-travel-skeleton enq-item" aria-hidden="true">' +
+        '<div class="account-skeleton-top"><span class="account-skeleton-shape account-skeleton-chip"></span><span class="account-skeleton-shape account-skeleton-title"></span><span class="account-skeleton-shape account-skeleton-date"></span></div>' +
+        '<div class="account-skeleton-status"><span class="account-skeleton-shape"></span><span class="account-skeleton-shape"></span></div>' +
+        '<div class="account-skeleton-facts">' +
+          '<span><i class="account-skeleton-shape"></i><i class="account-skeleton-shape"></i></span>' +
+          '<span><i class="account-skeleton-shape"></i><i class="account-skeleton-shape"></i></span>' +
+          '<span><i class="account-skeleton-shape"></i><i class="account-skeleton-shape"></i></span>' +
+          '<span class="account-skeleton-detail"><i class="account-skeleton-shape"></i><i class="account-skeleton-shape"></i></span>' +
+        '</div></div>';
+      function setTravelLoadingState() {
+        listEl.dataset.loaded = "false";
+        listEl.innerHTML = travelSkeletonHTML;
+        listEl.setAttribute("aria-busy", "true");
+        if (travelLoadingStatus) travelLoadingStatus.textContent = "Loading your bookings and enquiries.";
+        if (accountStats) accountStats.setAttribute("aria-busy", "true");
+        if (accountTotalsStatus) accountTotalsStatus.textContent = "Loading your travel totals.";
+        document.querySelectorAll("[data-account-total]").forEach(function (node) {
+          node.textContent = "";
+          node.classList.add("account-total-skeleton");
+          node.setAttribute("aria-hidden", "true");
+          node.removeAttribute("aria-label");
+        });
+        if (refreshTravel) {
+          refreshTravel.hidden = true;
+          refreshTravel.disabled = true;
+        }
+        document.dispatchEvent(new CustomEvent("kridiya:travel-updated"));
+      }
+      function setTravelTotals(totals) {
+        document.querySelectorAll("[data-account-total]").forEach(function (node) {
+          node.textContent = String(totals[node.dataset.accountTotal]);
+          node.classList.remove("account-total-skeleton");
+          node.removeAttribute("aria-hidden");
+          node.removeAttribute("aria-label");
+        });
+        if (accountStats) accountStats.setAttribute("aria-busy", "false");
+        if (accountTotalsStatus) accountTotalsStatus.textContent = "Travel totals loaded.";
+      }
+      function setTravelTotalsUnavailable() {
+        document.querySelectorAll("[data-account-total]").forEach(function (node) {
+          node.textContent = "—";
+          node.classList.remove("account-total-skeleton");
+          node.removeAttribute("aria-hidden");
+          node.setAttribute("aria-label", "Unavailable");
+        });
+        if (accountStats) accountStats.setAttribute("aria-busy", "false");
+        if (accountTotalsStatus) accountTotalsStatus.textContent = "Travel totals unavailable.";
+      }
       let supportInitialized = false;
       let travelLoading = false;
       listEl.refresh = async function () {
       if (travelLoading) return;
       travelLoading = true;
-      listEl.setAttribute("aria-busy", "true");
-      paymentList.setAttribute("aria-busy", "true");
-      if (refreshTravel) refreshTravel.disabled = true;
       const oldFocus = document.activeElement;
       const restoreListFocus = listEl.contains(oldFocus);
       const oldScroll = window.scrollY;
+      setTravelLoadingState();
+      paymentList.setAttribute("aria-busy", "true");
       try {
         let results = await Promise.all([
           KridiyaAuth.listBookings(),
@@ -2112,12 +2162,8 @@ window.KridiyaAuth = (function () {
           };
         })).sort(function (a, b) { return new Date(b.created_at) - new Date(a.created_at); });
 
-        const summaryBookings = document.getElementById("summary-bookings");
-        if (summaryBookings) summaryBookings.textContent = String(combined.length);
         const totals = { bookings: bookings.length, enquiries: enquiries.length, quotes: activeQuotes.length };
-        document.querySelectorAll("[data-account-total]").forEach(function (node) {
-          node.textContent = String(totals[node.dataset.accountTotal]);
-        });
+        setTravelTotals(totals);
         function renderTravelItem(item) {
             const created = new Date(item.created_at);
             const requests = item.isEnquiry ? (requestsByEnquiry[item.id] || []) : [];
@@ -2157,6 +2203,7 @@ window.KridiyaAuth = (function () {
         }
         listEl.innerHTML = combined.length ? combined.map(renderTravelItem).join("")
           : '<div class="empty-state"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12h-4a3 3 0 0 1-6 0H5V5h14v10z"/></svg><p><b>No bookings linked yet.</b><br>Send an enquiry while signed in, or ask our team to attach an existing booking to this account.</p><div class="empty-actions"><a class="btn btn-primary" href="index.html">Start planning</a><a class="btn btn-outline" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a></div></div>';
+        if (travelLoadingStatus) travelLoadingStatus.textContent = "Bookings and enquiries loaded.";
         listEl.dataset.loaded = "true";
         paymentList.innerHTML = customerPaymentsHTML(payments);
         paymentList.refresh = listEl.refresh;
@@ -2166,11 +2213,16 @@ window.KridiyaAuth = (function () {
         listEl.dataset.loaded = "false";
         listEl.innerHTML = '<div class="form-banner error" role="alert">Could not load your travel: ' + KridiyaAuth.escapeHTML(errorMessage(err, "Please try again.")) + '</div><button type="button" class="btn btn-outline" data-retry-travel>Try again</button>';
         paymentList.innerHTML = '<div class="form-banner error" role="alert">Could not load payment records. Please try again.</div><button type="button" class="btn btn-outline" data-retry-travel>Try again</button>';
+        if (travelLoadingStatus) travelLoadingStatus.textContent = "Bookings and enquiries could not be loaded.";
+        setTravelTotalsUnavailable();
       } finally {
         travelLoading = false;
         listEl.setAttribute("aria-busy", "false");
         paymentList.setAttribute("aria-busy", "false");
-        if (refreshTravel) refreshTravel.disabled = false;
+        if (refreshTravel) {
+          refreshTravel.hidden = false;
+          refreshTravel.disabled = false;
+        }
         document.dispatchEvent(new CustomEvent("kridiya:travel-updated"));
       }
 

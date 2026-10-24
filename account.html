@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="css/motion.css?v=20260929release2">
 <link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
 <link rel="stylesheet" href="css/homepage.css?v=20261024whatsapp1">
-<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive13">
+<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive14">
 </head>
 <body class="consumer-site account-auth-loading" data-page="account">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -51,10 +51,11 @@
           <p class="account-profile-email" id="acc-email">Loading...</p>
           <p class="account-profile-since" id="acc-since"></p>
           </div>
-          <div class="account-side-stats" aria-label="Your travel at a glance">
-            <div><b data-account-total="bookings">—</b><span>Bookings</span></div>
-            <div><b data-account-total="enquiries">—</b><span>Enquiries</span></div>
-            <div><b data-account-total="quotes">—</b><span>Quotes</span></div>
+          <span class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-account-totals-status>Loading your travel totals.</span>
+          <div class="account-side-stats" aria-label="Your travel at a glance" aria-busy="true">
+            <div><b class="account-total-skeleton" data-account-total="bookings" aria-hidden="true"></b><span>Bookings</span></div>
+            <div><b class="account-total-skeleton" data-account-total="enquiries" aria-hidden="true"></b><span>Enquiries</span></div>
+            <div><b class="account-total-skeleton" data-account-total="quotes" aria-hidden="true"></b><span>Quotes</span></div>
           </div>
           <nav class="consumer-account-nav" aria-label="My Kridiya">
             <h3>My details</h3>
@@ -116,10 +117,22 @@
                 <button type="button" data-travel-filter="booking" aria-pressed="false">Bookings</button>
                 <button type="button" data-travel-filter="enquiry" aria-pressed="false">Enquiries</button>
               </div>
-              <button type="button" class="account-refresh" id="refresh-travel" aria-label="Refresh bookings and enquiries" disabled><span aria-hidden="true">↻</span> Refresh</button>
+              <button type="button" class="account-refresh" id="refresh-travel" aria-label="Refresh bookings and enquiries" disabled hidden><span aria-hidden="true">↻</span> Refresh</button>
             </div>
             <p class="account-filter-status" id="travel-filter-status" role="status"></p>
-            <div id="enq-list" aria-busy="true"><p class="form-note" role="status">Loading your bookings and enquiries…</p></div>
+            <div id="enq-list" aria-busy="true">
+              <div class="account-travel-skeleton enq-item" aria-hidden="true">
+                <div class="account-skeleton-top"><span class="account-skeleton-shape account-skeleton-chip"></span><span class="account-skeleton-shape account-skeleton-title"></span><span class="account-skeleton-shape account-skeleton-date"></span></div>
+                <div class="account-skeleton-status"><span class="account-skeleton-shape"></span><span class="account-skeleton-shape"></span></div>
+                <div class="account-skeleton-facts">
+                  <span><i class="account-skeleton-shape"></i><i class="account-skeleton-shape"></i></span>
+                  <span><i class="account-skeleton-shape"></i><i class="account-skeleton-shape"></i></span>
+                  <span><i class="account-skeleton-shape"></i><i class="account-skeleton-shape"></i></span>
+                  <span class="account-skeleton-detail"><i class="account-skeleton-shape"></i><i class="account-skeleton-shape"></i></span>
+                </div>
+              </div>
+            </div>
+            <p class="visually-hidden" id="travel-loading-status" role="status" aria-live="polite" aria-atomic="true">Loading your bookings and enquiries.</p>
             <div class="empty-state" id="travel-filter-empty" hidden><p>No items in this view.</p><button class="btn btn-outline" type="button" data-travel-filter="all">Show all travel</button></div>
           </div>
 
@@ -249,8 +262,8 @@
 <script src="js/motion.js?v=20260921complete2" defer></script>
 <script src="js/motion-controls.js?v=20260921complete2" defer></script>
 <script src="js/main.js?v=20261024chrome2" defer></script>
-<script src="js/auth.js?v=20261024auth9" defer></script>
+<script src="js/auth.js?v=20261024auth10" defer></script>
 <script src="js/search.js?v=20261024passengers2" defer></script>
-<script src="js/consumer-ui.js?v=20261024auth3" defer></script>
+<script src="js/consumer-ui.js?v=20261024auth4" defer></script>
 </body>
 </html>
