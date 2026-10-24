@@ -1205,6 +1205,7 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
 body.consumer-site[data-page="account"] main { min-height: calc(100dvh - var(--header-h)); }
 #account-payment-list > .customer-payment-list { margin-top: 0; border-top: 0; padding-top: 0; }
 #account-payment-list .customer-payment-list > h4 { display: none; }
+.account-payment-actions { margin-top: 16px; }
 
 /* Signed-out My Kridiya hub: the real account and support destinations. */
 .account-access-directory { display: none; padding: 0 36px 32px; background: #fff; }
@@ -1487,7 +1488,7 @@ body.consumer-site:is([data-page="login"],[data-page="register"]) .auth-card { p
     min-height: 126px;
     margin: -28px -20px 18px;
     padding: 26px 24px;
-    justify-content: end;
+    justify-content: flex-start;
     background: #274b54;
     color: #fff;
   }

@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="css/motion.css?v=20260929release2">
 <link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
 <link rel="stylesheet" href="css/homepage.css?v=20261004all1">
-<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive9">
+<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive10">
 </head>
 <body class="consumer-site account-auth-loading" data-page="account">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -129,7 +129,7 @@
           <div class="account-main" id="payments" data-account-section role="region" aria-label="Payments and refunds">
             <div class="account-section-head"><div><h2>Payments &amp; refunds</h2><p>Payment records, receipts and refund updates linked to your bookings and enquiries.</p></div></div>
             <div id="account-payment-list" aria-busy="true"><p class="form-note" role="status">Loading payments…</p></div>
-            <a class="btn btn-outline" href="#bookings">View bookings</a>
+            <div class="account-actions account-payment-actions"><a class="btn btn-outline" href="#bookings">View bookings</a></div>
           </div>
 
           <div class="account-main" id="support" data-account-section role="region" aria-label="Help & requests">
@@ -218,15 +218,13 @@
             </div>
             <form id="password-form" class="form-grid" method="post" novalidate>
               <div class="form-banner error" hidden role="alert"></div>
-              <div class="field-row">
-                <div class="field col-6"><label for="cp-cur">CURRENT PASSWORD</label>
-                  <div class="pw-wrap"><input id="cp-cur" name="current" type="password" autocomplete="current-password" required>
-                  <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button></div></div>
-                <div class="field col-6"><label for="cp-new">NEW PASSWORD</label>
-                  <div class="pw-wrap"><input id="cp-new" name="newpass" type="password" autocomplete="new-password" required minlength="8">
-                  <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button></div>
-                  <span class="sub">Minimum 8 characters with letters and numbers.</span></div>
-              </div>
+              <div class="field"><label for="cp-cur">CURRENT PASSWORD</label>
+                <div class="pw-wrap"><input id="cp-cur" name="current" type="password" autocomplete="current-password" required>
+                <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button></div></div>
+              <div class="field"><label for="cp-new">NEW PASSWORD</label>
+                <div class="pw-wrap"><input id="cp-new" name="newpass" type="password" autocomplete="new-password" required minlength="8">
+                <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button></div>
+                <span class="sub">Minimum 8 characters with letters and numbers.</span></div>
               <div><button class="btn btn-primary" type="submit" data-label="Update password">Update password</button></div>
             </form>
           </div>
