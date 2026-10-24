@@ -12,11 +12,11 @@
 <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
 <link rel="canonical" href="https://www.kridiyatravel.com/account.html">
-<link rel="stylesheet" href="css/styles.css?v=20260929release2">
+<link rel="stylesheet" href="css/styles.css?v=20261024passengers2">
 <link rel="stylesheet" href="css/motion.css?v=20260929release2">
 <link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
-<link rel="stylesheet" href="css/homepage.css?v=20261004all1">
-<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive10">
+<link rel="stylesheet" href="css/homepage.css?v=20261024whatsapp1">
+<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive13">
 </head>
 <body class="consumer-site account-auth-loading" data-page="account">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -86,17 +86,20 @@
                 <p>Save traveller details for future requests. Saved passport numbers are masked in the account view.</p>
               </div>
             </div>
-            <div id="traveller-list"><p class="form-note">Loading travellers...</p></div>
-            <form id="traveller-form" class="form-grid" novalidate>
-              <input type="hidden" name="traveller_id"><input type="hidden" name="expected_updated_at">
-              <div class="form-banner error" hidden role="alert"></div>
-              <div class="field"><label for="tr-name">FULL NAME</label><input id="tr-name" name="full_name" required minlength="2" autocomplete="name"></div>
-              <div class="field date-field" data-date-name="date_of_birth" data-max-today="1"><label for="tr-dob">DATE OF BIRTH</label><input type="hidden" name="date_of_birth"><button type="button" class="fake-input date-btn placeholder" id="tr-dob" aria-haspopup="true" aria-expanded="false">Select date</button></div>
-              <div class="field"><label for="tr-nationality">NATIONALITY</label><input id="tr-nationality" name="nationality" autocomplete="country-name"></div>
-              <div class="field"><label for="tr-passport">NEW PASSPORT NUMBER</label><input id="tr-passport" name="passport_number" autocomplete="off"><span class="sub">Leave blank while editing to keep the saved passport.</span></div>
-              <div class="field date-field" data-date-name="passport_expiry" data-min-today="1"><label for="tr-expiry">PASSPORT EXPIRY</label><input type="hidden" name="passport_expiry"><button type="button" class="fake-input date-btn placeholder" id="tr-expiry" aria-haspopup="true" aria-expanded="false">Select date</button></div>
-              <div class="account-actions"><button class="btn btn-primary" type="submit" data-label="Save traveller">Save traveller</button><button class="btn btn-outline" id="traveller-cancel" type="button" hidden>Cancel edit</button></div>
-            </form>
+            <div class="traveller-body">
+              <div id="traveller-list"><p class="form-note">Loading travellers...</p></div>
+              <form id="traveller-form" class="form-grid" novalidate hidden>
+                <input type="hidden" name="traveller_id"><input type="hidden" name="expected_updated_at">
+                <div class="form-banner error" hidden role="alert"></div>
+                <div class="field"><label for="tr-name">FULL NAME</label><input id="tr-name" name="full_name" required minlength="2" autocomplete="name"></div>
+                <div class="field date-field" data-date-name="date_of_birth" data-max-today="1"><label for="tr-dob">DATE OF BIRTH</label><input type="hidden" name="date_of_birth"><button type="button" class="fake-input date-btn placeholder" id="tr-dob" aria-haspopup="true" aria-expanded="false">Select date</button></div>
+                <div class="field"><label for="tr-nationality">NATIONALITY</label><input id="tr-nationality" name="nationality" autocomplete="country-name"></div>
+                <div class="field"><label for="tr-passport">NEW PASSPORT NUMBER</label><input id="tr-passport" name="passport_number" autocomplete="off"><span class="sub">Leave blank while editing to keep the saved passport.</span></div>
+                <div class="field date-field" data-date-name="passport_expiry" data-min-today="1"><label for="tr-expiry">PASSPORT EXPIRY</label><input type="hidden" name="passport_expiry"><button type="button" class="fake-input date-btn placeholder" id="tr-expiry" aria-haspopup="true" aria-expanded="false">Select date</button></div>
+                <div class="account-actions"><button class="btn btn-primary" type="submit" data-label="Save traveller">Save traveller</button><button class="btn btn-outline" id="traveller-cancel" type="button" hidden>Cancel</button></div>
+              </form>
+              <div class="auth-method-row traveller-add-actions" hidden><button class="auth-method-toggle" id="add-traveller-btn" type="button" aria-controls="traveller-form" aria-expanded="false"><span aria-hidden="true">+</span> <span data-traveller-add-label>Add traveller</span></button></div>
+            </div>
           </div>
 
           <div class="account-main" id="bookings" data-account-section role="region" aria-label="Bookings & enquiries">
@@ -113,7 +116,7 @@
                 <button type="button" data-travel-filter="booking" aria-pressed="false">Bookings</button>
                 <button type="button" data-travel-filter="enquiry" aria-pressed="false">Enquiries</button>
               </div>
-              <button type="button" class="account-refresh" id="refresh-travel" disabled><span aria-hidden="true">↻</span> Refresh</button>
+              <button type="button" class="account-refresh" id="refresh-travel" aria-label="Refresh bookings and enquiries" disabled><span aria-hidden="true">↻</span> Refresh</button>
             </div>
             <p class="account-filter-status" id="travel-filter-status" role="status"></p>
             <div id="enq-list" aria-busy="true"><p class="form-note" role="status">Loading your bookings and enquiries…</p></div>
@@ -245,9 +248,9 @@
 <footer id="site-footer" class="site-footer"></footer>
 <script src="js/motion.js?v=20260921complete2" defer></script>
 <script src="js/motion-controls.js?v=20260921complete2" defer></script>
-<script src="js/main.js?v=20261024chrome1" defer></script>
-<script src="js/auth.js?v=20261024auth3" defer></script>
-<script src="js/search.js?v=20260920motion" defer></script>
-<script src="js/consumer-ui.js?v=20261024auth2" defer></script>
+<script src="js/main.js?v=20261024chrome2" defer></script>
+<script src="js/auth.js?v=20261024auth9" defer></script>
+<script src="js/search.js?v=20261024passengers2" defer></script>
+<script src="js/consumer-ui.js?v=20261024auth3" defer></script>
 </body>
 </html>

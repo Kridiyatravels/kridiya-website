@@ -668,7 +668,7 @@ a:hover { text-decoration: underline; }
 
 /* Travellers popover */
 .pax-pop {
-  position: absolute; z-index: var(--z-dropdown);
+  position: absolute; z-index: calc(var(--z-sticky) + 1);
   top: calc(100% + 4px); right: 0; width: 300px;
   background: var(--surface); border: 1px solid var(--line);
   border-radius: var(--r-md); box-shadow: var(--shadow-pop); padding: 1rem;
@@ -688,7 +688,7 @@ a:hover { text-decoration: underline; }
 .stepper output { min-width: 2ch; text-align: center; font-weight: 700; }
 .pax-pop .field { margin-top: 0.5rem; }
 .pax-pop .done { margin-top: 0.8rem; width: 100%; }
-.fake-input { cursor: pointer; text-align: left; }
+.fake-input { cursor: pointer; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 @media (max-width: 359px) {
   .ac-list,
@@ -2714,16 +2714,31 @@ body[data-page="about"] .hero-actions .btn { padding: 0.78rem 1.2rem; font-size:
 .guide-checklist { padding-left: 0; list-style: none; }
 .guide-checklist li { position: relative; padding-left: 1.9rem; }
 .guide-checklist li::before { content: "✓"; position: absolute; left: 0; color: var(--brand-deep); font-weight: 900; }
-.guide-note { margin: 0; padding: 1.1rem 1.25rem; border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: var(--r-md); background: var(--brand-soft); }
+.guide-note { margin: 0; padding: 1.1rem 1.25rem; border: 0; border-radius: var(--r-md); background: var(--brand-soft); }
 .guide-content .guide-cta { padding: clamp(1.5rem, 4vw, 2.4rem); border-radius: var(--r-lg); background: var(--grad-dark); }
 .guide-cta h2 { margin-top: 0.3rem; color: var(--ink); }
 .guide-cta p { color: var(--text); }
 .guide-cta .eyebrow { color: var(--brand-deep); }
-.guide-related { margin-top: 2.6rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
-.guide-related h2 { font-size: 1.2rem; }
-.guide-related ul { display: flex; flex-wrap: wrap; gap: 0.65rem 1.3rem; padding: 0; list-style: none; }
-.guide-related a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 800; }
+.guide-cta .btns { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+body.consumer-site .guide-cta .btn-primary,
+body.consumer-site .guide-cta .btn-primary:is(:hover, :focus-visible, :active) { color: #fff; }
+body.consumer-site .guide-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.25rem;
+  color: var(--brand-deep);
+  font-weight: 700;
+  text-decoration: none;
+}
+body.consumer-site .guide-cta-secondary:is(:hover, :focus-visible) { text-decoration: underline; text-underline-offset: 3px; }
+.guide-related { margin-top: 2.6rem; padding-top: 1.5rem; border: 0; }
+.guide-related h2 { margin: 0; font-size: 1.2rem; }
+.guide-related ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1rem; margin: 0.75rem 0 0; padding: 0; list-style: none; }
+.guide-content .guide-related li { min-width: 0; margin: 0; }
+.guide-related a { display: flex; align-items: center; width: 100%; min-height: 44px; font-weight: 800; }
 @media (max-width: 800px) {
   .guide-grid, .guide-layout { grid-template-columns: 1fr; }
   .guide-toc { position: static; }
+  .guide-related ul { grid-template-columns: minmax(0, 1fr); gap: 0.25rem; }
 }

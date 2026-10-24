@@ -27,6 +27,7 @@ body.consumer-site :is(h1,h2) { letter-spacing: 0; }
 body.consumer-site h2 { font-size: 1.45rem; font-weight: 700; margin: 0; }
 body.consumer-site h3 { font-size: 1.15rem; font-weight: 700; }
 body.consumer-site a { color: inherit; }
+body.consumer-site a.btn-wa { color: #fff; }
 body.consumer-site .btn { padding: .8rem 1.4rem; font-weight: 700; box-shadow: none; }
 body.consumer-site .btn-primary { font-size: 15.2px; padding: 12.8px 22.4px; min-height: 40.8px; border-radius: 8px; }
 body.consumer-site .btn-primary.btn-lg { font-size: 16.8px; padding: 16px 28.8px; min-height: 48.8px; min-width: 300px; border-radius: 999px; }
@@ -455,6 +456,22 @@ html[dir="rtl"] body.consumer-site .widget-panel .seg-row .pax-field { padding-l
 html[dir="rtl"] body.consumer-site .fake-input { text-align: right; }
 html[dir="rtl"] body.consumer-site .ac-list { left: auto; right: 0; }
 html[dir="rtl"] body.consumer-site .pax-pop { left: 0; right: auto; }
+@media (max-width: 1024px) {
+  body.consumer-site .pax-pop {
+    position: fixed;
+    z-index: 1200;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(340px,calc(100vw - 32px));
+    max-height: calc(100dvh - 32px - env(safe-area-inset-bottom));
+    overflow-y: auto;
+    translate: -50% -50%;
+    box-shadow: 0 22px 56px rgb(32 25 20 / .22);
+  }
+  html[dir="rtl"] body.consumer-site .pax-pop { right: auto; left: 50%; }
+}
 @media (prefers-reduced-motion: reduce) {
   body.consumer-site { scroll-behavior: auto; }
   body.consumer-site :is(.btn,.pkg-card,.dest-card,.visa-card,.site-header,.header-inner,.logo-art) { transition: none; transform: none; }

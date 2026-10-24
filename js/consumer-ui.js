@@ -22,6 +22,16 @@
     ['cruise.html','Cruise','ship'],
     ['https://corporate.kridiyatravel.com','Business Travel','briefcase']
   ];
+  function currentReturnDestination() {
+    const path = location.pathname.replace(/^\/+/, '') || 'index.html';
+    return path + location.search + location.hash;
+  }
+  function safeAuthDestination(value, fallback) {
+    if (window.KridiyaAuth && typeof KridiyaAuth.safeReturnDestination === 'function') {
+      return KridiyaAuth.safeReturnDestination(value, fallback || 'account.html');
+    }
+    return 'account.html';
+  }
   function accountIcon(name) {
     const paths = {
       globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z"/>',
@@ -226,6 +236,10 @@
         if (link.hash === current) link.setAttribute('aria-current','page');
         else link.removeAttribute('aria-current');
       });
+      if (!narrow.matches) {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        if (focus) grid.querySelector('.account-content-stack').scrollTop = 0;
+      }
       if (focus) {
         const heading = menu ? document.querySelector('.account-head h1') : target.querySelector('h2');
         heading.tabIndex = -1; heading.focus({ preventScroll: true });
@@ -299,7 +313,7 @@
         event.preventDefault();
         const next = url.searchParams.get('next');
         const form = panel?.querySelector('form');
-        if (form) form.dataset.authNext = next && (/^[a-z-]+\.html$/.test(next) || /^account\.html#[a-z-]+$/.test(next)) ? next : 'account.html';
+        if (form) form.dataset.authNext = safeAuthDestination(next, 'account.html');
         if (location.hash !== '#sign-in-form') location.hash = 'sign-in-form';
         else focusAuth();
       });
@@ -371,9 +385,6 @@
     let previousOverflow = '';
     let closeTimer = 0;
     let openFrame = 0;
-    function safeDestination(value) {
-      return value && (/^[a-z-]+\.html$/.test(value) || /^account\.html#[a-z-]+$/.test(value)) ? value : 'account.html';
-    }
     function motionDuration(property) {
       const value = getComputedStyle(dialog).getPropertyValue(property).trim();
       return value.endsWith('ms') ? parseFloat(value) : parseFloat(value) * 1000;
@@ -416,7 +427,7 @@
       if (url.origin !== location.origin || !url.pathname.endsWith('/login.html')) return;
       event.preventDefault();
       trigger = link;
-      form.dataset.authNext = safeDestination(url.searchParams.get('next'));
+      form.dataset.authNext = safeAuthDestination(url.searchParams.get('next') || currentReturnDestination(), 'account.html');
       window.clearTimeout(closeTimer);
       if (!dialog.open) {
         dialog.classList.remove('auth-sheet-expanded');

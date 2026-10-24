@@ -17,11 +17,30 @@ window.KridiyaAuth = (function () {
   const SUPABASE_KEY = localRuntime.publishableKey || "sb_publishable_wiA9tSt74X-UQhW4yOXgIQ_lEUG1Q1Q";
   const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4";
   const SESSION_KEY = "kridiya_session";
+  const AUTH_RETURN_KEY = "kridiya_auth_return";
+  const AUTH_RETURN_SHARED_KEY = AUTH_RETURN_KEY + ":shared";
+  const AUTH_RETURN_TTL = 15 * 60 * 1000;
   const PUBLIC_SITE_URL = localRuntime.siteUrl || "https://www.kridiyatravel.com/";
+  const PUBLIC_RETURN_PATHS = new Set([
+    "index.html", "flights.html", "hotels.html", "holidays.html", "umrah.html", "cruise.html", "visa.html",
+    "about.html", "contact.html", "privacy.html", "terms.html", "sitemap.html", "track-enquiry.html", "thanks.html",
+    "unsubscribe.html", "account.html", "guides/", "guides/index.html", "guides/flight-booking-checklist.html"
+  ]);
+  const ACCOUNT_RETURN_HASHES = new Set([
+    "", "account-menu", "bookings", "profile", "travellers", "security", "payments", "travel-updates",
+    "notifications", "support", "contact-team"
+  ]);
+  const AUTH_RESPONSE_PARAMETERS = new Set([
+    "access_token", "refresh_token", "provider_token", "provider_refresh_token", "id_token", "code",
+    "token", "token_hash", "confirmation_token", "recovery_token", "email_change_token_current", "email_change_token_new",
+    "token_type", "expires_in", "expires_at", "error", "error_code", "error_description", "state", "sb"
+  ]);
 
   let clientPromise = null;
   let cachedClient = null;
   let restorePromise = null;
+  let authGeneration = 0;
+  let authListenerInstalled = false;
 
   function cleanEmail(email) {
     return String(email || "").trim().toLowerCase();
@@ -45,6 +64,145 @@ window.KridiyaAuth = (function () {
   function publicURL(path) {
     return new URL(path, PUBLIC_SITE_URL).href;
   }
+
+  function safeReturnDestination(value, fallback) {
+    const safeFallback = PUBLIC_RETURN_PATHS.has(String(fallback || "")) ? String(fallback) : "account.html";
+    const raw = String(value || "").trim();
+    if (!raw || /^\s*(?:\/\/|[a-z][a-z0-9+.-]*:)/i.test(raw)) return safeFallback;
+    try {
+      const base = new URL(PUBLIC_SITE_URL);
+      const destination = new URL(raw, base);
+      const path = destination.pathname.replace(/^\/+/, "");
+      if (destination.origin !== base.origin || destination.username || destination.password || !PUBLIC_RETURN_PATHS.has(path)) {
+        return safeFallback;
+      }
+      const hashParameters = new URLSearchParams(destination.hash.replace(/^#/, ""));
+      const hasReservedAuthMaterial = Array.from(AUTH_RESPONSE_PARAMETERS).some(function (key) {
+        return destination.searchParams.has(key) || hashParameters.has(key);
+      });
+      if (hasReservedAuthMaterial) return safeFallback;
+      if (path === "account.html") {
+        const accountHash = destination.hash.replace(/^#/, "");
+        if (!ACCOUNT_RETURN_HASHES.has(accountHash)) destination.hash = "";
+      }
+      return path + destination.search + destination.hash;
+    } catch (error) {
+      return safeFallback;
+    }
+  }
+
+  function freshReturnRecord(stored) {
+    const age = Date.now() - Number(stored && stored.savedAt);
+    return Boolean(
+      stored
+      && typeof stored.destination === "string"
+      && safeReturnDestination(stored.destination, "account.html") === stored.destination
+      && Number.isFinite(age)
+      && age >= 0
+      && age <= AUTH_RETURN_TTL
+    );
+  }
+
+  function sameReturnRecord(left, right) {
+    return Boolean(
+      left
+      && right
+      && left.destination === right.destination
+      && Number(left.savedAt) === Number(right.savedAt)
+      && cleanEmail(left.subject) === cleanEmail(right.subject)
+    );
+  }
+
+  function sharedReturnMatchesUser(record, email) {
+    const subject = cleanEmail(record && record.subject);
+    return Boolean(subject && subject === cleanEmail(email));
+  }
+
+  function readSharedReturnDestination() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(AUTH_RETURN_SHARED_KEY));
+      if (freshReturnRecord(stored)) return stored;
+      localStorage.removeItem(AUTH_RETURN_SHARED_KEY);
+    } catch (error) {
+      try { localStorage.removeItem(AUTH_RETURN_SHARED_KEY); } catch (storageError) { /* Storage can be unavailable. */ }
+    }
+    return null;
+  }
+
+  function rememberReturnDestinationRecord(value, shareAcrossTabs, subject) {
+    const destination = safeReturnDestination(value, "account.html");
+    const record = { destination: destination, savedAt: Date.now(), shared: false };
+    if (shareAcrossTabs) {
+      try {
+        record.shared = true;
+        record.subject = cleanEmail(subject);
+        const existing = readSharedReturnDestination();
+        const sharedRecord = existing && (
+          existing.ambiguous
+          || existing.destination !== destination
+          || cleanEmail(existing.subject) !== record.subject
+        )
+          ? { destination: "account.html", savedAt: Date.now(), shared: true, ambiguous: true, subject: "" }
+          : record;
+        localStorage.setItem(AUTH_RETURN_SHARED_KEY, JSON.stringify(sharedRecord));
+      } catch (error) {
+        record.shared = false;
+      }
+    }
+    try { sessionStorage.setItem(AUTH_RETURN_KEY, JSON.stringify(record)); }
+    catch (error) { /* Storage can be unavailable. */ }
+    return record;
+  }
+
+  function rememberReturnDestination(value) {
+    return rememberReturnDestinationRecord(value, false).destination;
+  }
+
+  function pendingReturnDestination(allowSharedFallback, authenticatedEmail) {
+    try {
+      const value = sessionStorage.getItem(AUTH_RETURN_KEY);
+      if (value) {
+        const stored = JSON.parse(value);
+        if (!freshReturnRecord(stored)) {
+          clearReturnDestination();
+        } else if (stored.shared) {
+          const shared = readSharedReturnDestination();
+          if (sameReturnRecord(stored, shared)) {
+            if (!allowSharedFallback || sharedReturnMatchesUser(stored, authenticatedEmail)) {
+              return safeReturnDestination(stored.destination, "account.html");
+            }
+            try { localStorage.removeItem(AUTH_RETURN_SHARED_KEY); } catch (storageError) { /* Storage can be unavailable. */ }
+          }
+          try { sessionStorage.removeItem(AUTH_RETURN_KEY); } catch (storageError) { /* Storage can be unavailable. */ }
+        } else {
+          return safeReturnDestination(stored.destination, "account.html");
+        }
+      }
+    } catch (error) {
+      try { sessionStorage.removeItem(AUTH_RETURN_KEY); } catch (storageError) { /* Storage can be unavailable. */ }
+    }
+
+    if (!allowSharedFallback) return "";
+    const shared = readSharedReturnDestination();
+    if (!shared) return "";
+    try { localStorage.removeItem(AUTH_RETURN_SHARED_KEY); } catch (error) { /* Storage can be unavailable. */ }
+    if (!sharedReturnMatchesUser(shared, authenticatedEmail)) return "";
+    return safeReturnDestination(shared.destination, "account.html");
+  }
+
+  function clearReturnDestination() {
+    let stored = null;
+    try {
+      stored = JSON.parse(sessionStorage.getItem(AUTH_RETURN_KEY));
+    } catch (error) { /* A malformed session record is removed below. */ }
+    try { sessionStorage.removeItem(AUTH_RETURN_KEY); } catch (error) { /* Storage can be unavailable. */ }
+    if (!stored || !stored.shared) return;
+    const shared = readSharedReturnDestination();
+    if (!sameReturnRecord(stored, shared)) return;
+    try { localStorage.removeItem(AUTH_RETURN_SHARED_KEY); } catch (error) { /* Storage can be unavailable. */ }
+  }
+
+  readSharedReturnDestination();
 
   function nameFromProfile(profile, authUser) {
     return (
@@ -124,6 +282,7 @@ window.KridiyaAuth = (function () {
             detectSessionInUrl: true
           }
         });
+        installAuthListener(cachedClient);
         return cachedClient;
       }).catch(function (error) {
         clientPromise = null;
@@ -159,14 +318,20 @@ window.KridiyaAuth = (function () {
     // signed-out account state usable when Supabase is temporarily unavailable.
     if (restorePromise) return restorePromise;
     if (!hasPersistedAuth() && !hasAuthCallbackInUrl()) return null;
+    const generation = authGeneration;
     const sb = await client();
     const authResult = await sb.auth.getUser();
     if (authResult.error) throw authResult.error;
     if (!authResult.data || !authResult.data.user) {
-      clearSession();
+      if (generation === authGeneration) {
+        authGeneration += 1;
+        clearSession();
+        announceAuthState(null);
+      }
       return null;
     }
     const user = await profileFor(authResult.data.user);
+    if (generation !== authGeneration) return session();
     setSession(user);
     return user;
   }
@@ -185,6 +350,53 @@ window.KridiyaAuth = (function () {
     };
   }
 
+  async function profileForActiveAuth(authUser, generation) {
+    const user = await profileFor(authUser);
+    if (generation !== authGeneration) {
+      const activeUser = session();
+      if (!activeUser || activeUser.id !== authUser.id) {
+        throw new Error("The sign-in session changed before your account finished loading.");
+      }
+    }
+    setSession(user);
+    return user;
+  }
+
+  function establishVerifiedAuthUser(authUser, hydrateProfile) {
+    const generation = ++authGeneration;
+    const provisionalUser = userFromAuthSession(authUser);
+    setSession(provisionalUser);
+    announceAuthState(provisionalUser);
+    if (hydrateProfile) {
+      Promise.resolve().then(function () { return profileFor(authUser); }).then(function (profileUser) {
+        if (generation !== authGeneration) return;
+        setSession(profileUser);
+        announceAuthState(profileUser);
+      }).catch(function () { /* The verified auth identity remains usable if profile hydration is unavailable. */ });
+    }
+    return provisionalUser;
+  }
+
+  function installAuthListener(sb) {
+    if (authListenerInstalled || !sb || !sb.auth || typeof sb.auth.onAuthStateChange !== "function") return;
+    authListenerInstalled = true;
+    sb.auth.onAuthStateChange(function (event, authSession) {
+      const authUser = authSession && authSession.user;
+      if (authUser) {
+        const activeUser = session();
+        if (event === "TOKEN_REFRESHED" && activeUser && activeUser.id === authUser.id) {
+          announceAuthState(activeUser);
+          return;
+        }
+        establishVerifiedAuthUser(authUser, true);
+      } else if (event === "SIGNED_OUT") {
+        authGeneration += 1;
+        clearSession();
+        announceAuthState(null);
+      }
+    });
+  }
+
   function hasPersistedAuth() {
     try {
       return Boolean(session() || localStorage.getItem("sb-jmvqqpughlzeqrcyavwz-auth-token"));
@@ -197,30 +409,47 @@ window.KridiyaAuth = (function () {
     try {
       const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
       const search = new URLSearchParams(location.search);
-      return (hash.has("access_token") && hash.has("refresh_token")) || search.has("code");
+      return Array.from(AUTH_RESPONSE_PARAMETERS).some(function (key) {
+        return hash.has(key) || search.has(key);
+      });
     } catch (error) {
       return false;
     }
   }
 
+  function scrubAuthCallbackFromUrl() {
+    try {
+      const url = new URL(location.href);
+      AUTH_RESPONSE_PARAMETERS.forEach(function (key) { url.searchParams.delete(key); });
+      const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
+      let changedHash = false;
+      AUTH_RESPONSE_PARAMETERS.forEach(function (key) {
+        if (hash.has(key)) {
+          hash.delete(key);
+          changedHash = true;
+        }
+      });
+      if (changedHash) url.hash = hash.toString() ? "#" + hash.toString() : "";
+      history.replaceState(null, "", url.pathname + url.search + url.hash);
+    } catch (error) { /* The form can still recover when history access is unavailable. */ }
+  }
+
   function restoreSession() {
     if (restorePromise) return restorePromise;
+    const generation = authGeneration;
     const pending = client().then(async function (sb) {
       const result = await sb.auth.getSession();
       if (result.error) throw result.error;
+      if (generation !== authGeneration) return session();
       const authUser = result.data && result.data.session && result.data.session.user;
       if (!authUser) {
+        authGeneration += 1;
         clearSession();
         announceAuthState(null);
         return null;
       }
 
-      let user;
-      try { user = await profileFor(authUser); }
-      catch (error) { user = userFromAuthSession(authUser); }
-      setSession(user);
-      announceAuthState(user);
-      return user;
+      return establishVerifiedAuthUser(authUser, true);
     });
     restorePromise = pending.then(function (user) {
       restorePromise = null;
@@ -234,6 +463,7 @@ window.KridiyaAuth = (function () {
 
   async function register(opts) {
     const sb = await client();
+    const generation = authGeneration;
     const email = cleanEmail(opts.email);
     const name = String(opts.name || "").trim();
     const phone = String(opts.phone || "").trim();
@@ -263,29 +493,19 @@ window.KridiyaAuth = (function () {
       };
     }
 
-    const user = await profileFor(authUser);
-    setSession(user);
-    return user;
+    return profileForActiveAuth(authUser, generation);
   }
 
   async function login(identifier, password) {
     const sb = await client();
+    const generation = authGeneration;
     const identity = normalizeLoginIdentifier(identifier);
     const credentials = { password: password };
     credentials[identity.kind] = identity.value;
     const result = await sb.auth.signInWithPassword(credentials);
     if (result.error) throw result.error;
 
-    const user = await profileFor(result.data.user);
-    setSession(user);
-    return user;
-  }
-
-  function safeAccountDestination(path) {
-    const destination = String(path || "");
-    return (/^[a-z-]+\.html$/.test(destination) || /^account\.html#[a-z-]+$/.test(destination))
-      ? destination
-      : "account.html";
+    return profileForActiveAuth(result.data.user, generation);
   }
 
   async function requestLoginOtp(identifier, nextPath) {
@@ -295,16 +515,18 @@ window.KridiyaAuth = (function () {
     input[identity.kind] = identity.value;
     if (identity.kind === "email") {
       const callback = new URL("login.html", PUBLIC_SITE_URL);
-      callback.searchParams.set("next", safeAccountDestination(nextPath));
+      callback.searchParams.set("next", "account.html");
       input.options.emailRedirectTo = callback.href;
     }
     const result = await sb.auth.signInWithOtp(input);
     if (result.error) throw result.error;
+    if (identity.kind === "email") rememberReturnDestinationRecord(nextPath, true, identity.value);
     return identity;
   }
 
   async function verifyLoginOtp(identifier, token) {
     const sb = await client();
+    const generation = authGeneration;
     const identity = normalizeLoginIdentifier(identifier);
     const input = {
       token: String(token || "").replace(/\s/g, ""),
@@ -315,15 +537,14 @@ window.KridiyaAuth = (function () {
     if (result.error) throw result.error;
     if (!result.data || !result.data.user) throw new Error("The code could not be verified. Request a new code and try again.");
 
-    const user = await profileFor(result.data.user);
-    setSession(user);
-    return user;
+    return profileForActiveAuth(result.data.user, generation);
   }
 
   async function loginWithGoogle(nextPath) {
     const sb = await client();
     const callback = new URL("login.html", PUBLIC_SITE_URL);
-    callback.searchParams.set("next", safeAccountDestination(nextPath));
+    rememberReturnDestinationRecord(nextPath, false);
+    callback.searchParams.set("next", "account.html");
     const result = await sb.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -336,6 +557,7 @@ window.KridiyaAuth = (function () {
   }
 
   async function logout() {
+    authGeneration += 1;
     clearSession();
     clearSupabaseSession();
     announceAuthState(null);
@@ -778,6 +1000,11 @@ window.KridiyaAuth = (function () {
     currentUser: currentUser,
     hasPersistedAuth: hasPersistedAuth,
     hasAuthCallbackInUrl: hasAuthCallbackInUrl,
+    safeReturnDestination: safeReturnDestination,
+    rememberReturnDestination: rememberReturnDestination,
+    pendingReturnDestination: pendingReturnDestination,
+    clearReturnDestination: clearReturnDestination,
+    scrubAuthCallbackFromUrl: scrubAuthCallbackFromUrl,
     restoreSession: restoreSession,
     register: register,
     login: login,
@@ -833,9 +1060,10 @@ window.KridiyaAuth = (function () {
    ============================================================ */
 (function () {
   const page = document.body.dataset.page;
+  const authCallbackOnArrival = KridiyaAuth.hasAuthCallbackInUrl();
 
   document.addEventListener("DOMContentLoaded", function () {
-    if (KridiyaAuth.hasPersistedAuth() || KridiyaAuth.hasAuthCallbackInUrl()) {
+    if (KridiyaAuth.hasPersistedAuth() || authCallbackOnArrival) {
       KridiyaAuth.restoreSession().catch(function () {});
     }
   });
@@ -953,9 +1181,28 @@ window.KridiyaAuth = (function () {
     }
   }
 
-  function loginRedirectTarget(form) {
-    const dest = (form && form.dataset.authNext) || new URLSearchParams(location.search).get("next");
-    return dest && (/^[a-z-]+\.html$/.test(dest) || /^account\.html#[a-z-]+$/.test(dest)) ? dest : "account.html";
+  function loginRedirectTarget(form, user) {
+    const requestedByPage = (form && form.dataset.authNext)
+      || new URLSearchParams(location.search).get("next");
+    const pendingDestination = KridiyaAuth.pendingReturnDestination(authCallbackOnArrival, user && user.email);
+    const requested = authCallbackOnArrival
+      ? (pendingDestination || requestedByPage)
+      : (requestedByPage || pendingDestination);
+    return KridiyaAuth.safeReturnDestination(requested, "account.html");
+  }
+
+  function cancelLoginRestoreWatchdog() {
+    if (!window.__KRIDIYA_AUTH_RESTORE_WATCHDOG__) return;
+    clearTimeout(window.__KRIDIYA_AUTH_RESTORE_WATCHDOG__);
+    window.__KRIDIYA_AUTH_RESTORE_WATCHDOG__ = 0;
+  }
+
+  function showLoginRestore(show) {
+    const restore = document.getElementById("auth-session-restore");
+    if (!show) cancelLoginRestoreWatchdog();
+    document.documentElement.classList.toggle("auth-restore-pending", show);
+    document.body.classList.toggle("auth-session-restoring", show);
+    if (restore) restore.hidden = !show;
   }
 
   async function initializeLoginForm(form) {
@@ -1072,7 +1319,9 @@ window.KridiyaAuth = (function () {
             : await KridiyaAuth.login(identity.value, passwordInput.value);
           if (typeof trackEvent === "function") trackEvent("login", { method: mode === "otp-verify" ? identity.kind + "_otp" : identity.kind + "_password" });
           toast("Welcome back, " + user.name.split(" ")[0] + "!");
-          location.href = loginRedirectTarget(form);
+          const destination = loginRedirectTarget(form, user);
+          KridiyaAuth.clearReturnDestination();
+          location.href = destination;
         } catch (err) {
           const fallback = mode === "otp-request"
             ? "Could not send a one-time code. Check your details and try again."
@@ -1134,9 +1383,45 @@ window.KridiyaAuth = (function () {
   });
 
   if (page === "login") {
-    document.addEventListener("DOMContentLoaded", function () {
-      existingUserOrNull().then(user => { if (user) location.replace(loginRedirectTarget()); });
-      initializeLoginForm(document.getElementById("login-form"));
+    document.addEventListener("DOMContentLoaded", async function () {
+      const form = document.getElementById("login-form");
+      const initialized = initializeLoginForm(form);
+      const shouldRestore = authCallbackOnArrival || KridiyaAuth.hasPersistedAuth();
+      if (!shouldRestore) return;
+
+      showLoginRestore(true);
+      try {
+        const user = await KridiyaAuth.restoreSession();
+        if (user) {
+          window.__KRIDIYA_AUTH_RESTORE_TIMED_OUT__ = false;
+          const destination = loginRedirectTarget(form, user);
+          KridiyaAuth.clearReturnDestination();
+          showLoginRestore(false);
+          document.body.classList.remove("auth-login-open");
+          banner(form, "");
+          location.replace(destination);
+          return;
+        }
+        if (window.__KRIDIYA_AUTH_RESTORE_TIMED_OUT__) {
+          if (authCallbackOnArrival) KridiyaAuth.scrubAuthCallbackFromUrl();
+          return;
+        }
+        showLoginRestore(false);
+        if (authCallbackOnArrival) {
+          const callbackMessage = authLinkError();
+          KridiyaAuth.scrubAuthCallbackFromUrl();
+          await initialized;
+          document.body.classList.add("auth-login-open");
+          banner(form, callbackMessage || "We could not complete Google sign-in. Please try again or use another sign-in method.", "error");
+        }
+      } catch (error) {
+        const callbackMessage = authCallbackOnArrival ? authLinkError() : "";
+        if (authCallbackOnArrival) KridiyaAuth.scrubAuthCallbackFromUrl();
+        showLoginRestore(false);
+        await initialized;
+        document.body.classList.add("auth-login-open");
+        banner(form, callbackMessage || errorMessage(error, "We could not complete sign-in. Check your connection and try again."), "error");
+      }
     });
   }
 
@@ -1158,7 +1443,7 @@ window.KridiyaAuth = (function () {
           if (label) label.textContent = "Opening Google...";
           try {
             if (typeof trackEvent === "function") trackEvent("register_account", { method: "google", status: "started" });
-            await KridiyaAuth.loginWithGoogle("account.html#personal");
+            await KridiyaAuth.loginWithGoogle("account.html#profile");
           } catch (err) {
             banner(form, errorMessage(err, "Could not start Google account setup. Try again or continue with email."), "error");
           } finally {
@@ -1618,8 +1903,18 @@ window.KridiyaAuth = (function () {
 
       const travellerForm = document.getElementById("traveller-form");
       const travellerList = document.getElementById("traveller-list");
+      const travellerPanel = document.getElementById("travellers");
+      const travellerAdd = document.getElementById("add-traveller-btn");
+      const travellerAddActions = document.querySelector(".traveller-add-actions");
+      const travellerAddLabel = travellerAdd && travellerAdd.querySelector("[data-traveller-add-label]");
       const travellerCancel = document.getElementById("traveller-cancel");
       let savedTravellers = [];
+      function updateTravellerAddLabel() {
+        if (travellerAddLabel) travellerAddLabel.textContent = savedTravellers.length ? "Add another traveller" : "Add traveller";
+      }
+      function syncTravellerLayoutState() {
+        if (travellerPanel) travellerPanel.classList.toggle("traveller-empty-closed", !savedTravellers.length && travellerForm.hidden);
+      }
       function resetTravellerForm() {
         travellerForm.reset();
         travellerForm.querySelectorAll(".date-field").forEach(function (field) { if (field._dateSet) field._dateSet("", true); });
@@ -1628,7 +1923,26 @@ window.KridiyaAuth = (function () {
         travellerCancel.hidden = true;
         banner(travellerForm, "");
       }
+      function revealTravellerForm() {
+        travellerForm.hidden = false;
+        travellerCancel.hidden = false;
+        if (travellerAddActions) travellerAddActions.hidden = true;
+        if (travellerAdd) travellerAdd.setAttribute("aria-expanded", "true");
+        syncTravellerLayoutState();
+      }
+      function concealTravellerForm(restoreFocus) {
+        resetTravellerForm();
+        travellerForm.hidden = true;
+        if (!travellerAdd) return;
+        travellerAdd.setAttribute("aria-expanded", "false");
+        if (travellerAddActions) travellerAddActions.hidden = false;
+        syncTravellerLayoutState();
+        if (restoreFocus) travellerAdd.focus({ preventScroll: true });
+      }
       function renderTravellers() {
+        updateTravellerAddLabel();
+        if (travellerAddActions && travellerForm.hidden) travellerAddActions.hidden = false;
+        syncTravellerLayoutState();
         if (!savedTravellers.length) {
           travellerList.innerHTML = '<div class="empty-state"><p><b>No saved travellers yet.</b><br>Add yourself or a frequent traveller below.</p></div>';
           return;
@@ -1649,6 +1963,7 @@ window.KridiyaAuth = (function () {
         const row = savedTravellers.find(function (item) { return item.id === id; });
         if (!row) return;
         if (edit) {
+          revealTravellerForm();
           travellerForm.traveller_id.value = row.id;
           travellerForm.expected_updated_at.value = row.updated_at;
           travellerForm.full_name.value = row.full_name || "";
@@ -1658,7 +1973,6 @@ window.KridiyaAuth = (function () {
           travellerForm.passport_number.value = "";
           if (travellerForm.passport_expiry.closest(".date-field")._dateSet) travellerForm.passport_expiry.closest(".date-field")._dateSet(row.passport_expiry || "", true);
           else travellerForm.passport_expiry.value = row.passport_expiry || "";
-          travellerCancel.hidden = false;
           travellerForm.scrollIntoView({ behavior: "smooth", block: "center" });
           return;
         }
@@ -1666,11 +1980,21 @@ window.KridiyaAuth = (function () {
         try {
           await KridiyaAuth.archiveMyTraveller(row.id, row.updated_at);
           await refreshTravellers();
-          resetTravellerForm();
+          concealTravellerForm(true);
           toast("Traveller removed.");
         } catch (err) { toast(errorMessage(err, "Could not remove traveller.")); }
       });
-      travellerCancel.addEventListener("click", resetTravellerForm);
+      travellerCancel.addEventListener("click", function () { concealTravellerForm(true); });
+      if (travellerAdd) {
+        travellerAdd.addEventListener("click", function () {
+          resetTravellerForm();
+          revealTravellerForm();
+          travellerForm.scrollIntoView({ behavior: "smooth", block: "center" });
+          requestAnimationFrame(function () {
+            travellerForm.full_name.focus({ preventScroll: true });
+          });
+        });
+      }
       travellerForm.addEventListener("submit", async function (event) {
         event.preventDefault();
         if (!validateForm(travellerForm)) return;
@@ -1687,13 +2011,14 @@ window.KridiyaAuth = (function () {
             passportExpiry: travellerForm.passport_expiry.value
           });
           await refreshTravellers();
-          resetTravellerForm();
+          concealTravellerForm(true);
           toast("Traveller saved.");
         } catch (err) { banner(travellerForm, errorMessage(err, "Could not save traveller."), "error"); }
         busy(travellerForm, false);
       });
       try { await refreshTravellers(); } catch (err) {
         travellerList.innerHTML = '<div class="form-banner error" role="alert">Could not load saved travellers.</div>';
+        if (travellerAddActions) travellerAddActions.hidden = false;
       }
 
       const listEl = document.getElementById("enq-list");
@@ -2100,3 +2425,5 @@ window.KridiyaAuth = (function () {
     });
   }
 })();
+
+window.__KRIDIYA_AUTH_RUNTIME_READY__ = true;

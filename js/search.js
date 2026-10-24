@@ -448,16 +448,52 @@ function initPaxPopover(panel) {
   btn.dataset.paxInit = "1";
   const counts = { adults: 1, children: 0, infants: 0 };
   const MAXTOTAL = 9;
+
+  const incoming = new URLSearchParams(location.search);
+  if (["adults", "children", "infants"].every(function (key) { return incoming.has(key); })) {
+    const requested = {
+      adults: Number(incoming.get("adults")),
+      children: Number(incoming.get("children")),
+      infants: Number(incoming.get("infants"))
+    };
+    const requestedTotal = requested.adults + requested.children + requested.infants;
+    if (
+      Number.isInteger(requested.adults) && requested.adults >= 1 &&
+      Number.isInteger(requested.children) && requested.children >= 0 &&
+      Number.isInteger(requested.infants) && requested.infants >= 0 &&
+      requested.infants <= requested.adults && requestedTotal <= MAXTOTAL
+    ) {
+      counts.adults = requested.adults;
+      counts.children = requested.children;
+      counts.infants = requested.infants;
+    }
+  }
+  const cabin = incoming.get("cabin");
+  const cabinSelect = pop.querySelector('select[name="class"]');
+  if (cabin && Array.from(cabinSelect.options).some(function (option) { return option.value === cabin; })) {
+    cabinSelect.value = cabin;
+  }
+
+  function fitPaxPopover() {
+    pop.style.removeProperty("max-height");
+    pop.style.removeProperty("overflow-y");
+    if (matchMedia("(max-width: 1024px)").matches) return;
+    const fieldBox = btn.closest(".pax-field").getBoundingClientRect();
+    const roomBelow = Math.max(0, innerHeight - fieldBox.bottom - 16);
+    pop.style.maxHeight = Math.max(180, roomBelow) + "px";
+    pop.style.overflowY = "auto";
+  }
   function setOpen(open) {
     if (!open && pop.contains(document.activeElement)) btn.focus();
     if (window.KridiyaMotion) KridiyaMotion.dropdown(pop, open, "top-right");
     else pop.hidden = !open;
+    if (open) fitPaxPopover();
     btn.setAttribute("aria-expanded", String(open));
   }
 
   function label() {
     const total = counts.adults + counts.children + counts.infants;
-    const cls = pop.querySelector('select[name="class"]').value;
+    const cls = cabinSelect.value;
     const value = total + " Traveller" + (total > 1 ? "s" : "") + " · " + cls;
     if (window.KridiyaMotion && KridiyaMotion.label) KridiyaMotion.label(btn, value, false);
     else btn.textContent = value;
@@ -490,7 +526,7 @@ function initPaxPopover(panel) {
     }
     if (e.target.closest(".done")) { setOpen(false); btn.focus(); }
   });
-  pop.querySelector("select").addEventListener("change", label);
+  cabinSelect.addEventListener("change", label);
   btn.addEventListener("click", function () {
     setOpen(btn.getAttribute("aria-expanded") !== "true");
   });
@@ -504,6 +540,9 @@ function initPaxPopover(panel) {
       setOpen(false); btn.focus();
     }
   });
+  window.addEventListener("resize", function () {
+    if (btn.getAttribute("aria-expanded") === "true") fitPaxPopover();
+  }, { passive: true });
   refresh();
 }
 

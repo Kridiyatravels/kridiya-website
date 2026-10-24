@@ -117,6 +117,44 @@ body.consumer-site .auth-method-toggle { appearance: none; border: 0; padding: 2
 body.consumer-site .auth-method-toggle:hover { color: #94350f; }
 body.consumer-site .auth-method-toggle:focus-visible { outline: 0; text-decoration: underline; text-underline-offset: 3px; }
 body.consumer-site .auth-method-toggle:disabled { cursor: wait; opacity: .55; }
+body.consumer-site[data-page="login"].auth-session-restoring .auth-card--login,
+body.consumer-site[data-page="login"].auth-session-restoring .account-access-directory,
+html.auth-restore-pending body.consumer-site[data-page="login"] .auth-card--login,
+html.auth-restore-pending body.consumer-site[data-page="login"] .account-access-directory { display: none !important; }
+html.auth-restore-pending body.consumer-site[data-page="login"] .auth-session-restore[hidden] { display: block !important; }
+body.consumer-site[data-page="login"] .auth-session-restore { min-height: min(584px,90dvh); }
+.auth-restore-skeleton { display: grid; gap: 10px; }
+.auth-restore-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 12px; }
+.auth-restore-shape {
+  display: block;
+  overflow: hidden;
+  border-radius: 7px;
+  background: #e9e6e3;
+  position: relative;
+}
+.auth-restore-shape::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  translate: -100% 0;
+  background: linear-gradient(90deg,transparent,rgb(255 255 255 / .72),transparent);
+  animation: auth-restore-sweep 1.25s ease-in-out infinite;
+}
+.auth-restore-title { width: 116px; height: 34px; }
+.auth-restore-close { width: 44px; height: 44px; border-radius: 50%; }
+.auth-restore-copy { width: 78%; height: 13px; }
+.auth-restore-copy-short { width: 56%; margin-bottom: 18px; }
+.auth-restore-label { width: 108px; height: 11px; margin-bottom: -2px; }
+.auth-restore-input { width: 100%; height: 54px; border-radius: 10px; }
+.auth-restore-hint { width: 210px; height: 10px; margin-bottom: 8px; }
+.auth-restore-primary { width: 100%; height: 52px; margin-top: 4px; border-radius: 999px; }
+.auth-restore-method { width: 132px; height: 12px; margin: 4px auto 16px; }
+.auth-restore-divider { width: 100%; height: 1px; margin-block: 5px; border-radius: 0; }
+.auth-restore-provider { width: 100%; height: 50px; border-radius: 14px; }
+.auth-restore-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 14px; }
+.auth-restore-actions .auth-restore-shape { height: 44px; border-radius: 12px; }
+body.consumer-site .auth-session-restore > .auth-restore-status { margin: 20px 0 0; color: var(--home-muted); font-size: 12px; text-align: center; }
+@keyframes auth-restore-sweep { to { translate: 100% 0; } }
 
 /* Customer sections share the public site's controls and measured grid cuts. */
 body.consumer-site[data-page="account"] main { background: #f7f7f7; }
@@ -264,6 +302,7 @@ body.consumer-site .sitemap-section { padding-block: 42px 64px; }
 }
 @media (prefers-reduced-motion: reduce) {
   body.consumer-site *, body.consumer-site *::before, body.consumer-site *::after { scroll-behavior: auto !important; }
+  .auth-restore-shape::after { animation: none; }
 }
 
 /* Owner-supplied measured cuts, 4 October. These govern the whole consumer site. */
@@ -1128,6 +1167,19 @@ body.consumer-site .account-main .empty-state { padding: 46px 20px; background: 
 body.consumer-site .account-main .empty-state > svg { fill: currentColor; color: #a07d68; }
 body.consumer-site .account-main .empty-state b { display: inline-block; margin-bottom: 6px; color: #28262c; font-size: 17px; }
 body.consumer-site .account-main .empty-actions { margin-top: 24px; }
+body.consumer-site[data-page="account"] #travellers.traveller-empty-closed { display: flex; flex-direction: column; }
+body.consumer-site[data-page="account"] #travellers.traveller-empty-closed .traveller-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+body.consumer-site[data-page="account"] #travellers.traveller-empty-closed #traveller-list { width: 100%; }
+body.consumer-site[data-page="account"] #travellers.traveller-empty-closed #traveller-list .empty-state { padding: 0 20px; }
+body.consumer-site[data-page="account"] #travellers.traveller-empty-closed #traveller-list .empty-state p { margin-inline: auto; }
+body.consumer-site[data-page="account"] #travellers.traveller-empty-closed .traveller-add-actions { margin-top: 18px; }
 body.consumer-site .account-main .enq-item { border: 1px solid #e2e0e5; border-radius: 12px; padding: 22px; box-shadow: none; }
 body.consumer-site .account-main .account-item-grid span { border: 0; padding: 8px 0; background: #fff !important; border-radius: 0; }
 body.consumer-site .account-main .customer-status-strip { background: #f7f6f9; border: 0; border-radius: 6px; }
@@ -1149,6 +1201,93 @@ body.consumer-site .account-form-section .field > label { font-size: 13px; font-
 body.consumer-site .account-form-section input { min-height: 54px; border-color: #96919c; border-radius: 8px; font-size: 16px; }
 body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; color: #65616a; }
 .account-bottom-nav, .account-back { display: none; }
+
+/* Desktop My Kridiya is a two-pane workspace. Each pane owns its scrolling so
+   the account header and a short empty state remain fixed in the viewport. */
+@media (min-width: 821px) {
+  body.consumer-site[data-page="account"] {
+    --account-header-h: 90px;
+    height: 100dvh;
+    overflow: hidden;
+    background: #f5f5f8;
+  }
+  body.consumer-site[data-page="account"] #site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    height: var(--account-header-h);
+    background: #f5f5f8;
+    box-shadow: none;
+  }
+  body.consumer-site[data-page="account"] #site-header .container.header-inner {
+    width: calc(100% - 48px);
+    max-width: 1316px;
+    height: 66px;
+    min-height: 66px;
+    margin-top: 12px;
+    padding-inline: 24px;
+    border: 1px solid rgb(53 47 43 / .08);
+    border-radius: 16px;
+    background: rgb(255 255 255 / .99);
+    box-shadow: 0 14px 34px rgb(38 31 25 / .14);
+  }
+  body.consumer-site[data-page="account"] main {
+    height: calc(100dvh - var(--account-header-h));
+    min-height: 0;
+    overflow: hidden;
+  }
+  body.consumer-site[data-page="account"] main > .section {
+    height: 100%;
+    padding: 0;
+  }
+  body.consumer-site[data-page="account"] main > .section > .container {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+  }
+  body.consumer-site[data-page="account"] .account-head { display: none; }
+  body.consumer-site[data-page="account"] .account-grid {
+    grid-template-columns: clamp(330px,36vw,460px) minmax(0,1fr);
+    gap: 0;
+    height: 100%;
+    align-items: stretch;
+  }
+  body.consumer-site[data-page="account"] .account-side {
+    height: 100%;
+    padding: 28px clamp(24px,3vw,44px) 40px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    border-right: 1px solid #e5e2e7;
+    background: #fff;
+  }
+  body.consumer-site[data-page="account"] .account-identity {
+    padding: 20px;
+    border-radius: 14px;
+  }
+  body.consumer-site[data-page="account"] .account-content-stack {
+    display: block;
+    height: 100%;
+    padding: 28px clamp(28px,4vw,64px) 40px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    background: #f5f5f8;
+  }
+  body.consumer-site[data-page="account"] .account-main {
+    width: min(100%,980px);
+    min-height: 100%;
+    margin: 0 auto;
+    border-radius: 14px;
+  }
+  body.consumer-site[data-page="account"] #bookings #enq-list > .empty-state {
+    min-height: clamp(280px,48vh,520px);
+    align-content: center;
+  }
+  body.consumer-site[data-page="account"] #site-footer { display: none; }
+}
 
 /* Native dialog supplies focus containment and Escape/backdrop dismissal. */
 .consumer-account-drawer { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(400px,100%); max-width: 100%; height: 100dvh; max-height: 100dvh; padding: 0 24px 28px; border: 0; background: #fff; color: #28262c; overflow-y: auto; overscroll-behavior: contain; }
@@ -1174,6 +1313,26 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
   body.account-navigation-ready .account-head > .btn { display: none; }
   body.account-navigation-ready .account-head p { display: none; }
   body.consumer-site .account-main { padding: 24px; }
+  body.consumer-site[data-page="account"] #travellers.traveller-empty-closed { min-height: calc(100dvh - 92px - env(safe-area-inset-bottom)); }
+  body.consumer-site #bookings { position: relative; }
+  body.consumer-site #bookings .account-booking-toolbar { min-height: 0; margin: 0; }
+  body.consumer-site #bookings .account-refresh {
+    position: absolute;
+    top: -8px;
+    inset-inline-end: 0;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+  }
+  body.consumer-site #bookings .account-refresh span { font-size: 24px; }
+  body.consumer-site #bookings .account-booking-filters:not([hidden]) { margin: 10px 0 16px; }
   .account-back { display: inline-flex; min-height: 44px; align-items: center; gap: 10px; margin: -8px 0 16px; font-size: 13px; font-weight: 600; text-decoration: none; }
   .account-back svg { width: 20px; height: 20px; fill: none; }
   .account-bottom-nav { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); position: fixed; inset: auto 0 0; z-index: 1100; padding: 5px 8px calc(5px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #dedde2; color: #68666d; }
@@ -1294,6 +1453,28 @@ body.consumer-site .contact-grid-form-only .contact-card h2 { font-size: 22px; }
   body.consumer-site[data-page="login"] .account-access-directory { order: 1; }
   body.consumer-site[data-page="login"] .auth-card--login { display: none; order: 2; padding-top: 30px; border-top: 1px solid var(--home-line); }
   body.consumer-site[data-page="login"].auth-login-open .auth-card--login { display: block; }
+  body.consumer-site[data-page="login"].auth-session-restoring::before,
+  html.auth-restore-pending body.consumer-site[data-page="login"]::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 89;
+    background: rgb(24 22 27 / .62);
+  }
+  body.consumer-site[data-page="login"].auth-session-restoring .auth-session-restore,
+  html.auth-restore-pending body.consumer-site[data-page="login"] .auth-session-restore {
+    position: fixed;
+    inset: 50% auto auto 50%;
+    z-index: 90;
+    width: min(560px,calc(100vw - 48px));
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    border: 0;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 24px 64px rgb(15 13 18 / .28);
+    transform: translate(-50%,-50%);
+  }
 
   body.account-navigation-ready main { min-height: 100dvh; }
   body.account-navigation-ready.account-menu-view .account-head { margin: 0 0 18px; }
@@ -1598,6 +1779,15 @@ body.consumer-site:is([data-page="login"],[data-page="register"]) .auth-card { p
       visibility 0s,
       max-height var(--duration-fast) var(--panel-ease),
       border-radius var(--duration-fast) var(--panel-ease);
+  }
+  body.consumer-site[data-page="login"].auth-session-restoring .auth-session-restore,
+  html.auth-restore-pending body.consumer-site[data-page="login"] .auth-session-restore {
+    inset: auto 0 0;
+    width: 100%;
+    max-height: 90dvh;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -16px 48px rgb(15 13 18 / .24);
+    transform: none;
   }
   body.consumer-site[data-page="login"] .auth-card--login {
     display: block;

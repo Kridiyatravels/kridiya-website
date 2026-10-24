@@ -3,20 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="js/locale-boot.js"></script>
+<meta name="referrer" content="no-referrer">
 <title>Customer Login - Kridiya Travel and Tourism</title>
 <meta name="description" content="Log in to your Kridiya Travel account to view your enquiries and manage your profile.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script>
+(function () {
+  var authParameters = [
+    'access_token', 'refresh_token', 'provider_token', 'provider_refresh_token', 'id_token', 'code',
+    'token', 'token_hash', 'confirmation_token', 'recovery_token', 'email_change_token_current', 'email_change_token_new',
+    'token_type', 'expires_in', 'expires_at', 'error', 'error_code', 'error_description', 'state', 'sb'
+  ];
+
+  function scrubCallback() {
+    try {
+      var url = new URL(location.href);
+      var hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+      authParameters.forEach(function (key) {
+        url.searchParams.delete(key);
+        hash.delete(key);
+      });
+      url.hash = hash.toString() ? '#' + hash.toString() : '';
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
+    } catch (error) { /* The fallback can still reveal the form when history access is unavailable. */ }
+  }
+
+  function revealFallback(callback) {
+    document.documentElement.classList.remove('auth-restore-pending');
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', function () { revealFallback(callback); }, { once: true });
+      return;
+    }
+    document.body.classList.remove('auth-session-restoring');
+    document.body.classList.add('auth-login-open');
+    var restore = document.getElementById('auth-session-restore');
+    if (restore) restore.hidden = true;
+    var banner = document.querySelector('#login-form .form-banner');
+    if (banner) {
+      banner.hidden = false;
+      banner.className = 'form-banner error';
+      banner.textContent = callback
+        ? 'We could not finish sign-in. Please try again.'
+        : 'We could not restore your session. Please sign in again.';
+    }
+  }
+
+  function failAuthRuntime() {
+    if (!callback && !persisted) return;
+    if (window.__KRIDIYA_AUTH_RESTORE_WATCHDOG__) clearTimeout(window.__KRIDIYA_AUTH_RESTORE_WATCHDOG__);
+    window.__KRIDIYA_AUTH_RESTORE_WATCHDOG__ = 0;
+    window.__KRIDIYA_AUTH_RESTORE_TIMED_OUT__ = true;
+    if (callback) scrubCallback();
+    revealFallback(callback);
+  }
+
+  try {
+    var hash = new URLSearchParams(location.hash.replace(/^#/, ''));
+    var search = new URLSearchParams(location.search);
+    var callback = authParameters.some(function (key) {
+      return hash.has(key) || search.has(key);
+    });
+    var persisted = false;
+    try { persisted = localStorage.getItem('kridiya_session') || localStorage.getItem('sb-jmvqqpughlzeqrcyavwz-auth-token'); }
+    catch (storageError) { /* Callback cleanup must still run when storage access is blocked. */ }
+    if (callback || persisted) {
+      document.documentElement.classList.add('auth-restore-pending');
+      window.__KRIDIYA_AUTH_RESTORE_TIMED_OUT__ = false;
+      window.__KRIDIYA_AUTH_RESTORE_WATCHDOG__ = setTimeout(function () {
+        window.__KRIDIYA_AUTH_RESTORE_WATCHDOG__ = 0;
+        window.__KRIDIYA_AUTH_RESTORE_TIMED_OUT__ = true;
+        // A slow local or Supabase runtime may still complete the callback.
+        // Keep its material until that runtime succeeds or explicitly fails.
+        revealFallback(callback);
+      }, 8000);
+    }
+  } catch (error) { /* The normal sign-in form remains available when storage is blocked. */ }
+  window.__KRIDIYA_AUTH_RUNTIME_FAILED__ = failAuthRuntime;
+  window.__KRIDIYA_AUTH_RUNTIME_LOADED__ = function () {
+    if (!window.__KRIDIYA_AUTH_RUNTIME_READY__) failAuthRuntime();
+  };
+})();
+</script>
+<script src="js/locale-boot.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Great+Vibes&family=Playfair+Display:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
 <link rel="canonical" href="https://www.kridiyatravel.com/login.html">
-<link rel="stylesheet" href="css/styles.css?v=20260929release2">
+<link rel="stylesheet" href="css/styles.css?v=20261024passengers2">
 <link rel="stylesheet" href="css/motion.css?v=20260929release2">
 <link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
-<link rel="stylesheet" href="css/homepage.css?v=20261004all1">
-<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive9">
+<link rel="stylesheet" href="css/homepage.css?v=20261024whatsapp1">
+<link rel="stylesheet" href="css/consumer-pages.css?v=20261024responsive12">
 </head>
 <body class="consumer-site" data-page="login">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -24,6 +102,22 @@
 <main id="main-content">
   <div class="container auth-wrap">
     <div class="auth-shell">
+      <section class="auth-card auth-session-restore" id="auth-session-restore" hidden aria-labelledby="auth-session-restore-status" aria-live="polite">
+        <div class="auth-restore-skeleton" aria-hidden="true">
+          <div class="auth-restore-heading"><span class="auth-restore-shape auth-restore-title"></span><span class="auth-restore-shape auth-restore-close"></span></div>
+          <span class="auth-restore-shape auth-restore-copy"></span>
+          <span class="auth-restore-shape auth-restore-copy auth-restore-copy-short"></span>
+          <span class="auth-restore-shape auth-restore-label"></span>
+          <span class="auth-restore-shape auth-restore-input"></span>
+          <span class="auth-restore-shape auth-restore-hint"></span>
+          <span class="auth-restore-shape auth-restore-primary"></span>
+          <span class="auth-restore-shape auth-restore-method"></span>
+          <span class="auth-restore-shape auth-restore-divider"></span>
+          <span class="auth-restore-shape auth-restore-provider"></span>
+          <div class="auth-restore-actions"><span class="auth-restore-shape"></span><span class="auth-restore-shape"></span></div>
+        </div>
+        <p class="auth-restore-status" id="auth-session-restore-status">Finishing your secure sign-in…</p>
+      </section>
       <section class="auth-card auth-card--login" id="sign-in-form" role="dialog" aria-modal="true" aria-labelledby="sign-in-title">
         <div class="auth-sheet-head">
           <span class="auth-sheet-handle" aria-hidden="true"></span>
@@ -136,8 +230,8 @@
 <footer id="site-footer" class="site-footer"></footer>
 <script src="js/motion.js?v=20260921complete2" defer></script>
 <script src="js/motion-controls.js?v=20260921complete2" defer></script>
-<script src="js/main.js?v=20261024chrome1" defer></script>
-<script src="js/auth.js?v=20261024auth3" defer></script>
-<script src="js/consumer-ui.js?v=20261024auth2" defer></script>
+<script src="js/main.js?v=20261024chrome2" defer></script>
+<script src="js/auth.js?v=20261024auth6" defer onload="window.__KRIDIYA_AUTH_RUNTIME_LOADED__ && window.__KRIDIYA_AUTH_RUNTIME_LOADED__()" onerror="window.__KRIDIYA_AUTH_RUNTIME_FAILED__ && window.__KRIDIYA_AUTH_RUNTIME_FAILED__()"></script>
+<script src="js/consumer-ui.js?v=20261024auth3" defer></script>
 </body>
 </html>
