@@ -811,9 +811,9 @@ function organizeConsumerFooter(footer) {
   const call = link('Call us', 'tel:' + KRIDIYA.phoneTel);
   call.className = 'footer-quick-action';
   call.innerHTML = icon('phone') + '<span class="footer-quick-action-copy"><small>Call</small><strong dir="ltr">' + KRIDIYA.phoneDisplay + '</strong></span>';
-  const email = link('Email us', 'mailto:' + KRIDIYA.emails.info);
+  const email = link('Email us', 'mailto:' + KRIDIYA.emails.contact);
   email.className = 'footer-quick-action';
-  email.innerHTML = icon('mail') + '<span class="footer-quick-action-copy"><small>Email</small><strong dir="ltr">' + KRIDIYA.emails.info + '</strong></span>';
+  email.innerHTML = icon('mail') + '<span class="footer-quick-action-copy"><small>Email</small><strong dir="ltr">' + KRIDIYA.emails.contact + '</strong></span>';
   const account = link('My Kridiya', 'login.html');
   account.className = 'footer-quick-action';
   account.innerHTML = '<span class="footer-quick-action-copy"><small>Account</small><strong>My Kridiya</strong></span>';
@@ -1128,7 +1128,7 @@ function renderChrome() {
           '</ul></details>' +
           '<details class="footer-column footer-connect" open><summary>Contact</summary><ul class="footer-contact">' +
             '<li>' + icon("phone") + '<a href="tel:' + KRIDIYA.phoneTel + '">' + KRIDIYA.phoneDisplay + '</a></li>' +
-            '<li>' + icon("mail") + '<a href="mailto:' + KRIDIYA.emails.info + '">' + KRIDIYA.emails.info + '</a></li>' +
+            '<li>' + icon("mail") + '<a href="mailto:' + KRIDIYA.emails.contact + '">' + KRIDIYA.emails.contact + '</a></li>' +
             '<li>' + icon("whatsapp") + '<a href="' + waLink() + '" target="_blank" rel="noopener">WhatsApp us</a></li>' +
           '</ul></details>' +
         '</nav>' +

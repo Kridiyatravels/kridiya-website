@@ -630,7 +630,7 @@ body.consumer-site .site-footer {
 }
 body.consumer-site .site-footer :is(h4,p,a,summary) { color: inherit; }
 body.consumer-site .footer-grid {
-  grid-template-columns: repeat(6,minmax(0,1fr));
+  grid-template-columns: repeat(5,minmax(0,1fr)) minmax(235px,1.35fr);
   gap: 28px 34px;
   padding-block: 42px 34px;
 }
@@ -1158,6 +1158,7 @@ body.consumer-site .account-section-head { margin-bottom: 24px; padding-bottom: 
 body.consumer-site .account-section-head h2 { font-size: 23px; line-height: 1.3; }
 body.consumer-site .account-section-head p { max-width: 65ch; color: #68666d; }
 body.consumer-site .account-section-head > a { white-space: normal; }
+body.consumer-site .account-section-link { display: inline-flex; margin-top: 12px; color: var(--home-accent); font-size: 12px; font-weight: 800; text-decoration: none; }
 body.consumer-site .account-summary { gap: 0; border-bottom: 1px solid #e7e5e9; padding-bottom: 22px; }
 body.consumer-site .account-summary > div { border: 0; border-radius: 0; background: transparent; padding: 4px 20px; }
 body.consumer-site .account-summary > div + div { border-left: 1px solid #e7e5e9; }
@@ -1244,12 +1245,15 @@ body.consumer-site .account-main .account-travel-skeleton { border: 0; box-shado
 .account-skeleton-facts .account-skeleton-detail i:last-child { width: min(88%,560px); }
 @keyframes account-skeleton-sweep { to { translate: 100% 0; } }
 .account-booking-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.account-booking-toolbar:not(:has(.account-booking-filters:not([hidden]))) { margin-bottom: 0; }
 .account-booking-filters { display: flex; gap: 8px; flex-wrap: wrap; }
 .account-booking-filters button { min-height: 44px; padding: 8px 16px; border: 1px solid #b6b1bc; border-radius: 24px; background: #fff; color: #28262c; font: 500 13px var(--font); cursor: pointer; }
 .account-booking-filters button[aria-pressed="true"] { border-color: #853714; background: #fae8dd; color: #853714; }
-.account-refresh { margin-left: auto; display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px; background: transparent; border: 0; color: #853714; font: 600 13px var(--font); cursor: pointer; }
+.account-refresh { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; min-height: 44px; margin-left: auto; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #853714; cursor: pointer; }
 .account-refresh[hidden] { display: none; }
 .account-refresh span { font-size: 24px; line-height: 1; }
+.account-refresh:hover { background: #f8eee8; }
+.account-refresh:focus-visible { outline: 2px solid #853714; outline-offset: 2px; }
 .account-refresh:disabled { opacity: .5; cursor: wait; }
 .account-filter-status { color: #68666d; font-size: 12px; margin: 0 0 16px; }
 .account-filter-status:empty { display: none; }
