@@ -477,6 +477,7 @@ body.consumer-site .service-slide:hover .service-slide-cta svg { transform: tran
 .mobile-primary-nav { display: none; }
 
 @media (max-width: 720px) {
+  body.mobile-primary-navigation-ready #account-btn { display: none; }
   body.mobile-primary-navigation-ready { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   .mobile-primary-nav {
     position: fixed;
@@ -1377,6 +1378,7 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
 .consumer-account-drawer .consumer-account-nav a { min-height: 52px; }
 .consumer-account-drawer a { text-decoration: none; }
 @media (max-width: 820px) {
+  body.consumer-site.account-navigation-ready #account-btn { display: none; }
   body.account-navigation-ready { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   body.account-navigation-ready main { scroll-margin-top: var(--header-h); }
   body.account-navigation-ready .account-head, body.account-navigation-ready .account-side { display: none; }
