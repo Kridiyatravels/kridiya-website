@@ -1306,32 +1306,31 @@ async function submitEnquiryToSupabase(fields, serviceType, reference, submissio
   const sb = await KridiyaAuth.client();
   const session = KridiyaAuth.session();
   const attribution = attributionPayload();
-  const baseRecord = {
-    reference: reference,
-    submission_id: submissionId,
-    user_id: session ? session.id : null,
-    service_type: serviceType,
-    full_name: fields.fullName,
-    email: fields.email,
-    phone: fields.phone || null,
-    summary: fields.summary || "Enquiry",
-    details: Object.assign({}, fields.details, { attribution: attribution })
-  };
-  const result = await sb.from("enquiries").upsert(Object.assign({}, baseRecord, attribution, {
-    marketing_consent: fields.marketingConsent,
-    marketing_consent_at: fields.marketingConsent ? new Date().toISOString() : null,
-    marketing_consent_source: fields.marketingConsent ? "website_enquiry" : null,
-    marketing_consent_version: fields.marketingConsent ? "privacy-2026-07" : null
-  }), { onConflict: "submission_id", ignoreDuplicates: true });
+  const result = await sb.rpc("submit_public_enquiry", {
+    p_reference: reference,
+    p_submission_id: submissionId,
+    p_service_type: serviceType,
+    p_full_name: fields.fullName,
+    p_email: fields.email,
+    p_phone: fields.phone || null,
+    p_summary: fields.summary || "Enquiry",
+    p_details: fields.details,
+    p_marketing_consent: fields.marketingConsent,
+    p_attribution: attribution
+  });
   if (result.error) throw result.error;
+  const receipt = Array.isArray(result.data) ? result.data[0] : result.data;
+  if (!receipt || receipt.reference !== reference || typeof receipt.created !== "boolean") {
+    throw new Error("The enquiry service returned an invalid receipt.");
+  }
   // The database's enquiries_notify_new trigger creates staff_notifications atomically.
-  // Do not request the inserted row here: anonymous visitors may INSERT but cannot SELECT enquiries.
-  let enquiryId = null;
-  if (session) {
+  // Anonymous receipts intentionally omit the private enquiry identifier.
+  let enquiryId = receipt.id || null;
+  if (session && !enquiryId) {
     const lookup = await sb.from("enquiries").select("id").eq("reference", reference).eq("user_id", session.id).maybeSingle();
     if (!lookup.error && lookup.data) enquiryId = lookup.data.id;
   }
-  return { reference: reference, id: enquiryId };
+  return { reference: reference, id: enquiryId, created: receipt.created };
 }
 
 async function uploadEnquiryAttachments(enquiryId, files) {
@@ -1611,11 +1610,13 @@ function prepareFormSubmit(form) {
         try { await uploadEnquiryAttachments(saved.id, attachmentFiles); }
         catch (error) { console.error("Kridiya: enquiry saved but attachment upload failed", error); try { sessionStorage.setItem("kridiya_attachment_warning", "Your enquiry was saved, but one or more attachments could not be uploaded. Please send them through your account support request or WhatsApp."); } catch (e) {} }
       }
-      try {
-        await sendFormSubmitAjax(form, reference);
-      } catch (error) {
-        // Supabase is the source of truth; email delivery must never determine CRM success.
-        console.error("Kridiya: enquiry was saved, but the confirmation email could not be sent", error);
+      if (saved.created) {
+        try {
+          await sendFormSubmitAjax(form, reference);
+        } catch (error) {
+          // Supabase is the source of truth; email delivery must never determine CRM success.
+          console.error("Kridiya: enquiry was saved, but the confirmation email could not be sent", error);
+        }
       }
 
       const metaEventId = generateMetaEventId("lead");
