@@ -51,6 +51,15 @@
 <script src="js/auth.js?v=20261024auth6" defer></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  if (new URLSearchParams(location.search).get("flow") === "payment") {
+    document.title = "Payment follow-up | Kridiya Travel";
+    document.getElementById("thanks-title").textContent = "Check your payment with our team";
+    document.getElementById("thanks-body").textContent = "Returning here does not confirm a payment. We issue your receipt after the payment provider confirms the funds. If you closed checkout without paying, contact us to continue.";
+    document.querySelector("#thanks-card > svg").hidden = true;
+    document.getElementById("thanks-wa").textContent = "Contact the travel desk";
+    document.getElementById("thanks-wa").href = "https://wa.me/971509413873?text=Hello%20Kridiya%2C%20please%20help%20me%20check%20my%20travel%20payment.";
+    return;
+  }
   try { var attachmentWarning = sessionStorage.getItem("kridiya_attachment_warning"); if (attachmentWarning) { var warningBox = document.getElementById("thanks-attachment-warning"); warningBox.textContent = attachmentWarning; warningBox.hidden = false; sessionStorage.removeItem("kridiya_attachment_warning"); } } catch (e) {}
   var raw = null;
   try { raw = sessionStorage.getItem("kridiya_last_enquiry"); } catch (e) {}

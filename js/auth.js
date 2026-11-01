@@ -655,16 +655,9 @@ window.KridiyaAuth = (function () {
   async function listCustomerPayments(bookingIds, enquiryIds) {
     const user = await currentUser();
     if (!user) return [];
-    const ids = [];
-    (bookingIds || []).forEach(function (id) { ids.push("booking_id.eq." + id); });
-    (enquiryIds || []).forEach(function (id) { ids.push("enquiry_id.eq." + id); });
-    if (!ids.length) return [];
+    if (!(bookingIds || []).length && !(enquiryIds || []).length) return [];
     const sb = await client();
-    const result = await sb
-      .from("payments")
-      .select("id, booking_id, enquiry_id, payment_reference, payment_direction, amount, currency, method, status, payment_link, receipt_document_id, proof_file_name, proof_uploaded_at, proof_source, refund_amount, refund_reason, refund_method, refund_reference, refund_requested_at, refund_approved_at, refund_completed_at, received_at, created_at")
-      .or(ids.join(","))
-      .order("created_at", { ascending: false });
+    const result = await sb.rpc("list_my_payments");
     if (result.error) throw result.error;
     return result.data || [];
   }
@@ -2097,10 +2090,17 @@ window.KridiyaAuth = (function () {
         const enquiries = results[1];
         if (!supportInitialized) { initCustomerSupport(bookings, enquiries); supportInitialized = true; }
         const docs = results[4] || [];
-        const payments = await KridiyaAuth.listCustomerPayments(
-          bookings.map(function (b) { return b.id; }),
-          enquiries.map(function (e) { return e.id; })
-        );
+        let payments = [];
+        let paymentsUnavailable = false;
+        try {
+          payments = await KridiyaAuth.listCustomerPayments(
+            bookings.map(function (b) { return b.id; }),
+            enquiries.map(function (e) { return e.id; })
+          );
+        } catch (_) {
+          paymentsUnavailable = true;
+        }
+        const paymentLoadError = '<div class="form-banner error" role="alert">Payment records are temporarily unavailable. Your bookings are still shown.</div><button type="button" class="btn btn-outline" data-retry-travel>Retry payment records</button>';
         const requestsByEnquiry = {};
         results[2].forEach(function (r) {
           if (!requestsByEnquiry[r.enquiry_id]) requestsByEnquiry[r.enquiry_id] = [];
@@ -2197,7 +2197,7 @@ window.KridiyaAuth = (function () {
               requestsHTML(requests) +
               quotesHTML(quotes) +
               (!item.isEnquiry ? customerDocsHTML(itemDocs) : '') +
-              customerPaymentsHTML(itemPayments) +
+              (paymentsUnavailable ? paymentLoadError : customerPaymentsHTML(itemPayments)) +
               (!item.isEnquiry ? '<div class="enq-extra trip-timeline-wrap"><button class="btn btn-outline btn-sm" type="button" data-trip-timeline="' + KridiyaAuth.escapeHTML(item.id) + '">View trip timeline</button><div data-trip-timeline-box="' + KridiyaAuth.escapeHTML(item.id) + '" hidden></div></div>' : '') +
               "</article>";
         }
@@ -2205,7 +2205,7 @@ window.KridiyaAuth = (function () {
           : '<div class="empty-state"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12h-4a3 3 0 0 1-6 0H5V5h14v10z"/></svg><p><b>No bookings linked yet.</b><br>Send an enquiry while signed in, or ask our team to attach an existing booking to this account.</p><div class="empty-actions"><a class="btn btn-primary" href="index.html">Start planning</a><a class="btn btn-outline" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a></div></div>';
         if (travelLoadingStatus) travelLoadingStatus.textContent = "Bookings and enquiries loaded.";
         listEl.dataset.loaded = "true";
-        paymentList.innerHTML = customerPaymentsHTML(payments);
+        paymentList.innerHTML = paymentsUnavailable ? paymentLoadError : customerPaymentsHTML(payments);
         paymentList.refresh = listEl.refresh;
         wireEnquiryExtras(paymentList);
         wireEnquiryExtras(listEl);
