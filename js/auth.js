@@ -1843,7 +1843,7 @@ window.KridiyaAuth = (function () {
         host.append(message); return;
       }
       if (!user) {
-        const signedOutPhone = window.matchMedia("(max-width: 820px)").matches;
+        const signedOutPhone = window.matchMedia("(max-width: 1024px)").matches;
         if (signedOutPhone && (location.hash === "#support" || location.hash === "#contact-team")) {
           location.replace("contact.html");
           return;

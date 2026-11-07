@@ -988,7 +988,7 @@
     "Measures public page visits after you allow advertising measurement.": "يقيس زيارات الصفحات العامة بعد السماح بقياس الإعلانات.",
     "Meta Pixel and Conversions API": "Meta Pixel وConversions API",
     "Measures public-page visits and enquiry events after you allow advertising measurement. Contact, passport and payment details are not sent in these events.": "يقيس زيارات الصفحات العامة وأحداث الاستفسار بعد السماح بقياس الإعلانات. ولا تُرسل بيانات التواصل أو جواز السفر أو الدفع ضمن هذه الأحداث.",
-    "Privacy choices": "خيارات الخصوصية",
+    "Privacy choices": "اختيارات الخصوصية",
 
     "Please confirm this choice.": "يرجى تأكيد هذا الخيار.",
     "This field is required.": "هذا الحقل مطلوب.",
@@ -1074,7 +1074,7 @@
   }
 
   function translateTree(root) {
-    if (!root || document.querySelector("main.legal-page")) return;
+    if (!root || (document.querySelector("main.legal-page") && document.documentElement.dataset.policyLanguage !== "ar")) return;
     if (root.nodeType === Node.TEXT_NODE) {
       if (root.parentElement && !root.parentElement.closest(SKIP)) {
         const next = contextualTranslation(root.parentElement, root.nodeValue);
@@ -1097,7 +1097,7 @@
   }
 
   function start() {
-    if (document.querySelector("main.legal-page")) return;
+    if ((document.querySelector("main.legal-page") && document.documentElement.dataset.policyLanguage !== "ar")) return;
     document.body.classList.add("is-arabic");
     translateTree(document.body);
     const observer = new MutationObserver(function (records) {

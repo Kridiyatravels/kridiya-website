@@ -238,7 +238,7 @@
     const grid = document.querySelector('.account-grid');
     const panels = Array.from(document.querySelectorAll('[data-account-section]'));
     const links = Array.from(navigation.querySelectorAll('a[href^="#"]'));
-    const narrow = window.matchMedia('(max-width: 820px)');
+    const narrow = window.matchMedia('(max-width: 1024px)');
     const bottom = document.createElement('nav');
     bottom.className = 'account-bottom-nav'; bottom.setAttribute('aria-label', 'Customer navigation');
     bottom.innerHTML = '<a href="index.html">' + primaryNavigationIcon('home') + '<span>Home</span></a><a href="#bookings">' + primaryNavigationIcon('suitcase') + '<span>Bookings</span></a><a href="#support">' + primaryNavigationIcon('help') + '<span>Help</span></a><a href="#account-menu">' + primaryNavigationIcon('account') + '<span>My Kridiya</span></a>';
@@ -330,7 +330,7 @@
     const panel = close.closest('[role="dialog"]');
     if (panel) panel.tabIndex = -1;
     function closeAuth() {
-      if (document.body.dataset.page === 'login' && location.hash === '#sign-in-form' && matchMedia('(max-width: 820px)').matches) {
+      if (document.body.dataset.page === 'login' && location.hash === '#sign-in-form' && matchMedia('(max-width: 1024px)').matches) {
         panel?.classList.remove('auth-sheet-expanded');
         document.body.classList.remove('auth-login-open');
         if (panel) panel.scrollTop = 0;

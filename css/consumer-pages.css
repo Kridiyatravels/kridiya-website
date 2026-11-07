@@ -474,10 +474,10 @@ body.consumer-site .service-slide:hover .service-slide-cta svg { transform: tran
   body.consumer-site .container:not(.header-inner), body.consumer-site:not([data-page="home"]) > main > .widget-wrap { width: min(var(--container),calc(100% - 24px)); }
 }
 
-/* Phone navigation keeps the four recurring customer destinations within thumb reach. */
+/* Phones and tablets share the same four customer destinations. */
 .mobile-primary-nav { display: none; }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   body.mobile-primary-navigation-ready #account-btn { display: none; }
   body.mobile-primary-navigation-ready { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   .mobile-primary-nav {
@@ -1270,7 +1270,7 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
 
 /* Desktop My Kridiya is a two-pane workspace. Each pane owns its scrolling so
    the account header and a short empty state remain fixed in the viewport. */
-@media (min-width: 821px) {
+@media (min-width: 1025px) {
   body.consumer-site[data-page="account"] {
     --account-header-h: 72px;
     height: 100dvh;
@@ -1378,9 +1378,10 @@ body.consumer-site .account-form-section input[readonly] { background: #f5f4f6; 
 .consumer-account-drawer .consumer-account-nav h3 { margin-top: 22px; font-size: 16px; }
 .consumer-account-drawer .consumer-account-nav a { min-height: 52px; }
 .consumer-account-drawer a { text-decoration: none; }
-@media (max-width: 820px) {
+@media (max-width: 1024px) {
   body.consumer-site.account-navigation-ready #account-btn { display: none; }
   body.account-navigation-ready { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  body.account-navigation-ready .account-grid { grid-template-columns: minmax(0,1fr); }
   body.account-navigation-ready main { scroll-margin-top: var(--header-h); }
   body.account-navigation-ready .account-head, body.account-navigation-ready .account-side { display: none; }
   body.account-navigation-ready.account-menu-view .account-head { display: flex; }
@@ -1527,7 +1528,7 @@ body.consumer-site .contact-grid-form-only .contact-card h2 { font-size: 22px; }
   .contact-form-section { padding-top: 28px; }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 1024px) {
   body.consumer-site .nav-toggle { display: none; }
   body.consumer-site:is([data-page="login"],[data-page="account"],[data-page="contact"]) #site-footer { display: none; }
   body.consumer-site:is([data-page="login"],[data-page="account"],[data-page="contact"]) #site-header,
@@ -1602,6 +1603,16 @@ body.consumer-site .contact-grid-form-only .contact-card h2 { font-size: 22px; }
   body.consumer-site[data-page="contact"] .contact-faq-section { display: none; }
   body.consumer-site[data-page="contact"] .contact-faq-layout { gap: 12px; }
   body.consumer-site[data-page="contact"] .contact-form-section { padding-top: 28px; }
+  body.consumer-site :is(.mobile-help-account .btn,.account-access-intro .account-access-login) {
+    width: auto;
+    min-width: 0;
+    max-width: min(100%,280px);
+    min-height: 44px;
+    margin-inline: auto;
+    padding-inline: 20px;
+    white-space: normal;
+    text-align: center;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1666,7 +1677,7 @@ body.consumer-site:is([data-page="login"],[data-page="register"]) .auth-card { p
   }
 }
 
-@media (min-width: 821px) {
+@media (min-width: 1025px) {
   body.consumer-site:is([data-page="login"],[data-page="register"]) .auth-wrap {
     position: fixed;
     inset: 0;
@@ -1693,7 +1704,7 @@ body.consumer-site:is([data-page="login"],[data-page="register"]) .auth-card { p
   body.consumer-site:is([data-page="login"],[data-page="register"]) .auth-assist { display: none; }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 1024px) {
   body.consumer-site[data-page="register"] .auth-wrap {
     position: fixed;
     inset: 0;
@@ -2025,8 +2036,6 @@ body.consumer-site[data-page="register"] > main {
     .auth-form > .btn,
     .auth-assist > .btn,
     .auth-card .btn-block,
-    .mobile-help-account .btn,
-    .account-access-intro .account-access-login,
     .preference-form > .btn,
     .legal-copy .btn
   ) {

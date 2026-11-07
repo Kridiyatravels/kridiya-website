@@ -28,7 +28,8 @@ const KRIDIYA_LOCALE = (function () {
   const requested = params.get("lang");
   const browserPrefersArabic = (navigator.languages || [navigator.language || "en"])
     .some(function (value) { return /^ar(?:-|$)/i.test(value); });
-  const language = boot?.language || (region === "ae" && !bilingualLegalPage
+  const arabicPolicyPage = document.documentElement.dataset.policyLanguage === "ar";
+  const language = arabicPolicyPage ? "ar" : boot?.language || (region === "ae" && !bilingualLegalPage
     ? (["en", "ar"].includes(requested) ? requested : ["en", "ar"].includes(stored) ? stored : browserPrefersArabic ? "ar" : "en")
     : "en");
 
@@ -52,8 +53,8 @@ const KRIDIYA_LOCALE = (function () {
       script.onerror = function () {
         console.error("Arabic localisation could not be loaded. Returning to English.");
         try { localStorage.setItem(storageKey, "en"); } catch (error) { /* Storage can be unavailable. */ }
-        document.documentElement.lang = "en";
-        document.documentElement.dir = "ltr";
+        document.documentElement.lang = arabicPolicyPage ? "ar" : "en";
+        document.documentElement.dir = arabicPolicyPage ? "rtl" : "ltr";
         document.documentElement.dataset.siteLanguage = "en";
         resolve();
       };
@@ -1028,7 +1029,9 @@ function renderChrome() {
     const nav = header.querySelector(".main-nav");
     const toggle = header.querySelector(".nav-toggle");
     const backdrop = header.querySelector(".nav-backdrop");
-    const mobileNav = window.matchMedia("(max-width: 1270px)");
+    const mobileNav = window.matchMedia(consumerHeader
+      ? "(min-width: 1025px) and (max-width: 1270px)"
+      : "(max-width: 1270px)");
     const closeButton = nav.querySelector(".nav-close");
     let background = [], previousOverflow = "";
     function setNav(open) {

@@ -21,7 +21,8 @@
   var requested = params.get("lang");
   var browserPrefersArabic = (navigator.languages || [navigator.language || "en"])
     .some(function (value) { return /^ar(?:-|$)/i.test(value); });
-  var language = region === "ae" && !bilingualLegalPage
+  var arabicPolicyPage = root.dataset.policyLanguage === "ar";
+  var language = arabicPolicyPage ? "ar" : region === "ae" && !bilingualLegalPage
     ? (["en", "ar"].includes(requested) ? requested : ["en", "ar"].includes(stored) ? stored : browserPrefersArabic ? "ar" : "en")
     : "en";
 
