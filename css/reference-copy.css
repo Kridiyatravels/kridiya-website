@@ -1,0 +1,58 @@
+.reference-copy {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: inherit;
+  gap: 2px 4px;
+  max-inline-size: 100%;
+  vertical-align: middle;
+}
+.reference-copy-value { min-inline-size: 0; max-inline-size: calc(100% - 36px); overflow-wrap: anywhere; user-select: text; }
+.reference-copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  inline-size: 32px;
+  min-block-size: 32px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--brand-deep, #123d38);
+  cursor: pointer;
+}
+.reference-copy-button svg { inline-size: 16px; block-size: 16px; pointer-events: none; }
+.reference-copy-button:hover { background: #f1f5f4; border-color: #ccd8d4; }
+.reference-copy-button:focus-visible { outline: 2px solid var(--brand-deep, #123d38); outline-offset: 2px; }
+.reference-copy-status {
+  flex-basis: 100%;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: var(--text-muted, #525d59);
+}
+.reference-copy-status:empty { display: none; }
+.reference-copy-fallback {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: 6px 8px;
+  border: 1px solid #b6c6c0;
+  border-radius: 4px;
+  background: #fff;
+  color: #1d302a;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+#thanks-ref-code .reference-copy { justify-content: center; }
+body.consumer-site .account-main .account-item-grid .reference-copy,
+body.consumer-site .account-main .account-item-grid .reference-copy span { padding: 0; border: 0; }
+@media (pointer: coarse) {
+  .reference-copy-button { inline-size: 44px; min-block-size: 44px; }
+  .reference-copy-value { max-inline-size: calc(100% - 48px); }
+}

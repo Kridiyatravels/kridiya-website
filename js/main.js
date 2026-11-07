@@ -1323,17 +1323,17 @@ async function submitEnquiryToSupabase(fields, serviceType, reference, submissio
   });
   if (result.error) throw result.error;
   const receipt = Array.isArray(result.data) ? result.data[0] : result.data;
-  if (!receipt || receipt.reference !== reference || typeof receipt.created !== "boolean") {
+  if (!receipt || typeof receipt.reference !== "string" || !receipt.reference.trim() || typeof receipt.created !== "boolean") {
     throw new Error("The enquiry service returned an invalid receipt.");
   }
   // The database's enquiries_notify_new trigger creates staff_notifications atomically.
   // Anonymous receipts intentionally omit the private enquiry identifier.
   let enquiryId = receipt.id || null;
   if (session && !enquiryId) {
-    const lookup = await sb.from("enquiries").select("id").eq("reference", reference).eq("user_id", session.id).maybeSingle();
+    const lookup = await sb.from("enquiries").select("id").eq("reference", receipt.reference).eq("user_id", session.id).maybeSingle();
     if (!lookup.error && lookup.data) enquiryId = lookup.data.id;
   }
-  return { reference: reference, id: enquiryId, created: receipt.created };
+  return { reference: receipt.reference, id: enquiryId, created: receipt.created };
 }
 
 async function uploadEnquiryAttachments(enquiryId, files) {
@@ -1609,6 +1609,7 @@ function prepareFormSubmit(form) {
     const dest = next.value;
 
     submitEnquiryToSupabase(fields, serviceType, reference, submissionId).then(async function (saved) {
+      const reference = saved.reference;
       if (attachmentFiles.length) {
         try { await uploadEnquiryAttachments(saved.id, attachmentFiles); }
         catch (error) { console.error("Kridiya: enquiry saved but attachment upload failed", error); try { sessionStorage.setItem("kridiya_attachment_warning", "Your enquiry was saved, but one or more attachments could not be uploaded. Please send them through your account support request or WhatsApp."); } catch (e) {} }

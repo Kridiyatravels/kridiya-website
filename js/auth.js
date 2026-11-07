@@ -2180,7 +2180,7 @@ window.KridiyaAuth = (function () {
               "</time></div>" +
               '<div class="customer-status-strip"><span>' + KridiyaAuth.escapeHTML(attention) + '</span><small>' + KridiyaAuth.escapeHTML(item.reference || "Reference pending") + '</small></div>' +
               '<div class="account-item-grid">' +
-                '<span class="account-fact"><small>Reference</small><b>' + KridiyaAuth.escapeHTML(item.reference || "Pending") + '</b></span>' +
+                '<span class="account-fact"><small>Reference</small><b>' + (item.isEnquiry && item.reference && window.KridiyaReferenceCopy ? KridiyaReferenceCopy.html(item.reference) : KridiyaAuth.escapeHTML(item.reference || "Pending")) + '</b></span>' +
                 '<span class="account-fact"><small>Status</small><b>' + KridiyaAuth.escapeHTML(KridiyaAuth.statusLabel(item.status)) + '</b></span>' +
                 '<span class="account-fact account-fact-amount"><small>Amount</small><b>' + KridiyaAuth.escapeHTML(item.amount) + '</b></span>' +
                 (item.paxLabel ? '<span class="account-fact"><small>Travellers</small><b>' + KridiyaAuth.escapeHTML(item.paxLabel) + '</b></span>' : "") +
