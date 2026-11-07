@@ -2519,3 +2519,7 @@ body.consumer-site .analytics-consent-preference-actions {
     width: min(280px,calc(100vw - 32px));
   }
 }
+
+/* Pointer focus keeps the control focused without a browser outline. Keyboard
+   focus-visible styles and form/validation borders remain component-owned. */
+body.consumer-site :is(a, button, summary, select, [tabindex]):focus:not(:focus-visible) { outline: none; }
