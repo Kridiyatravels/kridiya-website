@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="css/homepage.css?v=20261024whatsapp1">
 <link rel="stylesheet" href="css/consumer-pages.css?v=20261025accountnav1">
 <link rel="stylesheet" href="css/reference-copy.css?v=20261107copy1">
+<link rel="stylesheet" href="css/account-support.css?v=20261107support2">
 </head>
 <body class="consumer-site account-auth-loading" data-page="account">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -143,28 +144,30 @@
             <div class="account-actions account-payment-actions"><a class="btn btn-outline" href="#bookings">View bookings</a></div>
           </div>
 
-          <div class="account-main" id="support" data-account-section role="region" aria-label="Help & requests">
-            <div class="account-section-head">
-              <div>
-                <h2>Request help</h2>
-                <p>Send an amendment, cancellation, complaint, privacy, or emergency request directly to our operations team.</p>
-              </div>
-              <a href="https://wa.me/971509413873" target="_blank" rel="noopener">Travel emergency? WhatsApp now</a>
+          <div class="account-main" id="support" data-account-section role="region" aria-label="Help & requests" data-no-localize>
+            <h2 class="support-heading" data-support-text="heading">Help &amp; requests</h2>
+            <div class="support-tabs" role="tablist" aria-label="Help & requests">
+              <button id="support-compose-tab" type="button" role="tab" aria-selected="true" aria-controls="support-compose-panel" data-support-view="compose" data-support-text="requestHelp">Request help</button>
+              <button id="support-history-tab" type="button" role="tab" aria-selected="false" aria-controls="support-history-panel" tabindex="-1" data-support-view="history" data-support-text="yourRequests">Your requests</button>
             </div>
-            <div id="support-request-list"><p class="form-note">Loading support requests...</p></div>
-            <form id="support-request-form" class="form-grid" novalidate>
-              <div class="form-banner error" hidden role="alert"></div>
-              <div class="field-row">
-                <div class="field col-6"><label for="sr-category">REQUEST TYPE</label><select id="sr-category" name="category" required><option value="amendment">Amendment</option><option value="cancellation">Cancellation</option><option value="complaint">Complaint</option><option value="privacy">Privacy request</option><option value="emergency">Travel emergency</option><option value="other">Other</option></select></div>
-                <div class="field col-6"><label for="sr-linked">LINKED TRAVEL</label><select id="sr-linked" name="linked_item"><option value="">Account-level request</option></select></div>
-              </div>
-              <div class="field-row">
-                <div class="field col-6"><label for="sr-urgency">URGENCY</label><select id="sr-urgency" name="urgency" required><option value="normal">Normal</option><option value="urgent">Urgent</option><option value="emergency">Emergency</option></select></div>
-                <div class="field col-6"><label for="sr-subject">SUBJECT</label><input id="sr-subject" name="subject" required minlength="3" maxlength="180"></div>
-              </div>
-              <div class="field"><label for="sr-description">WHAT DO YOU NEED?</label><textarea id="sr-description" name="description" rows="4" required minlength="10" maxlength="4000"></textarea><span class="sub">Submitting creates a tracked request. For immediate danger, contact local emergency services first.</span></div>
-              <div><button class="btn btn-primary" type="submit" data-label="Submit request">Submit request</button></div>
-            </form>
+            <div id="support-compose-panel" role="tabpanel" aria-labelledby="support-compose-tab">
+              <div class="support-urgent"><a href="https://wa.me/971509413873" target="_blank" rel="noopener" data-support-text="urgentLink">Urgent travel help on WhatsApp</a></div>
+              <form id="support-request-form" class="form-grid" novalidate>
+                <div class="form-banner error" hidden role="alert"></div>
+                <div class="field"><label for="sr-category" data-support-text="topic">What do you need help with?</label><select id="sr-category" name="category" required><option value="" data-support-text="chooseTopic">Choose a topic</option><option value="amendment">Change a booking</option><option value="cancellation">Cancel a booking</option><option value="complaint">Complaint</option><option value="privacy">Privacy request</option><option value="payment">Payment question</option><option value="refund">Refund request</option><option value="emergency">Travel emergency</option><option value="other">Other</option></select></div>
+                <div class="field"><label for="sr-subject" data-support-text="subject">Subject</label><input id="sr-subject" name="subject" required minlength="3" maxlength="180"></div>
+                <div class="field"><label for="sr-description" data-support-text="message">How can we help?</label><textarea id="sr-description" name="description" rows="3" required minlength="10" maxlength="4000"></textarea></div>
+                <div class="field"><label for="sr-linked" data-support-text="linked">Booking or enquiry (optional)</label><select id="sr-linked" name="linked_item"><option value="">No booking linked</option></select></div>
+                <label class="support-urgency-control" for="sr-urgent"><input id="sr-urgent" name="urgent" type="checkbox"><span data-support-text="urgentCheck">This is urgent</span></label><input name="urgency" type="hidden" value="normal">
+                <div class="support-submit-actions"><button class="btn btn-primary" type="submit" data-label="Send request" data-support-text="send" disabled>Send request</button><button class="support-text-action" type="button" data-support-new hidden>Start a different request</button></div>
+              </form>
+            </div>
+            <div id="support-history-panel" role="tabpanel" aria-labelledby="support-history-tab" hidden>
+              <div id="support-history-status" class="form-banner" role="status" tabindex="-1" hidden></div>
+              <div class="support-list-tools"><button class="support-text-action" type="button" data-support-refresh>Refresh</button></div>
+              <div id="support-request-list"><p class="form-note" data-support-text="loading">Loading your requests…</p></div>
+              <div class="support-page-actions"><button class="btn btn-outline" type="button" data-support-older hidden>Older requests</button><button class="btn btn-outline" type="button" data-support-newest hidden>Newest requests</button></div>
+            </div>
           </div>
 
           <div class="account-main" id="profile" data-account-section role="region" aria-label="My profile">
@@ -264,7 +267,8 @@
 <script src="js/motion-controls.js?v=20260921complete2" defer></script>
 <script src="js/main.js?v=20261107copy1" defer></script>
 <script src="js/reference-copy.js?v=20261107copy1" defer></script>
-<script src="js/auth.js?v=20261107copy1" defer></script>
+<script src="js/account-support.js?v=20261107support2" defer></script>
+<script src="js/auth.js?v=20261107support2" defer></script>
 <script src="js/search.js?v=20261024passengers2" defer></script>
 <script src="js/consumer-ui.js?v=20261024auth4" defer></script>
 </body>

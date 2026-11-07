@@ -830,6 +830,50 @@ window.KridiyaAuth = (function () {
     return result.data;
   }
 
+  function supportPage(data) {
+    if (!data || !Array.isArray(data.items) || data.items.length > 100 ||
+      (data.next_cursor !== null && (!data.next_cursor || typeof data.next_cursor.created_at !== "string" || typeof data.next_cursor.id !== "string"))) throw new Error("Invalid support page response");
+    return data;
+  }
+
+  async function listMySupportRequestsV2(cursor) {
+    const sb = await client();
+    const result = await sb.rpc("list_my_support_requests_v2", {
+      p_before_created_at: cursor ? cursor.created_at : null,
+      p_before_id: cursor ? cursor.id : null,
+      p_limit: 25
+    });
+    if (result.error) throw result.error;
+    return supportPage(result.data);
+  }
+
+  async function listMySupportMessagesV2(id, cursor) {
+    const sb = await client();
+    const result = await sb.rpc("list_my_support_messages_v2", {
+      p_request_id: id,
+      p_before_created_at: cursor ? cursor.created_at : null,
+      p_before_id: cursor ? cursor.id : null,
+      p_limit: 25
+    });
+    if (result.error) throw result.error;
+    return supportPage(result.data);
+  }
+
+  async function createMySupportRequestV2(payload) {
+    const sb = await client();
+    const result = await sb.rpc("create_my_support_request_v2", {
+      p_submission_id: payload.submissionId,
+      p_category: payload.category,
+      p_subject: payload.subject,
+      p_description: payload.description,
+      p_urgency: payload.urgency,
+      p_booking_id: payload.bookingId || null,
+      p_enquiry_id: payload.enquiryId || null
+    });
+    if (result.error) throw result.error;
+    return result.data;
+  }
+
   async function cancelMySupportRequest(id, expectedUpdatedAt) {
     const sb = await client();
     const result = await sb.rpc("cancel_my_support_request", { p_request_id: id, p_expected_updated_at: expectedUpdatedAt });
@@ -1029,6 +1073,9 @@ window.KridiyaAuth = (function () {
     listMyTravellers: listMyTravellers,
     saveMyTraveller: saveMyTraveller,
     archiveMyTraveller: archiveMyTraveller,
+    listMySupportRequestsV2: listMySupportRequestsV2,
+    listMySupportMessagesV2: listMySupportMessagesV2,
+    createMySupportRequestV2: createMySupportRequestV2,
     listMySupportRequests: listMySupportRequests,
     createMySupportRequest: createMySupportRequest,
     cancelMySupportRequest: cancelMySupportRequest,
@@ -1699,6 +1746,7 @@ window.KridiyaAuth = (function () {
         supportForm.linked_item.value = recoveryBtn.dataset.recoveryLink || "";
         supportForm.subject.value = recoveryBtn.dataset.recoverySubject || "Travel support request";
         supportForm.description.value = recoveryBtn.dataset.recoveryDescription || "Please help me with this travel request.";
+        supportForm.dispatchEvent(new Event("support:compose"));
         supportForm.scrollIntoView({ behavior: "smooth", block: "center" });
         supportForm.description.focus({ preventScroll: true });
         toast("Review the prefilled request, then submit it to Kridiya operations.");
@@ -1787,40 +1835,7 @@ window.KridiyaAuth = (function () {
   function initCustomerSupport(bookings, enquiries) {
     const form = document.getElementById("support-request-form");
     const list = document.getElementById("support-request-list");
-    if (!form || !list) return;
-    const linked = form.linked_item;
-    linked.innerHTML = '<option value="">Account-level request</option>' +
-      bookings.map(function (b) { return '<option value="booking:' + KridiyaAuth.escapeHTML(b.id) + '">Booking ' + KridiyaAuth.escapeHTML(b.booking_reference) + '</option>'; }).join("") +
-      enquiries.map(function (e) { return '<option value="enquiry:' + KridiyaAuth.escapeHTML(e.id) + '">Enquiry ' + KridiyaAuth.escapeHTML(e.reference) + '</option>'; }).join("");
-    let rows = [];
-    function render() {
-      if (!rows.length) { list.innerHTML = '<p class="form-note">No support requests submitted from this account.</p>'; return; }
-      list.innerHTML = '<div class="customer-doc-list">' + rows.map(function (r) {
-        const canCancel = /^(submitted|acknowledged)$/.test(r.status);
-        return '<div class="customer-doc-row"><div><b>' + KridiyaAuth.escapeHTML(r.subject) + '</b><small>' + KridiyaAuth.escapeHTML(KridiyaAuth.statusLabel(r.category) + ' · ' + KridiyaAuth.statusLabel(r.status) + ' · ' + new Date(r.created_at).toLocaleDateString("en-GB")) + '</small>' + (r.resolution ? '<small>' + KridiyaAuth.escapeHTML(r.resolution) + '</small>' : '') + '</div>' + (canCancel ? '<button class="btn btn-outline" type="button" data-support-cancel="' + KridiyaAuth.escapeHTML(r.id) + '">Cancel</button>' : '') + '</div>';
-      }).join("") + '</div>';
-    }
-    async function refresh() { rows = await KridiyaAuth.listMySupportRequests(); render(); }
-    form.addEventListener("submit", async function (event) {
-      event.preventDefault();
-      if (!validateForm(form)) return;
-      const parts = String(linked.value || "").split(":");
-      banner(form, ""); busy(form, true, "Submitting...");
-      try {
-        await KridiyaAuth.createMySupportRequest({ category: form.category.value, urgency: form.urgency.value, subject: form.subject.value, description: form.description.value, bookingId: parts[0] === "booking" ? parts[1] : null, enquiryId: parts[0] === "enquiry" ? parts[1] : null });
-        form.reset(); banner(form, "Your request has been sent.", "success"); await refresh();
-      } catch (err) { banner(form, errorMessage(err, "Could not submit the request."), "error"); }
-      busy(form, false);
-    });
-    list.addEventListener("click", async function (event) {
-      const button = event.target.closest("[data-support-cancel]"); if (!button) return;
-      const row = rows.find(function (item) { return item.id === button.dataset.supportCancel; }); if (!row) return;
-      if (!(window.KridiyaMotion && KridiyaMotion.confirm ? await KridiyaMotion.confirm("Cancel this support request?", { opener: button }) : window.confirm("Cancel this support request?"))) return;
-      button.disabled = true;
-      try { await KridiyaAuth.cancelMySupportRequest(row.id, row.updated_at); await refresh(); toast("Support request cancelled."); }
-      catch (err) { button.disabled = false; toast(errorMessage(err, "Could not cancel the request.")); }
-    });
-    refresh().catch(function () { list.innerHTML = '<div class="form-banner error" role="alert">Could not load support requests.</div>'; });
+    if (form && list && window.KridiyaCustomerSupport) window.KridiyaCustomerSupport.init(form, list, bookings, enquiries);
   }
 
   if (page === "account") {
