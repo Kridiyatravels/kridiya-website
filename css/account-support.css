@@ -6,7 +6,8 @@
 #support .support-submit-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 #support .support-page-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 8px; }
-#support [tabindex="-1"]:focus { outline: 2px solid var(--primary, #ff6b00); outline-offset: 3px; }
+#support [tabindex="-1"]:focus-visible { outline: 2px solid var(--primary, #ff6b00); outline-offset: 3px; }
+#support :is(.support-heading, .support-tabs button):focus:not(:focus-visible) { outline: none; }
 #support [hidden] { display: none !important; }
 #support .support-heading { font-size: 20px; line-height: 1.35; margin: 0 0 14px; }
 #support .support-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--line, #ddd); margin-bottom: 18px; }
