@@ -5,6 +5,7 @@
   "use strict";
 
   const AR = Object.freeze({
+    "Download company profile (PDF, English)": "تنزيل نبذة عن الشركة (PDF باللغة الإنجليزية)",
     "Skip to content": "تجاوز إلى المحتوى",
     "Skip to main content": "تجاوز إلى المحتوى الرئيسي",
     "Home": "الرئيسية",
