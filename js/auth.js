@@ -668,13 +668,35 @@ window.KridiyaAuth = (function () {
     const sb = await client();
     const check = await sb
       .from("booking_documents")
-      .select("id, storage_path")
+      .select("id, storage_path, storage_provider")
       .eq("id", documentId)
       .eq("user_id", user.id)
       .eq("visible_to_customer", true)
       .maybeSingle();
     if (check.error || !check.data || check.data.storage_path !== storagePath) {
       throw new Error("This document is not available for your account.");
+    }
+    // The private file RPC rechecks the current owner and released version.
+    storageProvider = check.data.storage_provider;
+    if (storageProvider === "local_capture") {
+      const result = await sb.rpc("download_individual_travel_document", { p_document_id: documentId });
+      const file = result.data;
+      if (result.error || !file || typeof file.contents_base64 !== "string" ||
+          ["application/pdf", "image/png", "image/jpeg"].indexOf(file.mime_type) === -1) {
+        throw new Error("This document is not available. Refresh the booking or contact support.");
+      }
+      const decoded = atob(file.contents_base64.replace(/\s/g, ""));
+      const bytes = new Uint8Array(decoded.length);
+      for (let index = 0; index < decoded.length; index += 1) bytes[index] = decoded.charCodeAt(index);
+      const downloadUrl = URL.createObjectURL(new Blob([bytes], { type: file.mime_type }));
+      const anchor = document.createElement("a");
+      anchor.href = downloadUrl;
+      anchor.download = file.file_name || "Travel document";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 30000);
+      return;
     }
     if (storageProvider === "microsoft") {
       const sessionResult = await sb.auth.getSession();
