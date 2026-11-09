@@ -1586,74 +1586,126 @@ window.KridiyaAuth = (function () {
 
   function quoteDetailRows(q) {
     const od = (q.option_data && typeof q.option_data === "object") ? q.option_data : {};
-    let rows = Object.keys(od).map(function (k) {
-      return od[k] ? '<div class="quote-row"><span class="quote-k">' + KridiyaAuth.escapeHTML(k) + '</span><span class="quote-v">' + KridiyaAuth.escapeHTML(String(od[k])) + "</span></div>" : "";
+    if (od.schema === "flight_v1") return quoteFlightsHTML(od);
+    let rows = Object.keys(od).map(function (key) {
+      return typeof od[key] === "string" || typeof od[key] === "number" ? quoteRow(KridiyaAuth.statusLabel(key), od[key]) : "";
     }).join("");
-    if (!rows) {
-      const legacy = [];
-      if (q.airline || q.stops) legacy.push(["Flight", [q.airline, q.stops].filter(Boolean).join(" / ")]);
-      if (q.outbound) legacy.push(["Onward", q.outbound]);
-      if (q.inbound) legacy.push(["Return", q.inbound]);
-      if (q.baggage) legacy.push(["Baggage", q.baggage]);
-      rows = legacy.map(function (r) {
-        return '<div class="quote-row"><span class="quote-k">' + KridiyaAuth.escapeHTML(r[0]) + '</span><span class="quote-v">' + KridiyaAuth.escapeHTML(r[1]) + "</span></div>";
-      }).join("");
-    }
-    return rows;
+    if (!rows) rows = quoteRow("Flight", [q.airline, q.stops].filter(Boolean).join(" / ")) +
+      quoteRow("Onward", q.outbound) + quoteRow("Return", q.inbound) + quoteRow("Baggage", q.baggage);
+    return rows ? '<dl class="quotation-service">' + rows + '</dl>' : "";
+  }
+  function quoteRow(label, value) {
+    if (value == null || value === "") return "";
+    return '<div class="quotation-row"><dt>' + KridiyaAuth.escapeHTML(label) + '</dt><dd>' + KridiyaAuth.escapeHTML(String(value)).replace(/\n/g, "<br>") + '</dd></div>';
+  }
+  function quoteLocalTime(value) {
+    if (!value) return { time: "Not specified", date: "" };
+    // Airport-local wall time must not shift with the customer's device timezone.
+    const match = String(value).match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+    if (!match) return { time: "Not specified", date: String(value) };
+    return { time: match[2], date: new Date(match[1] + "T00:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) };
+  }
+  function quoteMinutes(value) {
+    const minutes = Number(value);
+    if (value == null || !Number.isFinite(minutes) || minutes < 0) return "";
+    return Math.floor(minutes / 60) + "h " + String(minutes % 60).padStart(2, "0") + "m";
+  }
+  function quoteAirportHTML(flight, departure) {
+    const date = quoteLocalTime(departure ? flight.departure_local : flight.arrival_local);
+    const airport = departure ? flight.origin_airport : flight.destination_airport;
+    const terminal = departure ? flight.origin_terminal : flight.destination_terminal;
+    return '<div class="quotation-airport"><span class="quotation-flight-label">' + (departure ? "Departure" : "Arrival") + '</span><strong class="quotation-time">' + KridiyaAuth.escapeHTML(date.time) + '</strong><b>' + KridiyaAuth.escapeHTML(date.date) + '</b><span class="quotation-airport-code">' + KridiyaAuth.escapeHTML(airport || "Airport not specified") + '</span>' + (terminal ? '<small>Terminal ' + KridiyaAuth.escapeHTML(terminal) + '</small>' : '') + '</div>';
+  }
+  function quoteBaggageHTML(details, flight) {
+    const baggage = Array.isArray(details.baggage) ? details.baggage : [];
+    const passengerTypes = ["adult", "child", "infant"].filter(function (type) { return Number((details.passengers || {})[type]) > 0; });
+    return '<dl class="quotation-baggage">' + ["checked_baggage", "cabin_baggage", "personal_item"].map(function (category) {
+      const allowances = passengerTypes.map(function (type) {
+        const matches = baggage.filter(function (item) { return item.passenger_type === type && item.category === category; });
+        const allowance = (flight.id ? matches.find(function (item) { return item.segment_id === flight.id; }) : null) || matches.find(function (item) { return !item.segment_id; });
+        if (category === "personal_item" && !allowance) return "";
+        let text = "Not specified";
+        if (allowance && allowance.status === "none") text = "Not included";
+        if (allowance && allowance.status === "included") {
+          const dimensions = allowance.dimensions_cm;
+          text = [allowance.pieces ? allowance.pieces + (allowance.pieces === 1 ? " piece" : " pieces") : "", allowance.weight_kg ? allowance.weight_kg + " kg" : "", dimensions ? [dimensions.length, dimensions.width, dimensions.height].join(" × ") + " cm" : ""].filter(Boolean).join(" · ") || "Included; allowance not specified";
+        }
+        return KridiyaAuth.statusLabel(type) + " — " + text;
+      }).filter(Boolean);
+      return allowances.length ? quoteRow(KridiyaAuth.statusLabel(category), allowances.join("; ")) : "";
+    }).join("") + '</dl>';
+  }
+  function quoteFlightsHTML(details) {
+    const segments = Array.isArray(details.segments) ? details.segments : [];
+    return '<div class="quotation-itinerary">' + segments.map(function (flight, index) {
+      const previous = segments[index - 1];
+      const connected = previous && previous.leg_number === flight.leg_number;
+      const leg = details.journey_type === "return" ? (flight.leg_number === 2 ? "Return" : "Onward") : details.journey_type === "multi_city" ? "Journey " + flight.leg_number : "One way";
+      const connections = { single_ticket_confirmed: "Single ticket", separate_ticket: "Separate tickets", self_transfer: "Self-transfer", separate_ticket_self_transfer: "Separate tickets · self-transfer", unknown: "Ticket and transfer arrangement not confirmed" };
+      const connection = connected ? '<div class="quotation-connection"><strong>Connection at ' + KridiyaAuth.escapeHTML(previous.destination_airport) + '</strong>' + (flight.layover_before_minutes != null ? '<span>' + KridiyaAuth.escapeHTML(quoteMinutes(flight.layover_before_minutes)) + ' layover</span>' : '<span>Layover not specified</span>') + '<p>' + KridiyaAuth.escapeHTML(connections[flight.connection_arrangement] || connections.unknown) + (flight.airport_change_before ? ' · Airport change required: ' + KridiyaAuth.escapeHTML(previous.destination_airport + " → " + flight.origin_airport) : '') + '. Connection feasibility has not been confirmed.</p></div>' : "";
+      const logo = window.KridiyaQuoteAirlines ? window.KridiyaQuoteAirlines.logo(flight.airline) : "";
+      const duration = quoteMinutes(flight.duration_minutes);
+      return connection + '<section class="quotation-flight" aria-label="' + KridiyaAuth.escapeHTML(leg + ", " + flight.origin_airport + " to " + flight.destination_airport) + '">' +
+        '<div class="quotation-route"><span>' + KridiyaAuth.escapeHTML(leg) + '</span><b>' + KridiyaAuth.escapeHTML(flight.origin_airport + " → " + flight.destination_airport) + '</b><small>Flight ' + (index + 1) + '</small></div>' +
+        '<div class="quotation-airline"><div class="quotation-carrier">' + (logo ? '<img src="' + logo + '" alt="" width="28" height="28" loading="lazy" referrerpolicy="no-referrer">' : '') + '<div><b>' + KridiyaAuth.escapeHTML(flight.airline || "Airline not specified") + '</b><span>' + KridiyaAuth.escapeHTML(flight.flight_number || "Flight not specified") + '</span>' + (flight.operating_airline ? '<small>Operated by ' + KridiyaAuth.escapeHTML(flight.operating_airline) + '</small>' : '') + '</div></div><div class="quotation-cabin"><span>Travel class</span><b>' + KridiyaAuth.escapeHTML(flight.cabin_class || "Not specified") + '</b></div></div>' +
+        '<div class="quotation-flight-times">' + quoteAirportHTML(flight, true) + '<div class="quotation-duration">' + (duration ? '<b>' + KridiyaAuth.escapeHTML(duration) + '</b>' : '') + '<span aria-hidden="true"></span><small>' + KridiyaAuth.escapeHTML(flight.flight_number || "Flight " + (index + 1)) + '</small></div>' + quoteAirportHTML(flight, false) + '</div>' +
+        quoteBaggageHTML(details, flight) + '</section>';
+    }).join("") + '<p class="quotation-local-times">All flight times are local to each airport.</p></div>';
+  }
+  function quoteConditionsHTML(q) {
+    const fare = (q.option_data || {}).fare_conditions || {};
+    const conditions = [["Refunds", "refund"], ["Date changes", "change"], ["Transit", "transit"]].map(function (entry) {
+      return quoteRow(entry[0], [fare[entry[1] + "_status"] ? KridiyaAuth.statusLabel(fare[entry[1] + "_status"]) : "", fare[entry[1] + "_text"]].filter(Boolean).join(" · "));
+    }).join("") + quoteRow("Cancellation", q.cancellation_terms) + quoteRow("Payment", q.payment_terms) + quoteRow("Other terms", q.terms);
+    return conditions ? '<section class="quotation-conditions"><h5>Fare and payment conditions</h5><dl>' + conditions + '</dl></section>' : '';
+  }
+  function quoteCommercialRows(q) {
+    const items = Array.isArray(q.customer_line_items) ? q.customer_line_items : [];
+    const priceDetails = items.length ? '<dl class="quotation-price-detail" aria-label="Price breakdown">' + items.map(function (item) {
+      return quoteRow(item.description, item.quantity + " × " + money(item.unit_price, q.currency) + " = " + money(Number(item.quantity) * Number(item.unit_price), q.currency));
+    }).join("") + '</dl>' : "";
+    const included = quoteRow("Included", Array.isArray(q.inclusions) ? q.inclusions.join("; ") : "") + quoteRow("Not included", Array.isArray(q.exclusions) ? q.exclusions.join("; ") : "");
+    const options = (q.option_data || {}).document_options || {};
+    return priceDetails + (included ? '<dl class="quotation-inclusions">' + included + '</dl>' : '') +
+      (options.show_fare_conditions === false ? '' : quoteConditionsHTML(q));
   }
   function quotesHTML(quotes) {
     if (!quotes.length) return "";
     const sortedQuotes = quotes.slice().sort(function (a, b) {
       const byPrice = Number(a.price_amount || 0) - Number(b.price_amount || 0);
-      if (byPrice) return byPrice;
-      return String(a.created_at || "").localeCompare(String(b.created_at || ""));
+      return byPrice || String(a.created_at || "").localeCompare(String(b.created_at || ""));
     });
-    function displayTitle(q, index) {
-      const name = String(q.title || "").replace(/^Option\s+\d+\s*:\s*/i, "").trim();
-      return "Option " + (index + 1) + (name ? ": " + name : "");
-    }
-    return '<div class="enq-extra quote-list">' + sortedQuotes.map(function (q, index) {
-      const amount = money(q.price_amount, q.currency);
-      const expired = q.status === "expired" || (q.valid_until && new Date(q.valid_until).getTime() <= Date.now());
-      const validity = q.valid_until
-        ? new Date(q.valid_until).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-        : "";
-      const details = quoteDetailRows(q);
+    return '<div class="enq-extra quote-list quotation-list">' + sortedQuotes.map(function (q, index) {
+      const esc = KridiyaAuth.escapeHTML;
+      const replaced = quotes.some(function (other) { return q.quote_group_id && other.quote_group_id === q.quote_group_id && other.quote_version > q.quote_version && other.preparation_status === "sent"; });
+      const expired = q.status === "expired" || (q.status === "sent" && q.valid_until && new Date(q.valid_until).getTime() <= Date.now());
+      const issued = q.preparation_status === "sent" && q.generated_document_id && q.sent_at && q.valid_until;
+      const actionable = q.status === "sent" && !expired && !replaced && issued;
+      const validity = q.valid_until ? new Date(q.valid_until).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "Asia/Dubai" }) + " (Dubai time)" : "";
+      const od = q.option_data || {}, passengers = od.passengers || {};
+      const documentOptions = od.document_options || {};
+      const travellers = ["adult", "child", "infant"].filter(function (type) { return Number(passengers[type]) > 0; }).map(function (type) { return passengers[type] + " " + (Number(passengers[type]) === 1 ? type : type === "child" ? "children" : type + "s"); }).join(" · ");
       const adds = Array.isArray(q.addons) ? q.addons : [];
-      const addonsHtml = adds.length
-        ? '<div class="quote-addons"><span class="quote-addons-title">Optional add-ons</span>' + adds.map(function (a) {
-            return '<div class="quote-row"><span class="quote-k">' + KridiyaAuth.escapeHTML(a.name) + '</span><span class="quote-v">' + (a.price != null ? money(a.price, q.currency) : "") + "</span></div>";
-          }).join("") + "</div>"
-        : "";
-      const termsHtml = q.terms
-        ? '<details class="quote-terms"><summary>Terms &amp; conditions</summary><ul>' + String(q.terms).split("\n").map(function (t) {
-            t = t.replace(/^[-*]\s*/, "").trim();
-            return t ? "<li>" + KridiyaAuth.escapeHTML(t) + "</li>" : "";
-          }).join("") + "</ul></details>"
-        : "";
-
-      if (q.status === "sent" && !expired) {
-        return '<div class="quote-card">' +
-          '<div class="quote-card-head"><h4>' + KridiyaAuth.escapeHTML(displayTitle(q, index)) + '</h4><div class="quote-price">' + amount + "</div></div>" +
-          (details ? '<div class="quote-details">' + details + "</div>" : "") +
-          addonsHtml +
-          termsHtml +
-          (validity ? '<p class="quote-valid">Valid until ' + KridiyaAuth.escapeHTML(validity) + "</p>" : "") +
-          '<div class="quote-acceptance-boundary"><p>Accepting this quote records your agreement to the shown service, price, inclusions, exclusions, supplier conditions and any Kridiya Travel service fee stated separately from supplier prices. This quote is not a booking and acceptance is not a confirmed booking. Booking proceeds only after written acceptance, required traveller details and documents, cleared payment where required, supplier confirmation and any applicable verification. A receipt or uploaded payment proof is evidence only and does not by itself mean funds have cleared.</p><p lang="ar" dir="rtl">عرض السعر هذا ليس حجزًا ولا يحجز التوافر. قد تُبيَّن رسوم خدمة كريديا للسفر بشكل منفصل عن أسعار المورّدين. لا يُؤكَّد الحجز إلا بعد قبولكم الكتابي، وتقديم معلومات المسافر والمستندات المطلوبة، ووصول المبلغ المحصّل فعليًا حيث يُطلب ذلك، وتأكيد المورّد، وأي تحقق معمول به. لا يعني إيصال الدفع أو إثبات الدفع المرفوع بذاته أن الأموال قد حُصّلت فعليًا.</p></div>' +
-          '<label class="quote-confirm"><input type="checkbox" data-quote-terms="' + q.id + '"> <span>I confirm I reviewed this quote and its terms.<span class="arabic-copy" lang="ar" dir="rtl">أؤكد أنني راجعت عرض السعر وشروطه.</span></span></label>' +
-          '<div class="quote-actions">' +
-            '<button class="btn btn-primary" type="button" data-quote-id="' + q.id + '" data-quote-updated="' + KridiyaAuth.escapeHTML(q.updated_at) + '" data-action="accepted">Accept quote / <span lang="ar" dir="rtl">قبول عرض السعر</span></button>' +
-            '<button class="btn btn-outline" type="button" data-quote-id="' + q.id + '" data-quote-updated="' + KridiyaAuth.escapeHTML(q.updated_at) + '" data-action="revision">Request changes</button>' +
-            '<button class="btn btn-outline" type="button" data-quote-id="' + q.id + '" data-quote-updated="' + KridiyaAuth.escapeHTML(q.updated_at) + '" data-action="declined">Decline</button>' +
-          "</div></div>";
-      }
-      return '<div class="quote-card quote-card-done">' +
-        '<div class="quote-card-head"><h4>' + KridiyaAuth.escapeHTML(displayTitle(q, index)) + '</h4><div class="quote-price">' + amount + "</div></div>" +
-        (details ? '<div class="quote-details">' + details + "</div>" : "") +
-        '<p class="quote-status-line">' + icon(expired ? "clock" : "check") + " " + KridiyaAuth.escapeHTML(expired ? "Quote expired" : KridiyaAuth.statusLabel(q.status)) + "</p>" +
-        (expired ? '<p class="form-note">Prices or availability may have changed. Ask Kridiya for refreshed options.</p><button class="btn btn-outline btn-sm customer-recovery" type="button" data-recovery-link="enquiry:' + KridiyaAuth.escapeHTML(q.enquiry_id) + '" data-recovery-subject="Refresh expired quote" data-recovery-description="Please refresh the expired quote and confirm current price, availability and terms.">Request refreshed quote</button>' : '') + "</div>";
-    }).join("") + "</div>";
+      const addonsHtml = adds.length ? '<section class="quotation-addons"><h5>Optional add-ons</h5><dl>' + adds.map(function (a) { return quoteRow(a.name, a.price != null ? money(a.price, q.currency) : "Price on request"); }).join("") + '</dl></section>' : "";
+      const title = String(q.title || "Travel quotation").replace(/^Option\s+\d+\s*:\s*/i, "").trim();
+      const status = q.status === "accepted" || q.status === "declined" ? KridiyaAuth.statusLabel(q.status) : replaced ? "Replaced by a newer quote" : expired ? "Quote expired" : !issued ? "Awaiting issued quote" : KridiyaAuth.statusLabel(q.status);
+      const documentHtml = '<article class="quotation-sheet"><header class="quotation-heading"><img src="assets/logo.png" width="48" height="48" alt="Kridiya Travel and Tourism"><h4>Quotation</h4><div class="quotation-reference"><b>Option ' + (index + 1) + '</b><span>Version ' + esc(q.quote_version || 1) + '</span></div></header>' +
+        '<div class="quotation-overview"><h5>' + esc(title) + '</h5>' + (travellers ? '<p>' + esc(travellers) + '</p>' : '') + '<p class="quotation-valid">' + (validity ? 'Valid until ' + esc(validity) : 'Validity not specified') + '</p></div>' +
+        (q.description ? '<p class="quotation-description">' + esc(q.description).replace(/\n/g, '<br>') + '</p>' : '') + quoteDetailRows(q) + '<div class="quotation-total"><span>Total price' + (travellers ? '<small>For all travellers</small>' : '') + '</span><strong>' + money(q.price_amount, q.currency) + '</strong></div>' + quoteCommercialRows(q) + addonsHtml;
+      const footerHtml = '<footer class="quotation-support"><div class="quotation-support-heading"><b>KRIDIYA Travel and Tourism FZ-LLC</b></div><div class="quotation-support-contacts"><a href="tel:+971509413873">+971 50 941 3873</a><a href="mailto:contact@kridiyatravel.com">contact@kridiyatravel.com</a><a href="https://www.kridiyatravel.com">www.kridiyatravel.com</a></div></footer></article>';
+      const bookingTerms = '<section class="quotation-booking-terms"><h5 class="quotation-response-title"><span class="quotation-english">Booking terms</span><span class="quotation-arabic" lang="ar" dir="rtl">شروط الحجز</span></h5><div class="quotation-acceptance-text"><div class="quotation-english" lang="en"><p>Accepting this quote records your agreement to the shown service, price, inclusions, exclusions, supplier conditions and any Kridiya Travel service fee stated separately from supplier prices.</p><p>This quote is not a booking and acceptance is not a confirmed booking. Booking proceeds only after written acceptance, required traveller details and documents, cleared payment where required, supplier confirmation and any applicable verification.</p><p>A receipt or uploaded payment proof is evidence only and does not by itself mean funds have cleared.</p></div><div class="quotation-arabic" lang="ar" dir="rtl"><p>عرض السعر هذا ليس حجزًا ولا يحجز التوافر. قد تُبيَّن رسوم خدمة كريديا للسفر بشكل منفصل عن أسعار المورّدين. لا يُؤكَّد الحجز إلا بعد قبولكم الكتابي، وتقديم معلومات المسافر والمستندات المطلوبة، ووصول المبلغ المحصّل فعليًا حيث يُطلب ذلك، وتأكيد المورّد، وأي تحقق معمول به. لا يعني إيصال الدفع أو إثبات الدفع المرفوع بذاته أن الأموال قد حُصّلت فعليًا.</p></div></div></section>';
+      const acceptance = '<section class="quotation-response" aria-label="Respond to quote"><label class="quote-confirm"><input type="checkbox" data-quote-terms="' + esc(q.id) + '"><span><span class="quotation-english">I confirm I reviewed this quote and its terms.</span><span class="quotation-arabic" lang="ar" dir="rtl">أؤكد أنني راجعت عرض السعر وشروطه.</span></span></label><div class="quote-actions quotation-actions">' +
+        '<button class="btn btn-primary" type="button" data-quote-id="' + esc(q.id) + '" data-quote-updated="' + esc(q.updated_at) + '" data-action="accepted"><span class="quotation-english">Accept quote</span><span class="quotation-arabic" lang="ar" dir="rtl">قبول عرض السعر</span></button>' +
+        '<button class="btn btn-outline" type="button" data-quote-id="' + esc(q.id) + '" data-quote-updated="' + esc(q.updated_at) + '" data-action="revision"><span class="quotation-english">Request changes</span><span class="quotation-arabic" lang="ar" dir="rtl">طلب تعديل</span></button>' +
+        '<button class="btn btn-outline quotation-decline" type="button" data-quote-id="' + esc(q.id) + '" data-quote-updated="' + esc(q.updated_at) + '" data-action="declined"><span class="quotation-english">Decline</span><span class="quotation-arabic" lang="ar" dir="rtl">رفض العرض</span></button></div></section>';
+      const finalState = '<div class="quotation-response"><p class="quote-status-line">' + esc(status) + '</p>' + (expired && !replaced ? '<p class="form-note">Prices or availability may have changed. Ask Kridiya for refreshed options.</p><button class="btn btn-outline btn-sm customer-recovery" type="button" data-recovery-link="enquiry:' + esc(q.enquiry_id) + '" data-recovery-subject="Refresh expired quote" data-recovery-description="Please refresh the expired quote and confirm current price, availability and terms.">Request refreshed quote</button>' : '') + '</div>';
+      const toolbar = '<div class="quotation-tools"><button class="btn btn-outline" type="button" data-quote-size aria-pressed="false"><span class="quotation-english">View full size</span><span class="quotation-arabic" lang="ar" dir="rtl">عرض بالحجم الكامل</span></button><button class="btn btn-outline" type="button" data-quote-print><span class="quotation-english">Print / Save PDF</span><span class="quotation-arabic" lang="ar" dir="rtl">طباعة / حفظ PDF</span></button><span class="quotation-print-error" role="status"></span></div>';
+      const omittedTerms = (documentOptions.show_fare_conditions === false ? quoteConditionsHTML(q) : '') + (documentOptions.show_booking_terms === false ? bookingTerms : '');
+      const reviewTerms = omittedTerms ? '<div class="quotation-terms-access"><button type="button" data-review-quote-terms aria-expanded="false"><span class="quotation-english">Review conditions and terms</span><span class="quotation-arabic" lang="ar" dir="rtl">مراجعة الشروط والأحكام</span></button><div class="quotation-terms-review" hidden>' + omittedTerms + '</div></div>' : '';
+      return '<div class="quote-card quotation' + (actionable ? '' : ' quotation-done') + '">' + toolbar + '<div class="quotation-document-viewport">' + documentHtml + (documentOptions.show_booking_terms === false ? '' : bookingTerms) + footerHtml + '</div>' + reviewTerms + (actionable ? acceptance : finalState) + '</div>';
+    }).join("") + '</div>';
   }
+
   function customerDocsHTML(docs) {
     if (!docs.length) return '<div class="enq-extra customer-doc-list customer-empty-list"><h4>Documents</h4><p>No customer-visible documents have been released yet.</p></div>';
     return '<div class="enq-extra customer-doc-list"><h4>Documents</h4>' + docs.map(function (d) {

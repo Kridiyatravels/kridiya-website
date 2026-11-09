@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" id="Layer_2_00000159471598350358213750000014612203606435250611_" x="0px" y="0px" viewBox="0 0 66.8 80" style="enable-background:new 0 0 66.8 80;" xml:space="preserve">
+<path class="n2dd21db" d="M59,68c-6.1,7.3-15.3,12-25.6,12c-10.3,0-19.6-4.7-25.7-12.1c6.7,5.8,15.7,9.3,25.7,9.3  C43.3,77.2,52.4,73.7,59,68z" fill-rule="evenodd" clip-rule="evenodd" fill="#D9D9D9" />
+<path class="e1794ce0" d="M64,53.9c-5.2,11.6-16.9,19.7-30.5,19.7c-14.3,0-26.5-9-31.3-21.7c5.5,11.4,17.5,19.2,31.4,19.2  C46.7,71.1,58.1,64.2,64,53.9z" fill-rule="evenodd" clip-rule="evenodd" fill="#B1B1B1" />
+<circle class="p59add79" cx="33.4" cy="33.4" r="33.4" fill-rule="evenodd" clip-rule="evenodd" fill="#FFCB00" />
+<radialGradient id="SVGID_1_" cx="33.3976" cy="33.3976" r="41.752" gradientUnits="userSpaceOnUse">
+	<stop offset="0" style="stop-color:#E20613" />
+	<stop offset="0.59" style="stop-color:#E20613" />
+	<stop offset="0.93" style="stop-color:#A22524" />
+	<stop offset="1" style="stop-color:#9E2624" />
+</radialGradient>
+<circle class="db1ff07d" cx="33.4" cy="33.4" r="29.5" fill-rule="evenodd" clip-rule="evenodd" fill="url(#SVGID_1_)" />
+<path class="l0d88dd4" d="M39.5,31.6l24.9,1.8l-7.8,0.5l-17.1,1.2c-0.1,0.4-0.3,0.8-0.5,1.2L46,46.8L36.2,39c-0.3,0.1-0.5,0.2-0.8,0.3  l-2.2,25.9l0,0.4l0,0l0,0.1l0-0.6L31,39.2c-0.2-0.1-0.4-0.2-0.7-0.3l-10,7.9l7.3-10.7c-0.1-0.3-0.3-0.6-0.3-0.9L2.4,33.4l0.5,0  l-0.2,0l24.6-1.7c0.1-0.4,0.3-0.8,0.5-1.2L20.8,20l9.8,7.8c0.3-0.1,0.5-0.2,0.8-0.3l2.1-25.7l0-0.6l0,0.1l0,0l0,0.4l2.2,26  c0.2,0.1,0.4,0.2,0.7,0.3l9.9-7.9l-7.3,10.7C39.3,31,39.4,31.3,39.5,31.6z" fill-rule="evenodd" clip-rule="evenodd" fill="#FFFFFF" />
+</svg>

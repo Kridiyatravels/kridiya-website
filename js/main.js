@@ -1153,11 +1153,11 @@ function renderChrome() {
       '</div>' +
       '<div class="footer-bar"><div class="container footer-bottom">' +
         '<span class="footer-copyright">© ' + new Date().getFullYear() + ' ' + KRIDIYA.legal + '. All rights reserved.</span>' +
-        '<div class="footer-social">' +
-          '<a class="icon-instagram" href="' + KRIDIYA.social.instagram + '" target="_blank" rel="noopener" aria-label="Instagram">' + icon("instagram") + '</a>' +
-          '<a class="icon-facebook" href="' + KRIDIYA.social.facebook + '" target="_blank" rel="noopener" aria-label="Facebook">' + icon("facebook") + '</a>' +
-          '<a class="icon-linkedin" href="' + KRIDIYA.social.linkedin + '" target="_blank" rel="noopener" aria-label="LinkedIn">' + icon("linkedin") + '</a>' +
-          '<a class="icon-whatsapp" href="' + waLink() + '" target="_blank" rel="noopener" aria-label="WhatsApp">' + icon("whatsapp") + '</a>' +
+        '<div class="footer-social footer-social-text">' +
+          '<a class="icon-instagram" href="' + KRIDIYA.social.instagram + '" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>' +
+          '<a class="icon-facebook" href="' + KRIDIYA.social.facebook + '" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a>' +
+          '<a class="icon-linkedin" href="' + KRIDIYA.social.linkedin + '" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn</a>' +
+          '<a class="icon-whatsapp" href="' + waLink() + '" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>' +
         '</div>' +
         '<details class="footer-company-details"><summary>Company details</summary><div class="footer-company-body">' +
           '<span class="footer-identity-en" translate="no"><strong>Company details:</strong> KRIDIYA Travel and Tourism FZ-LLC is a free-zone limited-liability company registered with Ras Al Khaimah Economic Zone (RAKEZ), United Arab Emirates, trade licence 5033347. Registered address: FDRK7105, Compass Building, Al Shohada Road, Al Hamra Industrial Zone-FZ, Ras Al Khaimah, United Arab Emirates. Email: <a href="mailto:contact@kridiyatravel.com">contact@kridiyatravel.com</a>. WhatsApp: <a href="https://wa.me/971509413873" target="_blank" rel="noopener">+971 50 941 3873</a>. Website: <a href="https://www.kridiyatravel.com">www.kridiyatravel.com</a>.</span>' +
