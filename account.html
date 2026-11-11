@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/js/public-routes.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="js/locale-boot.js"></script>
+<script src="/js/locale-boot.js"></script>
 <title>My Account - Kridiya Travel and Tourism</title>
 <meta name="description" content="Manage your Kridiya Travel profile and view your enquiry history.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Great+Vibes&family=Playfair+Display:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
-<link rel="icon" href="assets/favicon-32.png" sizes="32x32">
-<link rel="apple-touch-icon" href="assets/favicon-180.png">
-<link rel="canonical" href="https://www.kridiyatravel.com/account.html">
-<link rel="stylesheet" href="css/styles.css?v=20261024passengers2">
-<link rel="stylesheet" href="css/motion.css?v=20260929release2">
-<link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
-<link rel="stylesheet" href="css/homepage.css?v=20261024whatsapp1">
-<link rel="stylesheet" href="css/consumer-pages.css?v=20261109social1">
-<link rel="stylesheet" href="css/reference-copy.css?v=20261107copy1">
-<link rel="stylesheet" href="css/account-support.css?v=20261107focus1">
-<link rel="stylesheet" href="css/account-quotes.css?v=20261109pdf1">
+<link rel="icon" href="/assets/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="canonical" href="https://www.kridiyatravel.com/account/">
+<link rel="stylesheet" href="/css/styles.css?v=20261024passengers2">
+<link rel="stylesheet" href="/css/motion.css?v=20260929release2">
+<link rel="stylesheet" href="/css/kridiya-brand-kit/index.css?v=20260929release2">
+<link rel="stylesheet" href="/css/homepage.css?v=20261024whatsapp1">
+<link rel="stylesheet" href="/css/consumer-pages.css?v=20261109social1">
+<link rel="stylesheet" href="/css/reference-copy.css?v=20261107copy1">
+<link rel="stylesheet" href="/css/account-support.css?v=20261107focus1">
+<link rel="stylesheet" href="/css/account-quotes.css?v=20261109pdf1">
 </head>
 <body class="consumer-site account-auth-loading" data-page="account">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -27,14 +28,14 @@
 <main id="main-content">
   <section class="signed-out-bookings" id="signed-out-bookings" hidden aria-labelledby="signed-out-bookings-title">
     <header class="signed-out-bookings-head">
-      <a href="index.html" aria-label="Back to home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10 5-7 7 7 7M3 12h18"/></svg></a>
+      <a href="/" aria-label="Back to home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10 5-7 7 7 7M3 12h18"/></svg></a>
       <h1 id="signed-out-bookings-title">My bookings</h1>
       <button type="button" aria-label="Refresh bookings" data-bookings-refresh><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
     </header>
     <div class="signed-out-bookings-empty">
       <h2>Log in to manage your trips</h2>
       <p>Track your requests, confirmed bookings, documents and support updates.</p>
-      <a class="btn btn-primary" href="login.html?next=account.html%23bookings#sign-in-form">Log in</a>
+      <a class="btn btn-primary" href="/login/?next=account.html%23bookings#sign-in-form">Log in</a>
     </div>
   </section>
   <section class="section">
@@ -44,7 +45,7 @@
           <h1 id="acc-given-name">My account</h1>
           <p id="acc-head-since">Your travel, details and support in one place.</p>
         </div>
-        <a class="btn btn-primary" href="index.html">New enquiry</a>
+        <a class="btn btn-primary" href="/">New enquiry</a>
       </div>
       <div class="account-grid">
         <aside class="account-side account-profile-card">
@@ -75,7 +76,7 @@
             <a href="#support">Help &amp; requests</a>
             <a href="#contact-team">Contact the team</a>
           </nav>
-          <a class="btn btn-primary btn-block" href="index.html">New enquiry</a>
+          <a class="btn btn-primary btn-block" href="/">New enquiry</a>
           <button class="btn btn-outline btn-block" id="logout-btn" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M14 8l4 4-4 4m4-4H8"/></svg>
             <span>Log out</span>
@@ -111,7 +112,7 @@
               <div>
                 <h2>My bookings and enquiries</h2>
                 <p>Enquiries you send while signed in are added automatically. Confirmed bookings appear here once our team sets them up.</p>
-                <a class="account-section-link" href="contact.html">Need a booking added?</a>
+                <a class="account-section-link" href="/contact/">Need a booking added?</a>
               </div>
               <button type="button" class="account-refresh" id="refresh-travel" aria-label="Refresh bookings and enquiries" disabled hidden><span aria-hidden="true">↻</span></button>
             </div>
@@ -229,7 +230,7 @@
                 <h2>Security</h2>
                 <p>Change your password here, or use email reset if you are signed out.</p>
               </div>
-              <a href="forgot-password.html">Forgot password?</a>
+              <a href="/forgot-password/">Forgot password?</a>
             </div>
             <form id="password-form" class="form-grid" method="post" novalidate>
               <div class="form-banner error" hidden role="alert"></div>
@@ -255,7 +256,7 @@
               <a class="btn btn-primary" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a>
               <a class="btn btn-outline" href="https://corporate.kridiyatravel.com/login.html?next=corporate-account.html">Corporate portal</a>
               <a class="btn btn-outline" href="mailto:info@kridiyatravel.com">Email Kridiya</a>
-              <a class="btn btn-outline" href="privacy.html">Privacy settings</a>
+              <a class="btn btn-outline" href="/privacy/">Privacy settings</a>
             </div>
           </div>
         </div>
@@ -264,15 +265,15 @@
   </section>
 </main>
 <footer id="site-footer" class="site-footer"></footer>
-<script src="js/motion.js?v=20260921complete2" defer></script>
-<script src="js/motion-controls.js?v=20260921complete2" defer></script>
-<script src="js/main.js?v=20261109social1" defer></script>
-<script src="js/reference-copy.js?v=20261107copy1" defer></script>
-<script src="js/account-support.js?v=20261107support2" defer></script>
-<script src="js/quote-airlines.js?v=20261109ticket1" defer></script>
-<script src="js/quote-print.js?v=20261109pdf1" defer></script>
-<script src="js/auth.js?v=20261109-document-review" defer></script>
-<script src="js/search.js?v=20261024passengers2" defer></script>
-<script src="js/consumer-ui.js?v=20261024auth4" defer></script>
+<script src="/js/motion.js?v=20260921complete2" defer></script>
+<script src="/js/motion-controls.js?v=20260921complete2" defer></script>
+<script src="/js/main.js?v=20261109social1" defer></script>
+<script src="/js/reference-copy.js?v=20261107copy1" defer></script>
+<script src="/js/account-support.js?v=20261107support2" defer></script>
+<script src="/js/quote-airlines.js?v=20261109ticket1" defer></script>
+<script src="/js/quote-print.js?v=20261109pdf1" defer></script>
+<script src="/js/auth.js?v=20261109-document-review" defer></script>
+<script src="/js/search.js?v=20261024passengers2" defer></script>
+<script src="/js/consumer-ui.js?v=20261024auth4" defer></script>
 </body>
 </html>

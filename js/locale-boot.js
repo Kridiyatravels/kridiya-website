@@ -14,8 +14,8 @@
     : host.endsWith(".in") || firstPathSegment === "in" ? "in"
     : firstPathSegment === "en" || host.startsWith("global.") ? "en"
     : "ae";
-  var page = location.pathname.split("/").pop() || "index.html";
-  var bilingualLegalPage = page === "privacy.html" || page === "terms.html";
+  var page = KridiyaRoutes.path(location.pathname);
+  var bilingualLegalPage = page === "/privacy/" || page === "/terms/";
   var stored = "";
   try { stored = localStorage.getItem("kridiya_language_ae") || ""; } catch (error) { /* Storage can be unavailable. */ }
   var requested = params.get("lang");

@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (result.error) throw result.error;
     sessionStorage.removeItem("kridiya_track_reference");
     sessionStorage.removeItem("kridiya_track_email");
-    location.replace("account.html?claimed=1");
+    location.replace("/account/?claimed=1");
   }
 
   form.addEventListener("submit", async function (event) {
@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         await claim(reference); return;
       }
       const sb = await KridiyaAuth.client();
-      const redirect = new URL("track-enquiry.html", location.href);
+      const redirect = new URL("/track-enquiry.html", location.origin);
       redirect.searchParams.set("ref", reference);
       const result = await sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, emailRedirectTo: redirect.href } });
       if (result.error) throw result.error;

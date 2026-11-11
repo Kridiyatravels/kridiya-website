@@ -48,7 +48,7 @@
     form.style.display = "none";
     signedIn.hidden = false;
     signedIn.style.display = "grid";
-    signedIn.innerHTML = '<a class="btn btn-primary btn-block" href="corporate-account.html">Open company portal</a>';
+    signedIn.innerHTML = '<a class="btn btn-primary btn-block" href="/corporate-account/">Open company portal</a>';
     return true;
   }
 

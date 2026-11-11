@@ -20,8 +20,8 @@ const KRIDIYA_LOCALE = (function () {
     : host.endsWith(".in") || firstPathSegment === "in" ? "in"
     : firstPathSegment === "en" || host.startsWith("global.") ? "en"
     : "ae");
-  const page = location.pathname.split("/").pop() || "index.html";
-  const bilingualLegalPage = page === "privacy.html" || page === "terms.html";
+  const page = KridiyaRoutes.path(location.pathname);
+  const bilingualLegalPage = page === "/privacy/" || page === "/terms/";
   const storageKey = "kridiya_language_ae";
   let stored = "";
   try { stored = localStorage.getItem(storageKey) || ""; } catch (error) { /* Storage can be unavailable. */ }
@@ -44,7 +44,7 @@ const KRIDIYA_LOCALE = (function () {
       const script = document.createElement("script");
       const mainSource = document.currentScript && document.currentScript.src
         ? document.currentScript.src
-        : new URL("js/main.js", document.baseURI).href;
+        : new URL("/js/main.js", document.baseURI).href;
       const localizationSource = new URL("localization-ar.js", mainSource);
       localizationSource.search = new URL(mainSource).search;
       script.src = localizationSource.href;
@@ -117,8 +117,7 @@ const COOKIE_CONSENT_VERSION = "2026-10-24";
 const COOKIE_CONSENT_MAX_AGE_MS = 180 * 24 * 60 * 60 * 1000;
 
 function isPublicMeasurementPage() {
-  return /^\/(?:index|about|contact|flights|hotels|holidays|umrah|cruise|visa|privacy|terms)?(?:\.html)?$/.test(location.pathname) ||
-    /^\/guides\/(?:index|flight-booking-checklist)\.html$/.test(location.pathname);
+  return ["/", "/about/", "/contact/", "/flights/", "/hotels/", "/holidays/", "/umrah/", "/cruise/", "/visa/", "/privacy/", "/terms/", "/guides/", "/guides/flight-booking-checklist/"].includes(KridiyaRoutes.path(location.pathname));
 }
 
 function measurementPageURL() { return location.origin + location.pathname; }
@@ -346,14 +345,14 @@ function initAnalyticsConsentBanner() {
   banner.setAttribute("aria-modal", "true");
   banner.setAttribute("aria-label", "Cookie preferences");
   banner.innerHTML =
-    '<div class="analytics-consent-copy"><b>Cookies</b><p>Essential storage keeps this website working. With your choice, Google Analytics helps us understand visits and Meta helps us measure advertising. Optional technologies stay off until you allow them. You can accept all, reject optional cookies or choose each category. Change your choice at any time in our <a href="privacy.html#measurement" data-cookie-policy>Cookies Policy</a>.</p></div>' +
+    '<div class="analytics-consent-copy"><b>Cookies</b><p>Essential storage keeps this website working. With your choice, Google Analytics helps us understand visits and Meta helps us measure advertising. Optional technologies stay off until you allow them. You can accept all, reject optional cookies or choose each category. Change your choice at any time in our <a href="/privacy/#measurement" data-cookie-policy>Cookies Policy</a>.</p></div>' +
     '<div class="analytics-consent-actions">' +
       '<button class="btn" type="button" data-measurement-choice="denied">Reject optional</button>' +
       '<button class="btn" type="button" data-cookie-preferences aria-expanded="false" aria-controls="cookie-preference-options">Choose your preferences</button>' +
       '<button class="btn btn-primary" type="button" data-measurement-choice="all">Accept all</button>' +
     "</div>" +
     '<div class="analytics-consent-preferences" id="cookie-preference-options" hidden>' +
-      '<div class="analytics-consent-preferences-head"><div><b>Cookie preferences</b><p>Choose how KRIDIYA Travel uses optional technologies. Analytics processes page URLs, referrers, campaign details, device information and interaction events. Advertising measurement processes public-page visits, click identifiers and event identifiers. We do not send enquiry text or contact, passport or payment details. Change your choice at any time in our <a href="privacy.html#measurement" data-cookie-policy>Cookies Policy</a>.</p><p class="analytics-consent-gpc" data-cookie-gpc hidden>Global Privacy Control is enabled. Advertising measurement will remain off.</p></div><button type="button" class="analytics-consent-close" data-cookie-preferences-close aria-label="Back to cookie notice">&times;</button></div>' +
+      '<div class="analytics-consent-preferences-head"><div><b>Cookie preferences</b><p>Choose how KRIDIYA Travel uses optional technologies. Analytics processes page URLs, referrers, campaign details, device information and interaction events. Advertising measurement processes public-page visits, click identifiers and event identifiers. We do not send enquiry text or contact, passport or payment details. Change your choice at any time in our <a href="/privacy/#measurement" data-cookie-policy>Cookies Policy</a>.</p><p class="analytics-consent-gpc" data-cookie-gpc hidden>Global Privacy Control is enabled. Advertising measurement will remain off.</p></div><button type="button" class="analytics-consent-close" data-cookie-preferences-close aria-label="Back to cookie notice">&times;</button></div>' +
       '<div class="analytics-consent-tabs" role="tablist" aria-label="Cookie preference details"><button type="button" role="tab" aria-selected="true" aria-controls="cookie-categories-panel" id="cookie-categories-tab" data-cookie-tab="categories">Categories</button><button type="button" role="tab" aria-selected="false" aria-controls="cookie-services-panel" id="cookie-services-tab" data-cookie-tab="services" tabindex="-1">Services</button></div>' +
       '<div class="analytics-consent-tab-panel" id="cookie-categories-panel" role="tabpanel" aria-labelledby="cookie-categories-tab" data-cookie-panel="categories">' +
         '<div class="analytics-consent-option analytics-consent-option--essential"><span><b>Essential cookies</b><small>Keep core site features, language choices and secure account access working.</small></span><strong>Always active</strong></div>' +
@@ -502,7 +501,7 @@ function initAnalyticsConsentBanner() {
   });
 
   document.body.appendChild(banner);
-  const policyAccess = /\/privacy(?:\.html)?$/.test(location.pathname) &&
+  const policyAccess = KridiyaRoutes.path(location.pathname) === "/privacy/" &&
     safeStorage(sessionStorage, "get", "kridiya_cookie_policy_access") === "true";
   if (!policyAccess) {
     setPageLocked(true);
@@ -746,8 +745,8 @@ function icon(name, cls) {
 /* ---------- Logo (shared by header and footer) ---------- */
 function logoHTML(footer) {
   return (
-    '<a class="logo" href="index.html" aria-label="Kridiya Travel — home">' +
-      '<img class="logo-art" src="assets/logo-wordmark.png" alt="Kridiya Travel and Tourism" width="780" height="323" decoding="async">' +
+    '<a class="logo" href="/" aria-label="Kridiya Travel — home">' +
+      '<img class="logo-art" src="/assets/logo-wordmark.png" alt="Kridiya Travel and Tourism" width="780" height="323" decoding="async">' +
     "</a>"
   );
 }
@@ -815,7 +814,7 @@ function organizeConsumerFooter(footer) {
   const email = link('Email us', 'mailto:' + KRIDIYA.emails.contact);
   email.className = 'footer-quick-action';
   email.innerHTML = icon('mail') + '<span class="footer-quick-action-copy"><small>Email</small><strong dir="ltr">' + KRIDIYA.emails.contact + '</strong></span>';
-  const account = link('My Kridiya', 'login.html');
+  const account = link('My Kridiya', '/login/');
   account.className = 'footer-quick-action';
   account.innerHTML = '<span class="footer-quick-action-copy"><small>Account</small><strong>My Kridiya</strong></span>';
   quickActions.append(whatsapp, call, email, account);
@@ -827,10 +826,10 @@ function organizeConsumerFooter(footer) {
   grid.replaceChildren(
     directoryGroup('Book travel', [
       { title: 'Leisure', links: [
-        ['Flight Booking', 'flights.html'], ['Hotel Booking', 'hotels.html'],
-        ['Holiday Packages', 'holidays.html'], ['Cruise Packages', 'cruise.html'],
-        ['Umrah Packages', 'umrah.html'], ['Visa Services', 'visa.html'],
-        ['Travel Insurance', 'contact.html?topic=Travel%20insurance'],
+        ['Flight Booking', '/flights/'], ['Hotel Booking', '/hotels/'],
+        ['Holiday Packages', '/holidays/'], ['Cruise Packages', '/cruise/'],
+        ['Umrah Packages', '/umrah/'], ['Visa Services', '/visa/'],
+        ['Travel Insurance', '/contact/?topic=Travel%20insurance'],
       ] },
       { title: 'For companies', links: [
         ['Business Travel', 'https://corporate.kridiyatravel.com', { external: true }],
@@ -839,26 +838,26 @@ function organizeConsumerFooter(footer) {
     ], 'book'),
     directoryGroup('Manage your trip', [
       { title: 'Your account', links: [
-        ['Customer Login', 'login.html'], ['Create Account', 'register.html'],
-        ['My bookings', 'account.html#bookings'],
+        ['Customer Login', '/login/'], ['Create Account', '/register/'],
+        ['My bookings', '/account/#bookings'],
       ] },
       { title: 'Booking help', links: [
-        ['Track Enquiry', 'track-enquiry.html'], ['Travel support', 'account.html#support'],
+        ['Track Enquiry', '/track-enquiry/'], ['Travel support', '/account/#support'],
       ] },
     ], 'manage'),
     directoryGroup('Plan and explore', [
       { title: 'Travel planning', links: [
-        ['Travel Guides', 'guides/'], ['Contact an adviser', 'contact.html'],
+        ['Travel Guides', '/guides/'], ['Contact an adviser', '/contact/'],
       ] },
       { title: 'Popular routes', links: selectedRoutes },
     ], 'plan'),
     directoryGroup('Kridiya', [
       { title: 'Company', links: [
-        ['About Us', 'about.html'], ['Contact Us', 'contact.html'],
+        ['About Us', '/about/'], ['Contact Us', '/contact/'],
       ] },
       { title: 'Policies', links: [
-        ['Privacy Policy', 'privacy.html'], ['Terms & Conditions', 'terms.html'],
-        ['Unsubscribe from offers', 'unsubscribe.html'],
+        ['Privacy Policy', '/privacy/'], ['Terms & Conditions', '/terms/'],
+        ['Unsubscribe from offers', '/unsubscribe/'],
       ] },
     ], 'company')
   );
@@ -904,39 +903,38 @@ function organizeConsumerFooter(footer) {
 }
 
 const NAV_ITEMS = [
-  ["index.html", "Home"],
-  ["flights.html", "Flights"],
-  ["hotels.html", "Hotels"],
-  ["holidays.html", "Holidays"],
-  ["umrah.html", "Umrah"],
-  ["cruise.html", "Cruise"],
-  ["visa.html", "Visa"],
+  ["/", "Home"],
+  ["/flights/", "Flights"],
+  ["/hotels/", "Hotels"],
+  ["/holidays/", "Holidays"],
+  ["/umrah/", "Umrah"],
+  ["/cruise/", "Cruise"],
+  ["/visa/", "Visa"],
   ["https://corporate.kridiyatravel.com", "Business"],
-  ["about.html", "About"],
-  ["contact.html", "Contact"]
+  ["/about/", "About"],
+  ["/contact/", "Contact"]
 ];
 
 function currentPage() {
-  const p = location.pathname.split("/").pop();
-  return p === "" ? "index.html" : p;
+  return KridiyaRoutes.path(location.pathname);
 }
 
 function consumerLoginHref() {
-  const path = location.pathname.replace(/^\/+/, "") || "index.html";
-  if (["login.html", "register.html", "forgot-password.html", "reset-password.html"].includes(path)) return "login.html";
-  return "login.html?next=" + encodeURIComponent(path + location.search + location.hash);
+  const path = KridiyaRoutes.path(location.pathname);
+  if (["/login/", "/register/", "/forgot-password/", "/reset-password/"].includes(path)) return "/login/";
+  return "/login/?next=" + encodeURIComponent(path + location.search + location.hash);
 }
 
 function renderMobilePrimaryNavigation(page) {
-  if (!document.body.classList.contains("consumer-site") || page === "account.html") return;
-  const tripPages = ["track-enquiry.html", "thanks.html"];
-  const accountPages = ["login.html", "register.html", "forgot-password.html", "reset-password.html"];
+  if (!document.body.classList.contains("consumer-site") || page === "/account/") return;
+  const tripPages = ["/track-enquiry/", "/thanks/"];
+  const accountPages = ["/login/", "/register/", "/forgot-password/", "/reset-password/"];
   const session = window.KridiyaAuth ? KridiyaAuth.session() : null;
   const items = [
-    ["index.html", "Home", "home", !tripPages.includes(page) && page !== "contact.html" && !accountPages.includes(page)],
-    ["account.html#bookings", "Bookings", "suitcase", tripPages.includes(page)],
-    ["contact.html", "Help", "help", page === "contact.html"],
-    [session ? "account.html#account-menu" : consumerLoginHref(), "My Kridiya", "account", accountPages.includes(page)]
+    ["/", "Home", "home", !tripPages.includes(page) && page !== "/contact/" && !accountPages.includes(page)],
+    ["/account/#bookings", "Bookings", "suitcase", tripPages.includes(page)],
+    ["/contact/", "Help", "help", page === "/contact/"],
+    [session ? "/account/#account-menu" : consumerLoginHref(), "My Kridiya", "account", accountPages.includes(page)]
   ];
   const navigation = document.createElement("nav");
   navigation.className = "mobile-primary-nav";
@@ -955,10 +953,10 @@ function updateConsumerAuthChrome(user) {
   const account = document.getElementById("account-btn");
   if (account) {
     account.textContent = KRIDIYA_LOCALE.text(signedIn ? "My Kridiya" : "Sign in");
-    account.href = signedIn ? "account.html#account-menu" : consumerLoginHref();
+    account.href = signedIn ? "/account/#account-menu" : consumerLoginHref();
   }
   const mobileAccount = document.querySelector('.mobile-primary-nav a:last-child');
-  if (mobileAccount) mobileAccount.href = signedIn ? "account.html#account-menu" : consumerLoginHref();
+  if (mobileAccount) mobileAccount.href = signedIn ? "/account/#account-menu" : consumerLoginHref();
 }
 
 document.addEventListener("kridiya:auth-state", function (event) {
@@ -995,14 +993,14 @@ function renderChrome() {
   const page = currentPage();
   const consumerHeader = document.body.classList.contains("consumer-site");
   const homeServices = [
-    ["flights.html", "Flights", "plane"], ["hotels.html", "Hotels", "hotel"],
-    ["holidays.html", "Holidays", "suitcase"], ["visa.html", "Visa", "passport"],
-    ["umrah.html", "Umrah", "kaaba"], ["cruise.html", "Cruise", "ship"]
+    ["/flights/", "Flights", "plane"], ["/hotels/", "Hotels", "hotel"],
+    ["/holidays/", "Holidays", "suitcase"], ["/visa/", "Visa", "passport"],
+    ["/umrah/", "Umrah", "kaaba"], ["/cruise/", "Cruise", "ship"]
   ];
   const header = document.getElementById("site-header");
   if (header) {
     const session = window.KridiyaAuth ? KridiyaAuth.session() : null;
-    const accountHref = session ? "account.html#account-menu" : (consumerHeader ? consumerLoginHref() : "login.html");
+    const accountHref = session ? "/account/#account-menu" : (consumerHeader ? consumerLoginHref() : "/login/");
     const accountLabel = session ? "My Kridiya" : "Sign in";
     header.innerHTML =
       '<div class="container header-inner">' +
@@ -1013,13 +1011,13 @@ function renderChrome() {
             const cur = it[0] === page ? ' aria-current="page"' : "";
             return '<li><a href="' + it[0] + '"' + cur + ">" + (consumerHeader ? icon(it[2]) + '<span>' + it[1] + '</span>' : it[1]) + "</a></li>";
           }).join("") +
-          (consumerHeader ? '<li class="home-mobile-nav-link"><a href="https://corporate.kridiyatravel.com">Corporate Travel</a></li><li class="home-mobile-nav-link"><a href="track-enquiry.html">Track enquiry</a></li><li class="home-mobile-nav-link"><a href="about.html">About Kridiya</a></li>' : "") +
+          (consumerHeader ? '<li class="home-mobile-nav-link"><a href="https://corporate.kridiyatravel.com">Corporate Travel</a></li><li class="home-mobile-nav-link"><a href="/track-enquiry/">Track enquiry</a></li><li class="home-mobile-nav-link"><a href="/about/">About Kridiya</a></li>' : "") +
         "</ul></nav>" +
         '<div class="header-actions">' +
           (KRIDIYA_LOCALE.canChooseArabic
             ? '<button class="site-language-switch" type="button" translate="no" data-site-language-switch="' + (KRIDIYA_LOCALE.language === "ar" ? "en" : "ar") + '">' + (KRIDIYA_LOCALE.language === "ar" ? "English" : "العربية") + '</button>'
             : '') +
-          (consumerHeader ? '<a class="home-corporate-link" href="https://corporate.kridiyatravel.com">Corporate Travel</a><a class="home-help-link" href="contact.html">Help</a>' : '') +
+          (consumerHeader ? '<a class="home-corporate-link" href="https://corporate.kridiyatravel.com">Corporate Travel</a><a class="home-help-link" href="/contact/">Help</a>' : '') +
           '<a class="header-call" href="tel:' + KRIDIYA.phoneTel + '" aria-label="Call Kridiya Travel at ' + KRIDIYA.phoneDisplay + '">' + icon("phone") + "<span>" + KRIDIYA.phoneDisplay + "</span></a>" +
           '<a class="btn btn-primary" href="' + accountHref + '" id="account-btn">' + (consumerHeader ? accountLabel : "Login") + '</a>' +
         "</div>" +
@@ -1096,34 +1094,34 @@ function renderChrome() {
       '<div class="container footer-main">' +
         '<nav class="footer-grid" aria-label="Footer">' +
           '<details class="footer-column" open><summary>Kridiya</summary><ul class="footer-links">' +
-            '<li><a href="about.html">About Us</a></li>' +
-            '<li><a href="guides/">Travel Guides</a></li>' +
-            '<li><a href="sitemap.html">Site map</a></li>' +
-            '<li><a href="contact.html">Contact Us</a></li>' +
+            '<li><a href="/about/">About Us</a></li>' +
+            '<li><a href="/guides/">Travel Guides</a></li>' +
+            '<li><a href="/sitemap/">Site map</a></li>' +
+            '<li><a href="/contact/">Contact Us</a></li>' +
           '</ul></details>' +
           '<details class="footer-column" open><summary>Book travel</summary><ul class="footer-links">' +
-            '<li><a href="flights.html">Flight Booking</a></li>' +
-            '<li><a href="hotels.html">Hotel Booking</a></li>' +
-            '<li><a href="holidays.html">Holiday Packages</a></li>' +
-            '<li><a href="cruise.html">Cruise Packages</a></li>' +
-            '<li><a href="umrah.html">Umrah Packages</a></li>' +
-            '<li><a href="visa.html">Visa Services</a></li>' +
+            '<li><a href="/flights/">Flight Booking</a></li>' +
+            '<li><a href="/hotels/">Hotel Booking</a></li>' +
+            '<li><a href="/holidays/">Holiday Packages</a></li>' +
+            '<li><a href="/cruise/">Cruise Packages</a></li>' +
+            '<li><a href="/umrah/">Umrah Packages</a></li>' +
+            '<li><a href="/visa/">Visa Services</a></li>' +
           '</ul></details>' +
           '<details class="footer-column" open><summary>Manage your trip</summary><ul class="footer-links">' +
-            '<li><a href="login.html?next=account.html%23bookings">My bookings</a></li>' +
-            '<li><a href="login.html?next=account.html%23travellers">Saved travellers</a></li>' +
-            '<li><a href="login.html?next=account.html%23payments">Payments &amp; refunds</a></li>' +
-            '<li><a href="track-enquiry.html">Track Enquiry</a></li>' +
-            '<li><a href="login.html">Customer Login</a></li>' +
-            '<li><a href="register.html">Create Account</a></li>' +
+            '<li><a href="/login/?next=%2Faccount%2F%23bookings">My bookings</a></li>' +
+            '<li><a href="/login/?next=%2Faccount%2F%23travellers">Saved travellers</a></li>' +
+            '<li><a href="/login/?next=%2Faccount%2F%23payments">Payments &amp; refunds</a></li>' +
+            '<li><a href="/track-enquiry/">Track Enquiry</a></li>' +
+            '<li><a href="/login/">Customer Login</a></li>' +
+            '<li><a href="/register/">Create Account</a></li>' +
           '</ul></details>' +
           '<details class="footer-column" open><summary>Support &amp; Legal</summary><ul class="footer-links">' +
-            '<li><a href="contact.html">Help &amp; contact</a></li>' +
-            '<li><a href="contact.html?topic=Travel%20insurance">Travel Insurance</a></li>' +
-            '<li><a href="privacy.html">Privacy Policy</a></li>' +
+            '<li><a href="/contact/">Help &amp; contact</a></li>' +
+            '<li><a href="/contact/?topic=Travel%20insurance">Travel Insurance</a></li>' +
+            '<li><a href="/privacy/">Privacy Policy</a></li>' +
             '<li><button class="footer-privacy-choice" type="button" data-reset-measurement-consent>Privacy choices</button></li>' +
-            '<li><a href="unsubscribe.html">Unsubscribe from offers</a></li>' +
-            '<li><a href="terms.html">Terms &amp; Conditions</a></li>' +
+            '<li><a href="/unsubscribe/">Unsubscribe from offers</a></li>' +
+            '<li><a href="/terms/">Terms &amp; Conditions</a></li>' +
           '</ul></details>' +
           '<details class="footer-column" open><summary>Business</summary><ul class="footer-links">' +
             '<li><a href="https://corporate.kridiyatravel.com">Business Travel</a></li>' +
@@ -1145,7 +1143,7 @@ function renderChrome() {
               '<div class="newsletter-row"><input type="email" name="email" placeholder="Email address" required aria-label="Email address for travel updates">' +
               '<button class="btn btn-primary" type="submit">Subscribe</button></div>' +
               '<label class="newsletter-consent"><input type="checkbox" name="Marketing_consent" value="Yes" required>' +
-              '<span>I agree to receive travel offers by email. I can unsubscribe at any time. <a href="privacy.html">Privacy policy</a>.</span></label>' +
+              '<span>I agree to receive travel offers by email. I can unsubscribe at any time. <a href="/privacy/">Privacy policy</a>.</span></label>' +
               '<p class="newsletter-status" aria-live="polite"></p>' +
             '</form>' +
           '</details>' +
@@ -1502,7 +1500,7 @@ function prepareFormSubmit(form) {
     if (submitButton) {
       const note = document.createElement('p');
       note.className = 'form-note enquiry-data-note';
-      note.innerHTML = 'By sending this enquiry, you ask us to use your details to reply and prepare a quote. This is not a booking. See our <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms and Conditions</a>. Do not include passport copies, card details or ID numbers.<span class="arabic-copy" lang="ar" dir="rtl">بإرسال هذا الاستفسار، فإنك تطلب منا استخدام بياناتك للرد عليك وإعداد عرض سعر. هذا الاستفسار ليس حجزًا. راجع <a href="privacy.html#arabic">سياسة الخصوصية</a> و<a href="terms.html#arabic">الشروط والأحكام</a>. لا تُرسل نسخ جوازات السفر أو بيانات البطاقات أو أرقام الهوية.</span>';
+      note.innerHTML = 'By sending this enquiry, you ask us to use your details to reply and prepare a quote. This is not a booking. See our <a href="/privacy/">Privacy Policy</a> and <a href="/terms/">Terms and Conditions</a>. Do not include passport copies, card details or ID numbers.<span class="arabic-copy" lang="ar" dir="rtl">بإرسال هذا الاستفسار، فإنك تطلب منا استخدام بياناتك للرد عليك وإعداد عرض سعر. هذا الاستفسار ليس حجزًا. راجع <a href="/privacy/#arabic">سياسة الخصوصية</a> و<a href="/terms/#arabic">الشروط والأحكام</a>. لا تُرسل نسخ جوازات السفر أو بيانات البطاقات أو أرقام الهوية.</span>';
       submitButton.insertAdjacentElement('beforebegin', note);
     }
   }
@@ -1513,7 +1511,7 @@ function prepareFormSubmit(form) {
     next.name = "_next";
     form.appendChild(next);
   }
-  next.value = new URL("thanks.html", location.href).href;
+  next.value = new URL("/thanks/", location.href).href;
   const draftClear = form.dataset.enquiryType ? initEnquiryDraft(form, serviceTypeFromLabel(form.dataset.enquiryType)) : function () {};
 
   let started = false;
@@ -1757,7 +1755,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function fallback() {
       if (img.dataset.fallback) return;
       img.dataset.fallback = "true";
-      img.src = new URL("assets/illustrations-v2/spots/svg/destination-pin.svg", document.baseURI).href;
+      img.src = new URL("/assets/illustrations-v2/spots/svg/destination-pin.svg", document.baseURI).href;
       img.alt = "Travel destination illustration";
       img.classList.add("editorial-fallback");
     }

@@ -22,9 +22,9 @@ window.KridiyaAuth = (function () {
   const AUTH_RETURN_TTL = 15 * 60 * 1000;
   const PUBLIC_SITE_URL = localRuntime.siteUrl || "https://www.kridiyatravel.com/";
   const PUBLIC_RETURN_PATHS = new Set([
-    "index.html", "flights.html", "hotels.html", "holidays.html", "umrah.html", "cruise.html", "visa.html",
-    "about.html", "contact.html", "privacy.html", "terms.html", "sitemap.html", "track-enquiry.html", "thanks.html",
-    "unsubscribe.html", "account.html", "guides/", "guides/index.html", "guides/flight-booking-checklist.html"
+    "/", "/flights/", "/hotels/", "/holidays/", "/umrah/", "/cruise/", "/visa/",
+    "/about/", "/contact/", "/privacy/", "/terms/", "/sitemap/", "/track-enquiry/", "/thanks/",
+    "/unsubscribe/", "/account/", "/guides/", "/guides/", "/guides/flight-booking-checklist/"
   ]);
   const ACCOUNT_RETURN_HASHES = new Set([
     "", "account-menu", "bookings", "profile", "travellers", "security", "payments", "travel-updates",
@@ -62,17 +62,17 @@ window.KridiyaAuth = (function () {
   }
 
   function publicURL(path) {
-    return new URL(path, PUBLIC_SITE_URL).href;
+    return new URL(KridiyaRoutes.legacy(path), PUBLIC_SITE_URL).href;
   }
 
   function safeReturnDestination(value, fallback) {
-    const safeFallback = PUBLIC_RETURN_PATHS.has(String(fallback || "")) ? String(fallback) : "account.html";
+    const safeFallback = PUBLIC_RETURN_PATHS.has(String(fallback || "")) ? String(fallback) : "/account/";
     const raw = String(value || "").trim();
     if (!raw || /^\s*(?:\/\/|[a-z][a-z0-9+.-]*:)/i.test(raw)) return safeFallback;
     try {
       const base = new URL(PUBLIC_SITE_URL);
       const destination = new URL(raw, base);
-      const path = destination.pathname.replace(/^\/+/, "");
+      const path = KridiyaRoutes.path(destination.pathname);
       if (destination.origin !== base.origin || destination.username || destination.password || !PUBLIC_RETURN_PATHS.has(path)) {
         return safeFallback;
       }
@@ -81,7 +81,7 @@ window.KridiyaAuth = (function () {
         return destination.searchParams.has(key) || hashParameters.has(key);
       });
       if (hasReservedAuthMaterial) return safeFallback;
-      if (path === "account.html") {
+      if (path === "/account/") {
         const accountHash = destination.hash.replace(/^#/, "");
         if (!ACCOUNT_RETURN_HASHES.has(accountHash)) destination.hash = "";
       }
@@ -96,7 +96,7 @@ window.KridiyaAuth = (function () {
     return Boolean(
       stored
       && typeof stored.destination === "string"
-      && safeReturnDestination(stored.destination, "account.html") === stored.destination
+      && safeReturnDestination(stored.destination, "/account/") === stored.destination
       && Number.isFinite(age)
       && age >= 0
       && age <= AUTH_RETURN_TTL
@@ -130,7 +130,7 @@ window.KridiyaAuth = (function () {
   }
 
   function rememberReturnDestinationRecord(value, shareAcrossTabs, subject) {
-    const destination = safeReturnDestination(value, "account.html");
+    const destination = safeReturnDestination(value, "/account/");
     const record = { destination: destination, savedAt: Date.now(), shared: false };
     if (shareAcrossTabs) {
       try {
@@ -142,7 +142,7 @@ window.KridiyaAuth = (function () {
           || existing.destination !== destination
           || cleanEmail(existing.subject) !== record.subject
         )
-          ? { destination: "account.html", savedAt: Date.now(), shared: true, ambiguous: true, subject: "" }
+          ? { destination: "/account/", savedAt: Date.now(), shared: true, ambiguous: true, subject: "" }
           : record;
         localStorage.setItem(AUTH_RETURN_SHARED_KEY, JSON.stringify(sharedRecord));
       } catch (error) {
@@ -169,13 +169,13 @@ window.KridiyaAuth = (function () {
           const shared = readSharedReturnDestination();
           if (sameReturnRecord(stored, shared)) {
             if (!allowSharedFallback || sharedReturnMatchesUser(stored, authenticatedEmail)) {
-              return safeReturnDestination(stored.destination, "account.html");
+              return safeReturnDestination(stored.destination, "/account/");
             }
             try { localStorage.removeItem(AUTH_RETURN_SHARED_KEY); } catch (storageError) { /* Storage can be unavailable. */ }
           }
           try { sessionStorage.removeItem(AUTH_RETURN_KEY); } catch (storageError) { /* Storage can be unavailable. */ }
         } else {
-          return safeReturnDestination(stored.destination, "account.html");
+          return safeReturnDestination(stored.destination, "/account/");
         }
       }
     } catch (error) {
@@ -187,7 +187,7 @@ window.KridiyaAuth = (function () {
     if (!shared) return "";
     try { localStorage.removeItem(AUTH_RETURN_SHARED_KEY); } catch (error) { /* Storage can be unavailable. */ }
     if (!sharedReturnMatchesUser(shared, authenticatedEmail)) return "";
-    return safeReturnDestination(shared.destination, "account.html");
+    return safeReturnDestination(shared.destination, "/account/");
   }
 
   function clearReturnDestination() {
@@ -471,7 +471,7 @@ window.KridiyaAuth = (function () {
       email: email,
       password: opts.password,
       options: {
-        emailRedirectTo: publicURL("account.html"),
+        emailRedirectTo: publicURL("/account/"),
         data: {
           full_name: name,
           phone: phone,
@@ -514,8 +514,8 @@ window.KridiyaAuth = (function () {
     const input = { options: { shouldCreateUser: false } };
     input[identity.kind] = identity.value;
     if (identity.kind === "email") {
-      const callback = new URL("login.html", PUBLIC_SITE_URL);
-      callback.searchParams.set("next", "account.html");
+      const callback = new URL("/login.html", PUBLIC_SITE_URL);
+      callback.searchParams.set("next", "/account/");
       input.options.emailRedirectTo = callback.href;
     }
     const result = await sb.auth.signInWithOtp(input);
@@ -542,9 +542,9 @@ window.KridiyaAuth = (function () {
 
   async function loginWithGoogle(nextPath) {
     const sb = await client();
-    const callback = new URL("login.html", PUBLIC_SITE_URL);
+    const callback = new URL("/login.html", PUBLIC_SITE_URL);
     rememberReturnDestinationRecord(nextPath, false);
-    callback.searchParams.set("next", "account.html");
+    callback.searchParams.set("next", "/account/");
     const result = await sb.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -567,7 +567,7 @@ window.KridiyaAuth = (function () {
   async function resetPassword(email) {
     const sb = await client();
     const result = await sb.auth.resetPasswordForEmail(cleanEmail(email), {
-      redirectTo: publicURL("reset-password.html")
+      redirectTo: publicURL("/reset-password/")
     });
     if (result.error) throw result.error;
   }
@@ -1231,7 +1231,7 @@ window.KridiyaAuth = (function () {
     const btn = document.getElementById("account-btn");
     if (btn && user) {
       btn.textContent = "My Kridiya";
-      btn.href = "account.html#account-menu";
+      btn.href = "/account/#account-menu";
     }
   }
 
@@ -1250,7 +1250,7 @@ window.KridiyaAuth = (function () {
     const requested = authCallbackOnArrival
       ? (pendingDestination || requestedByPage)
       : (requestedByPage || pendingDestination);
-    return KridiyaAuth.safeReturnDestination(requested, "account.html");
+    return KridiyaAuth.safeReturnDestination(requested, "/account/");
   }
 
   function cancelLoginRestoreWatchdog() {
@@ -1489,7 +1489,7 @@ window.KridiyaAuth = (function () {
 
   if (page === "register") {
     document.addEventListener("DOMContentLoaded", async function () {
-      existingUserOrNull().then(user => { if (user) location.replace("account.html"); });
+      existingUserOrNull().then(user => { if (user) location.replace("/account/"); });
 
       const form = document.getElementById("register-form");
       initPwToggles(form);
@@ -1505,7 +1505,7 @@ window.KridiyaAuth = (function () {
           if (label) label.textContent = "Opening Google...";
           try {
             if (typeof trackEvent === "function") trackEvent("register_account", { method: "google", status: "started" });
-            await KridiyaAuth.loginWithGoogle("account.html#profile");
+            await KridiyaAuth.loginWithGoogle("/account/#profile");
           } catch (err) {
             banner(form, errorMessage(err, "Could not start Google account setup. Try again or continue with email."), "error");
           } finally {
@@ -1559,7 +1559,7 @@ window.KridiyaAuth = (function () {
 
           if (typeof trackEvent === "function") trackEvent("register_account", { method: "email", confirmation_required: false });
           toast("Welcome to Kridiya Travel, " + user.name.split(" ")[0] + "!");
-          location.href = "account.html";
+          location.href = "/account/";
         } catch (err) {
           banner(form, errorMessage(err, "Could not create the account. Please try again or contact Kridiya Travel."), "error");
           busy(form, false);
@@ -1711,7 +1711,7 @@ window.KridiyaAuth = (function () {
       const addonsHtml = adds.length ? '<section class="quotation-addons"><h5>Optional add-ons</h5><dl>' + adds.map(function (a) { return quoteRow(a.name, a.price != null ? money(a.price, q.currency) : "Price on request"); }).join("") + '</dl></section>' : "";
       const title = String(q.title || "Travel quotation").replace(/^Option\s+\d+\s*:\s*/i, "").trim();
       const status = q.status === "accepted" || q.status === "declined" ? KridiyaAuth.statusLabel(q.status) : replaced ? "Replaced by a newer quote" : expired ? "Quote expired" : !issued ? "Awaiting issued quote" : KridiyaAuth.statusLabel(q.status);
-      const documentHtml = '<article class="quotation-sheet"><header class="quotation-heading"><img src="assets/logo.png" width="48" height="48" alt="Kridiya Travel and Tourism"><h4>Quotation</h4><div class="quotation-reference"><b>Option ' + (index + 1) + '</b><span>Version ' + esc(q.quote_version || 1) + '</span></div></header>' +
+      const documentHtml = '<article class="quotation-sheet"><header class="quotation-heading"><img src="/assets/logo.png" width="48" height="48" alt="Kridiya Travel and Tourism"><h4>Quotation</h4><div class="quotation-reference"><b>Option ' + (index + 1) + '</b><span>Version ' + esc(q.quote_version || 1) + '</span></div></header>' +
         '<div class="quotation-overview"><h5>' + esc(title) + '</h5>' + (travellers ? '<p>' + esc(travellers) + '</p>' : '') + '<p class="quotation-valid">' + (validity ? 'Valid until ' + esc(validity) : 'Validity not specified') + '</p></div>' +
         (q.description ? '<p class="quotation-description">' + esc(q.description).replace(/\n/g, '<br>') + '</p>' : '') + quoteDetailRows(q) + '<div class="quotation-total"><span>Total price' + (travellers ? '<small>For all travellers</small>' : '') + '</span><strong>' + money(q.price_amount, q.currency) + '</strong></div>' + quoteCommercialRows(q) + addonsHtml;
       const footerHtml = '<footer class="quotation-support"><div class="quotation-support-heading"><b>KRIDIYA Travel and Tourism FZ-LLC</b></div><div class="quotation-support-contacts"><a href="tel:+971509413873">+971 50 941 3873</a><a href="mailto:contact@kridiyatravel.com">contact@kridiyatravel.com</a><a href="https://www.kridiyatravel.com">www.kridiyatravel.com</a></div></footer></article>';
@@ -1917,7 +1917,7 @@ window.KridiyaAuth = (function () {
       const accountBody = document.body;
       document.getElementById("logout-btn").addEventListener("click", async function () {
         await KridiyaAuth.logout();
-        location.href = "index.html";
+        location.href = "/";
       });
 
       let user;
@@ -1927,14 +1927,14 @@ window.KridiyaAuth = (function () {
         const host = document.querySelector("main");
         host.replaceChildren();
         const message = document.createElement("section"); message.className = "container section";
-        message.innerHTML = '<h1>We could not load your account</h1><p>Please try again. Your saved details have not changed.</p><button class="btn btn-primary" type="button">Try again</button> <a class="btn btn-outline" href="contact.html">Contact support</a>';
+        message.innerHTML = '<h1>We could not load your account</h1><p>Please try again. Your saved details have not changed.</p><button class="btn btn-primary" type="button">Try again</button> <a class="btn btn-outline" href="/contact/">Contact support</a>';
         message.querySelector("button").addEventListener("click", () => location.reload());
         host.append(message); return;
       }
       if (!user) {
         const signedOutPhone = window.matchMedia("(max-width: 1024px)").matches;
         if (signedOutPhone && (location.hash === "#support" || location.hash === "#contact-team")) {
-          location.replace("contact.html");
+          location.replace("/contact/");
           return;
         }
         const showBookingsGate = signedOutPhone && location.hash === "#bookings";
@@ -1953,14 +1953,14 @@ window.KridiyaAuth = (function () {
             });
             const helpLink = bottom.querySelector('a[href="#support"]');
             const accountLink = bottom.querySelector('a[href="#account-menu"]');
-            if (helpLink) helpLink.setAttribute("href", "contact.html");
-            if (accountLink) accountLink.setAttribute("href", "login.html");
+            if (helpLink) helpLink.setAttribute("href", "/contact/");
+            if (accountLink) accountLink.setAttribute("href", "/login/");
           }
           return;
         }
         accountBody.classList.remove("account-auth-loading");
         const accountHash = /^#[a-z-]+$/.test(location.hash) ? location.hash : "";
-        location.replace("login.html?next=" + encodeURIComponent("account.html" + accountHash));
+        location.replace("/login/?next=" + encodeURIComponent("/account/" + accountHash));
         return;
       }
 
@@ -1980,7 +1980,7 @@ window.KridiyaAuth = (function () {
       refreshHeaderName(user);
       if (new URLSearchParams(location.search).get("claimed") === "1") {
         toast("Enquiry connected to your verified account.");
-        history.replaceState(null, "", "account.html");
+        history.replaceState(null, "", "/account/");
       }
 
       const travellerForm = document.getElementById("traveller-form");
@@ -2291,7 +2291,7 @@ window.KridiyaAuth = (function () {
               "</article>";
         }
         listEl.innerHTML = combined.length ? combined.map(renderTravelItem).join("")
-          : '<div class="empty-state"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12h-4a3 3 0 0 1-6 0H5V5h14v10z"/></svg><p><b>No bookings linked yet.</b><br>Send an enquiry while signed in, or ask our team to attach an existing booking to this account.</p><div class="empty-actions"><a class="btn btn-primary" href="index.html">Start planning</a><a class="btn btn-outline" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a></div></div>';
+          : '<div class="empty-state"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12h-4a3 3 0 0 1-6 0H5V5h14v10z"/></svg><p><b>No bookings linked yet.</b><br>Send an enquiry while signed in, or ask our team to attach an existing booking to this account.</p><div class="empty-actions"><a class="btn btn-primary" href="/">Start planning</a><a class="btn btn-outline" href="https://wa.me/971509413873" target="_blank" rel="noopener">WhatsApp support</a></div></div>';
         if (travelLoadingStatus) travelLoadingStatus.textContent = "Bookings and enquiries loaded.";
         listEl.dataset.loaded = "true";
         paymentList.innerHTML = paymentsUnavailable ? paymentLoadError : customerPaymentsHTML(payments);
@@ -2409,7 +2409,7 @@ window.KridiyaAuth = (function () {
     document.addEventListener("DOMContentLoaded", async function () {
       const user = await KridiyaAuth.currentUser();
       if (!user) {
-        location.replace("login.html?next=corporate-account.html");
+        location.replace("/login/?next=corporate-account.html");
         return;
       }
       const gate = document.getElementById("corporate-account-gate");
@@ -2419,7 +2419,7 @@ window.KridiyaAuth = (function () {
         if (!companies.length) {
           gate.innerHTML =
             '<div class="form-banner error" role="alert"><b>Corporate portal not activated yet.</b><br>Kridiya must approve your company and link your login before private company records appear here. You can still send a request below.</div>' +
-            '<p><a class="btn btn-primary" href="corporate-booking.html">Send corporate request</a> <a class="btn btn-outline" href="https://wa.me/971509413873?text=Hello%20Kridiya%20Travel!%20Please%20activate%20my%20corporate%20portal%20access." target="_blank" rel="noopener">WhatsApp support</a></p>';
+            '<p><a class="btn btn-primary" href="/corporate-booking/">Send corporate request</a> <a class="btn btn-outline" href="https://wa.me/971509413873?text=Hello%20Kridiya%20Travel!%20Please%20activate%20my%20corporate%20portal%20access." target="_blank" rel="noopener">WhatsApp support</a></p>';
           return;
         }
         const activeCompany = companies[0];
@@ -2536,7 +2536,7 @@ window.KridiyaAuth = (function () {
         try {
           await KridiyaAuth.completePasswordReset(form.password.value);
           banner(form, "Password updated. Taking you to your account...", "success");
-          setTimeout(function () { location.href = "account.html"; }, 1000);
+          setTimeout(function () { location.href = "/account/"; }, 1000);
         } catch (err) {
           banner(form, errorMessage(err, "Could not update your password."), "error");
           busy(form, false);

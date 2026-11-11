@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/js/public-routes.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
@@ -85,16 +86,16 @@
   };
 })();
 </script>
-<script src="js/locale-boot.js"></script>
+<script src="/js/locale-boot.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Great+Vibes&family=Playfair+Display:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
-<link rel="icon" href="assets/favicon-32.png" sizes="32x32">
-<link rel="apple-touch-icon" href="assets/favicon-180.png">
-<link rel="canonical" href="https://www.kridiyatravel.com/login.html">
-<link rel="stylesheet" href="css/styles.css?v=20261024passengers2">
-<link rel="stylesheet" href="css/motion.css?v=20260929release2">
-<link rel="stylesheet" href="css/kridiya-brand-kit/index.css?v=20260929release2">
-<link rel="stylesheet" href="css/homepage.css?v=20261024whatsapp1">
-<link rel="stylesheet" href="css/consumer-pages.css?v=20261109social1">
+<link rel="icon" href="/assets/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="canonical" href="https://www.kridiyatravel.com/login/">
+<link rel="stylesheet" href="/css/styles.css?v=20261024passengers2">
+<link rel="stylesheet" href="/css/motion.css?v=20260929release2">
+<link rel="stylesheet" href="/css/kridiya-brand-kit/index.css?v=20260929release2">
+<link rel="stylesheet" href="/css/homepage.css?v=20261024whatsapp1">
+<link rel="stylesheet" href="/css/consumer-pages.css?v=20261109social1">
 </head>
 <body class="consumer-site" data-page="login">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -144,7 +145,7 @@
             <input id="lg-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" dir="ltr" placeholder="6-digit code">
           </div>
           <div class="auth-form-row auth-form-row--end" id="login-forgot-row" hidden>
-            <a href="forgot-password.html">Forgot password?</a>
+            <a href="/forgot-password/">Forgot password?</a>
           </div>
           <button class="btn btn-primary btn-block btn-lg" type="submit" data-label="Send one-time code">Send one-time code</button>
           <div class="auth-method-row">
@@ -165,31 +166,31 @@
           <span class="auth-provider-label">Continue with Google</span>
         </button>
         <div class="auth-actions" aria-label="Other account options">
-          <a href="register.html">Create account</a>
-          <a href="track-enquiry.html">Track an enquiry</a>
+          <a href="/register/">Create account</a>
+          <a href="/track-enquiry/">Track an enquiry</a>
         </div>
       </section>
       <nav class="account-access-directory" aria-labelledby="account-access-title">
         <div class="account-access-intro">
           <h1 id="account-access-title">Log in to manage your bookings</h1>
           <a class="btn btn-primary account-access-login" href="#sign-in-form">Log in</a>
-          <p>Don't have an account? <a href="register.html">Sign up</a></p>
+          <p>Don't have an account? <a href="/register/">Sign up</a></p>
         </div>
         <section class="account-access-group">
           <h3>My details</h3>
-          <a data-account-icon="suitcase" href="login.html?next=account.html%23bookings"><span><b>Bookings</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="passport" href="login.html?next=account.html%23profile"><span><b>Personal information</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="passport" href="login.html?next=account.html%23travellers"><span><b>Saved travellers</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="shield" href="forgot-password.html"><span><b>Security</b><small>Password help</small></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="suitcase" href="/login/?next=account.html%23bookings"><span><b>Bookings</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="passport" href="/login/?next=account.html%23profile"><span><b>Personal information</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="passport" href="/login/?next=account.html%23travellers"><span><b>Saved travellers</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="shield" href="/forgot-password/"><span><b>Security</b><small>Password help</small></span><span aria-hidden="true">›</span></a>
         </section>
         <section class="account-access-group">
           <h3>Payments</h3>
-          <a data-account-icon="payment" href="login.html?next=account.html%23payments"><span><b>Payments &amp; refunds</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="payment" href="/login/?next=account.html%23payments"><span><b>Payments &amp; refunds</b></span><span aria-hidden="true">›</span></a>
         </section>
         <section class="account-access-group">
           <h3>Preferences</h3>
-          <a data-account-icon="plane" href="login.html?next=account.html%23travel-updates"><span><b>Travel updates</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="mail" href="login.html?next=account.html%23notifications"><span><b>Notifications</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="plane" href="/login/?next=account.html%23travel-updates"><span><b>Travel updates</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="mail" href="/login/?next=account.html%23notifications"><span><b>Notifications</b></span><span aria-hidden="true">›</span></a>
           <div class="account-access-language">
             <button type="button" data-account-icon="globe" data-language-menu-trigger aria-expanded="false" aria-controls="account-language-menu">
               <span><b>Language</b><small translate="no">English / العربية</small></span><span aria-hidden="true">⌄</span>
@@ -202,25 +203,25 @@
         </section>
         <section class="account-access-group">
           <h3>Help and information</h3>
-          <a data-account-icon="phone" href="contact.html"><span><b>Help &amp; requests</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="whatsapp" href="contact.html#contact-form-title"><span><b>Contact the team</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="search" href="track-enquiry.html"><span><b>Track an enquiry</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="document" href="guides/index.html"><span><b>Travel guides</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="phone" href="/contact/"><span><b>Help &amp; requests</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="whatsapp" href="/contact/#contact-form-title"><span><b>Contact the team</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="search" href="/track-enquiry/"><span><b>Track an enquiry</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="document" href="/guides/"><span><b>Travel guides</b></span><span aria-hidden="true">›</span></a>
         </section>
         <section class="account-access-group">
           <h3>Legal</h3>
-          <a data-account-icon="shield" href="privacy.html"><span><b>Privacy policy</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="document" href="terms.html"><span><b>Terms &amp; conditions</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="mail" href="unsubscribe.html"><span><b>Unsubscribe from offers</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="shield" href="/privacy/"><span><b>Privacy policy</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="document" href="/terms/"><span><b>Terms &amp; conditions</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="mail" href="/unsubscribe/"><span><b>Unsubscribe from offers</b></span><span aria-hidden="true">›</span></a>
         </section>
         <section class="account-access-group account-access-travel">
           <h3>Plan travel</h3>
-          <a data-account-icon="plane" href="flights.html"><span><b>Flights</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="hotel" href="hotels.html"><span><b>Hotels</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="suitcase" href="holidays.html"><span><b>Holidays</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="passport" href="visa.html"><span><b>Visa</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="kaaba" href="umrah.html"><span><b>Umrah</b></span><span aria-hidden="true">›</span></a>
-          <a data-account-icon="ship" href="cruise.html"><span><b>Cruise</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="plane" href="/flights/"><span><b>Flights</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="hotel" href="/hotels/"><span><b>Hotels</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="suitcase" href="/holidays/"><span><b>Holidays</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="passport" href="/visa/"><span><b>Visa</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="kaaba" href="/umrah/"><span><b>Umrah</b></span><span aria-hidden="true">›</span></a>
+          <a data-account-icon="ship" href="/cruise/"><span><b>Cruise</b></span><span aria-hidden="true">›</span></a>
           <a data-account-icon="briefcase" href="https://corporate.kridiyatravel.com"><span><b>Corporate travel</b></span><span aria-hidden="true">↗</span></a>
         </section>
       </nav>
@@ -228,10 +229,10 @@
   </div>
 </main>
 <footer id="site-footer" class="site-footer"></footer>
-<script src="js/motion.js?v=20260921complete2" defer></script>
-<script src="js/motion-controls.js?v=20260921complete2" defer></script>
-<script src="js/main.js?v=20261109social1" defer></script>
-<script src="js/auth.js?v=20261109-document-review" defer onload="window.__KRIDIYA_AUTH_RUNTIME_LOADED__ && window.__KRIDIYA_AUTH_RUNTIME_LOADED__()" onerror="window.__KRIDIYA_AUTH_RUNTIME_FAILED__ && window.__KRIDIYA_AUTH_RUNTIME_FAILED__()"></script>
-<script src="js/consumer-ui.js?v=20261024auth4" defer></script>
+<script src="/js/motion.js?v=20260921complete2" defer></script>
+<script src="/js/motion-controls.js?v=20260921complete2" defer></script>
+<script src="/js/main.js?v=20261109social1" defer></script>
+<script src="/js/auth.js?v=20261109-document-review" defer onload="window.__KRIDIYA_AUTH_RUNTIME_LOADED__ && window.__KRIDIYA_AUTH_RUNTIME_LOADED__()" onerror="window.__KRIDIYA_AUTH_RUNTIME_FAILED__ && window.__KRIDIYA_AUTH_RUNTIME_FAILED__()"></script>
+<script src="/js/consumer-ui.js?v=20261024auth4" defer></script>
 </body>
 </html>

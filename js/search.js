@@ -822,7 +822,7 @@ function initSearchWidget(root) {
           p.set("seg" + i + "to", l.to); p.set("seg" + i + "toCity", l.toCity);
           p.set("seg" + i + "date", l.date);
         });
-        location.href = "flights.html?" + p.toString();
+        location.href = "/flights/?" + p.toString();
         return;
       }
 
@@ -845,7 +845,7 @@ function initSearchWidget(root) {
       });
       const returnVal = getDateFieldValue(ff, "return");
       if (ff.trip.value === "round" && returnVal) p.set("return", returnVal);
-      location.href = "flights.html?" + p.toString();
+      location.href = "/flights/?" + p.toString();
     });
   }
 
@@ -864,7 +864,7 @@ function initSearchWidget(root) {
         city: hf.city.value.trim(), checkin: checkin, checkout: checkout,
         rooms: hf.rooms.value, guests: hf.guests.value
       });
-      location.href = "hotels.html?" + p.toString();
+      location.href = "/hotels/?" + p.toString();
     });
   }
 
@@ -875,7 +875,7 @@ function initSearchWidget(root) {
       e.preventDefault();
       if (!validateForm(yf)) return;
       const p = new URLSearchParams({ dest: yf.dest.value, month: yf.month.value, nights: yf.nights.value });
-      location.href = "holidays.html?" + p.toString() + "#enquire";
+      location.href = "/holidays/?" + p.toString() + "#enquire";
     });
   }
 
@@ -890,7 +890,7 @@ function initSearchWidget(root) {
       const p = new URLSearchParams({ dest: uf.dest.value, city: uf.city.value, nights: uf.nights.value });
       const d = getDateFieldValue(uf, "umdate");
       if (d) p.set("umdate", d);
-      location.href = "umrah.html?" + p.toString() + "#enquire";
+      location.href = "/umrah/?" + p.toString() + "#enquire";
     });
   }
 
@@ -905,7 +905,7 @@ function initSearchWidget(root) {
       const p = new URLSearchParams({ dest: cf.dest.value, line: cf.line.value, nights: cf.nights.value });
       const sail = getDateFieldValue(cf, "saildate");
       if (sail) p.set("saildate", sail);
-      location.href = "cruise.html?" + p.toString() + "#enquire";
+      location.href = "/cruise/?" + p.toString() + "#enquire";
     });
   }
 
@@ -919,7 +919,7 @@ function initSearchWidget(root) {
       const p = new URLSearchParams({ country: vf.country.value, nationality: vf.nationality.value.trim() });
       const travel = getDateFieldValue(vf, "travel");
       if (travel) p.set("travel", travel);
-      location.href = "visa.html?" + p.toString() + "#apply";
+      location.href = "/visa/?" + p.toString() + "#apply";
     });
   }
 }
@@ -1120,7 +1120,7 @@ function searchWidgetHTML(only) {
     '<div class="search-widget search-widget-carousel" id="search-widget">' +
     '<div class="carousel-track" role="group" aria-label="What would you like to book?">' +
     WIDGET_TABS.map(function (t) {
-      return '<a class="service-slide" data-tab="' + t[0] + '" href="' + t[0] + '.html">' +
+      return '<a class="service-slide" data-tab="' + t[0] + '" href="/' + t[0] + '/">' +
         '<span class="service-slide-label">' + t[1] + "</span>" +
         '<p class="service-slide-desc">' + t[4] + "</p>" +
         '<span class="service-slide-cta">' + t[3] + icon("chevronRight") + "</span>" +

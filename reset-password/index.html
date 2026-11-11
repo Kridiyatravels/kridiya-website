@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/js/public-routes.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="/js/locale-boot.js"></script>
+<title>Reset Password &mdash; Kridiya Travel and Tourism</title>
+<meta name="description" content="Choose a new password for your Kridiya Travel account.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Great+Vibes&family=Playfair+Display:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<link rel="canonical" href="https://www.kridiyatravel.com/reset-password/">
+<link rel="stylesheet" href="/css/styles.css?v=20261024passengers2">
+<link rel="stylesheet" href="/css/motion.css?v=20260929release2">
+<link rel="stylesheet" href="/css/kridiya-brand-kit/index.css?v=20260929release2">
+<link rel="stylesheet" href="/css/homepage.css?v=20261024whatsapp1">
+<link rel="stylesheet" href="/css/consumer-pages.css?v=20261109social1">
+</head>
+<body class="consumer-site" data-page="reset-password">
+<a class="home-skip" href="#main-content">Skip to content</a>
+<header id="site-header" class="site-header"></header>
+<main id="main-content">
+  <div class="container auth-wrap">
+    <div class="auth-card">
+      <h1>Reset password</h1>
+      <p class="auth-sub">Enter a new password for your Kridiya Travel account.</p>
+      <form id="reset-password-form" class="form-grid" method="post" novalidate>
+        <div class="form-banner error" hidden role="alert"></div>
+        <div class="field">
+          <label for="rp-pass">NEW PASSWORD</label>
+          <div class="pw-wrap">
+            <input id="rp-pass" name="password" type="password" autocomplete="new-password" required minlength="8" placeholder="Create a password" aria-describedby="rp-help">
+            <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button>
+          </div>
+          <span class="sub" id="rp-help">At least 8 characters, including a letter and a number.</span>
+        </div>
+        <div class="field">
+          <label for="rp-confirm">CONFIRM PASSWORD</label>
+          <input id="rp-confirm" name="confirm" type="password" autocomplete="new-password" required placeholder="Type it again">
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit" data-label="Save new password">Save new password</button>
+      </form>
+      <p class="auth-alt"><a href="/login/"><b>Back to login</b></a></p>
+    </div>
+  </div>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="/js/motion.js?v=20260921complete2" defer></script>
+<script src="/js/motion-controls.js?v=20260921complete2" defer></script>
+<script src="/js/main.js?v=20261109social1" defer></script>
+<script src="/js/auth.js?v=20261109-document-review" defer></script>
+<script src="/js/consumer-ui.js?v=20261024auth4" defer></script>
+</body>
+</html>

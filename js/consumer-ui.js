@@ -9,28 +9,28 @@
     { title: 'Preferences', links: [['#travel-updates','Travel updates','plane'], ['#notifications','Notifications','mail']] },
     { title: 'Help and information', links: [
       ['#support','Help & requests','phone'], ['#contact-team','Contact the team','whatsapp'],
-      ['track-enquiry.html','Track an enquiry','search'], ['guides/index.html','Travel guides','document']
+      ['/track-enquiry/','Track an enquiry','search'], ['/guides/','Travel guides','document']
     ] },
-    { title: 'Legal', links: [['privacy.html','Privacy policy','shield'], ['terms.html','Terms & conditions','document']] }
+    { title: 'Legal', links: [['/privacy/','Privacy policy','shield'], ['/terms/','Terms & conditions','document']] }
   ];
   const travelLinks = [
-    ['flights.html','Flights','plane'],
-    ['hotels.html','Hotels','hotel'],
-    ['holidays.html','Holidays','suitcase'],
-    ['visa.html','Visa','passport'],
-    ['umrah.html','Umrah','kaaba'],
-    ['cruise.html','Cruise','ship'],
+    ['/flights/','Flights','plane'],
+    ['/hotels/','Hotels','hotel'],
+    ['/holidays/','Holidays','suitcase'],
+    ['/visa/','Visa','passport'],
+    ['/umrah/','Umrah','kaaba'],
+    ['/cruise/','Cruise','ship'],
     ['https://corporate.kridiyatravel.com','Business Travel','briefcase']
   ];
   function currentReturnDestination() {
-    const path = location.pathname.replace(/^\/+/, '') || 'index.html';
+    const path = KridiyaRoutes.path(location.pathname);
     return path + location.search + location.hash;
   }
   function safeAuthDestination(value, fallback) {
     if (window.KridiyaAuth && typeof KridiyaAuth.safeReturnDestination === 'function') {
-      return KridiyaAuth.safeReturnDestination(value, fallback || 'account.html');
+      return KridiyaAuth.safeReturnDestination(value, fallback || '/account/');
     }
-    return 'account.html';
+    return '/account/';
   }
   function accountIcon(name) {
     const paths = {
@@ -87,9 +87,9 @@
     drawer.className = 'consumer-account-drawer';
     drawer.setAttribute('aria-labelledby', 'account-drawer-title');
     // Resolve from the header URL so this also works on /guides/ pages.
-    const accountUrl = new URL('account.html', trigger.href).href;
-    const loginUrl = new URL('login.html', accountUrl).href;
-    const registerUrl = new URL('register.html', accountUrl).href;
+    const accountUrl = new URL('/account/', trigger.href).href;
+    const loginUrl = new URL('/login/', accountUrl).href;
+    const registerUrl = new URL('/register/', accountUrl).href;
     drawer.innerHTML = '<div class="account-drawer-heading"><h2 id="account-drawer-title">My Kridiya</h2><button type="button" aria-label="Close account menu">×</button></div>' +
       '<div class="account-drawer-identity" aria-busy="true"><div class="account-drawer-loading" aria-hidden="true"><span class="auth-restore-shape account-drawer-loading-name"></span><span class="auth-restore-shape account-drawer-loading-action"></span><span class="auth-restore-shape account-drawer-loading-copy"></span></div><b data-drawer-name hidden></b><a class="btn btn-primary" data-drawer-action href="' + loginUrl + '" hidden></a><p data-drawer-description hidden><span data-drawer-description-copy></span><a data-drawer-signup href="' + registerUrl + '">Sign up</a></p></div><span class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-drawer-status>Loading your account.</span>' +
       '<nav class="consumer-account-nav" aria-label="Account menu">' + routeLinks(accountUrl) + '</nav>';
@@ -241,11 +241,11 @@
     const narrow = window.matchMedia('(max-width: 1024px)');
     const bottom = document.createElement('nav');
     bottom.className = 'account-bottom-nav'; bottom.setAttribute('aria-label', 'Customer navigation');
-    bottom.innerHTML = '<a href="index.html">' + primaryNavigationIcon('home') + '<span>Home</span></a><a href="#bookings">' + primaryNavigationIcon('suitcase') + '<span>Bookings</span></a><a href="#support">' + primaryNavigationIcon('help') + '<span>Help</span></a><a href="#account-menu">' + primaryNavigationIcon('account') + '<span>My Kridiya</span></a>';
+    bottom.innerHTML = '<a href="/">' + primaryNavigationIcon('home') + '<span>Home</span></a><a href="#bookings">' + primaryNavigationIcon('suitcase') + '<span>Bookings</span></a><a href="#support">' + primaryNavigationIcon('help') + '<span>Help</span></a><a href="#account-menu">' + primaryNavigationIcon('account') + '<span>My Kridiya</span></a>';
     const hasLocalSession = !!(window.KridiyaAuth && typeof KridiyaAuth.session === 'function' && KridiyaAuth.session());
     if (!hasLocalSession) {
-      bottom.querySelector('a[href="#support"]').setAttribute('href', 'contact.html');
-      bottom.querySelector('a[href="#account-menu"]').setAttribute('href', 'login.html');
+      bottom.querySelector('a[href="#support"]').setAttribute('href', '/contact/');
+      bottom.querySelector('a[href="#account-menu"]').setAttribute('href', '/login/');
     }
     document.querySelector('main').append(bottom);
     panels.forEach(panel => {
@@ -338,7 +338,7 @@
         document.querySelector('.account-access-login')?.focus();
         return;
       }
-      location.href = 'index.html';
+      location.href = '/';
     }
     close.addEventListener('click', closeAuth);
     if (document.body.dataset.page === 'login') {
@@ -346,11 +346,11 @@
         const link = event.target.closest('a[href]');
         if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
         const url = new URL(link.href, location.href);
-        if (url.origin !== location.origin || !url.pathname.endsWith('/login.html')) return;
+        if (url.origin !== location.origin || !url.pathname.endsWith('/login/')) return;
         event.preventDefault();
         const next = url.searchParams.get('next');
         const form = panel?.querySelector('form');
-        if (form) form.dataset.authNext = safeAuthDestination(next, 'account.html');
+        if (form) form.dataset.authNext = safeAuthDestination(next, '/account/');
         if (location.hash !== '#sign-in-form') location.hash = 'sign-in-form';
         else focusAuth();
       });
@@ -410,13 +410,13 @@
         '<div class="field"><label for="inline-lg-identifier">EMAIL OR PHONE</label><input id="inline-lg-identifier" name="identifier" type="text" autocomplete="username" required aria-describedby="inline-login-identifier-hint" dir="ltr" placeholder="name@example.com / +971 50 123 4567"><span class="field-hint" id="inline-login-identifier-hint">Include the country code for mobile numbers.</span></div>' +
         '<div class="field" id="login-password-field" hidden><label for="inline-lg-pass">PASSWORD</label><div class="pw-wrap"><input id="inline-lg-pass" name="password" type="password" autocomplete="current-password" placeholder="Your password"><button type="button" class="pw-toggle" aria-label="Show password">SHOW</button></div></div>' +
         '<div class="field" id="login-code-field" hidden><label for="inline-lg-code">ONE-TIME CODE</label><input id="inline-lg-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" dir="ltr" placeholder="6-digit code"></div>' +
-        '<div class="auth-form-row auth-form-row--end" id="login-forgot-row" hidden><a href="forgot-password.html">Forgot password?</a></div>' +
+        '<div class="auth-form-row auth-form-row--end" id="login-forgot-row" hidden><a href="/forgot-password/">Forgot password?</a></div>' +
         '<button class="btn btn-primary btn-block btn-lg" type="submit" data-label="Send one-time code">Send one-time code</button>' +
         '<div class="auth-method-row"><button class="auth-method-toggle" id="auth-method-toggle" type="button">Use password instead</button><button class="auth-method-toggle" id="otp-change-identifier" type="button" hidden>Change email or phone</button></div>' +
       '</form>' +
       '<div class="auth-provider-divider" role="separator" aria-label="Alternative sign-in option"><span>or</span></div>' +
       '<button class="auth-google-btn" id="google-login-btn" type="button"><svg aria-hidden="true" viewBox="0 0 18 18" focusable="false"><path fill="#4285F4" d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.715v2.259h2.909c1.702-1.567 2.684-3.876 2.684-6.615Z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.91-2.259c-.805.54-1.835.859-3.046.859-2.344 0-4.328-1.585-5.037-3.714H.956v2.332A9 9 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.963 10.706A5.42 5.42 0 0 1 3.681 9c0-.592.102-1.167.282-1.706V4.962H.956A9 9 0 0 0 0 9c0 1.452.347 2.827.956 4.038l3.007-2.332Z"/><path fill="#EA4335" d="M9 3.58c1.322 0 2.508.455 3.441 1.346l2.582-2.582C13.463.892 11.427 0 9 0A9 9 0 0 0 .956 4.962l3.007 2.332C4.672 5.165 6.656 3.58 9 3.58Z"/></svg><span class="auth-provider-label">Continue with Google</span></button>' +
-      '<div class="auth-actions" aria-label="Other account options"><a href="register.html">Create account</a><a href="track-enquiry.html">Track an enquiry</a></div>' +
+      '<div class="auth-actions" aria-label="Other account options"><a href="/register/">Create account</a><a href="/track-enquiry/">Track an enquiry</a></div>' +
     '</section>';
     document.body.append(dialog);
     const form = dialog.querySelector('form');
@@ -464,10 +464,10 @@
       const link = event.target.closest('a[href]');
       if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || link.target) return;
       const url = new URL(link.href, location.href);
-      if (url.origin !== location.origin || !url.pathname.endsWith('/login.html')) return;
+      if (url.origin !== location.origin || !url.pathname.endsWith('/login/')) return;
       event.preventDefault();
       trigger = link;
-      form.dataset.authNext = safeAuthDestination(url.searchParams.get('next') || currentReturnDestination(), 'account.html');
+      form.dataset.authNext = safeAuthDestination(url.searchParams.get('next') || currentReturnDestination(), '/account/');
       window.clearTimeout(closeTimer);
       if (!dialog.open) {
         dialog.classList.remove('auth-sheet-expanded');
