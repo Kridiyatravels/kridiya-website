@@ -744,9 +744,10 @@ function icon(name, cls) {
 
 /* ---------- Logo (shared by header and footer) ---------- */
 function logoHTML(footer) {
+  const consumer = document.body.classList.contains('consumer-site');
   return (
     '<a class="logo" href="/" aria-label="Kridiya Travel — home">' +
-      '<img class="logo-art" src="/assets/logo-wordmark.png" alt="Kridiya Travel and Tourism" width="780" height="323" decoding="async">' +
+      '<img class="logo-art" src="' + (consumer ? '/assets/email-logo.png' : '/assets/logo-wordmark.png') + '" alt="Kridiya Travel and Tourism" width="' + (consumer ? '48' : '780') + '" height="' + (consumer ? '48' : '323') + '" decoding="async">' +
     "</a>"
   );
 }

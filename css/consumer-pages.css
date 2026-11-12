@@ -2528,3 +2528,29 @@ body.consumer-site :is(a, button, summary, select, [tabindex]):focus:not(:focus-
 body.consumer-site .footer-social.footer-social-text { flex-wrap: wrap; gap: 4px 18px; }
 body.consumer-site .footer-social.footer-social-text a { display: inline-flex; align-items: center; width: auto; height: auto; min-height: 32px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: inherit; font-size: 12px; line-height: 1.4; text-decoration: none; }
 body.consumer-site .footer-social.footer-social-text a:hover { text-decoration: underline; text-underline-offset: 3px; background: transparent; transform: none; }
+
+/* Owner-approved consumer identity, 12 November 2026. */
+body.consumer-site {
+  --font: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font);
+  --font-swash: var(--font);
+  --font-script: var(--font);
+}
+body.consumer-site .logo-art,
+body.consumer-site .site-header .logo-art,
+body.consumer-site .footer-brand .logo-art {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  object-fit: contain;
+  flex: none;
+}
+body.consumer-site :is(h1,h2) { font-weight: 600; letter-spacing: -.025em; line-height: 1.15; }
+body.consumer-site .home-hero h1 { font-weight: 600; letter-spacing: -.03em; line-height: 1.12; }
+body.consumer-site .home-hero-link { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+body.consumer-site :is(a,button,summary,[tabindex],input,select,textarea):focus-visible {
+  outline: 2px solid var(--home-accent);
+  outline-offset: 3px;
+}
+html[dir="rtl"] body.consumer-site { --font: "IBM Plex Sans Arabic", Tahoma, sans-serif; }
