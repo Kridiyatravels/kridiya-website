@@ -5,6 +5,11 @@
   "use strict";
 
   const AR = Object.freeze({
+    "404 · Page not found": "404 · الصفحة غير موجودة",
+    "We couldn't find this page": "لم نتمكن من العثور على هذه الصفحة",
+    "The link may be incomplete, or the page may have moved.": "قد يكون الرابط غير مكتمل، أو ربما تم نقل الصفحة.",
+    "Back to Kridiya": "العودة إلى كريديا",
+    "Need help with a booking?": "هل تحتاج إلى مساعدة بشأن حجز؟",
     "Download company profile (PDF, English)": "تنزيل نبذة عن الشركة (PDF باللغة الإنجليزية)",
     "Skip to content": "تجاوز إلى المحتوى",
     "Skip to main content": "تجاوز إلى المحتوى الرئيسي",
