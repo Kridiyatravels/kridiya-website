@@ -2532,7 +2532,7 @@ body.consumer-site .footer-social.footer-social-text a:hover { text-decoration: 
 /* Owner-approved consumer identity, 12 November 2026. */
 body.consumer-site {
   --font: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: var(--font);
+  --font-display: "EB Garamond", Georgia, "Times New Roman", serif;
   --font-swash: var(--font);
   --font-script: var(--font);
 }
@@ -2546,11 +2546,11 @@ body.consumer-site .footer-brand .logo-art {
   object-fit: contain;
   flex: none;
 }
-body.consumer-site :is(h1,h2) { font-weight: 600; letter-spacing: -.025em; line-height: 1.15; }
-body.consumer-site .home-hero h1 { font-weight: 600; letter-spacing: -.03em; line-height: 1.12; }
+body.consumer-site :is(h1,h2) { font-weight: 400; letter-spacing: -.025em; line-height: 1.15; }
+body.consumer-site .home-hero h1 { font-weight: 400; letter-spacing: -.03em; line-height: 1.12; }
 body.consumer-site .home-hero-link { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 body.consumer-site :is(a,button,summary,[tabindex],input,select,textarea):focus-visible {
   outline: 2px solid var(--home-accent);
   outline-offset: 3px;
 }
-html[dir="rtl"] body.consumer-site { --font: "IBM Plex Sans Arabic", Tahoma, sans-serif; }
+html[dir="rtl"] body.consumer-site { --font: "IBM Plex Sans Arabic", Tahoma, sans-serif; --font-display: var(--font); }
