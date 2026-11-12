@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="/css/kridiya-brand-kit/index.css?v=20260929release2">
 <link rel="stylesheet" href="/css/homepage.css?v=20261024whatsapp1">
 <link rel="stylesheet" href="/css/consumer-pages.css?v=20261109social1">
-<link rel="stylesheet" href="/css/unsubscribe.css?v=20261112compact1">
+<link rel="stylesheet" href="/css/unsubscribe.css?v=20261112result3">
 </head>
 <body class="consumer-site">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -29,15 +29,18 @@
     <div class="container preference-wrap">
       <div class="preference-card">
         <p class="eyebrow">Email preferences</p>
-        <h1>Unsubscribe from travel offers</h1>
-        <p>Enter the email address to stop receiving Kridiya Travel offers.</p>
+        <h1 id="unsubscribe-heading" tabindex="-1">Unsubscribe from travel offers</h1>
+        <p id="unsubscribe-intro">Enter the email address to stop receiving Kridiya Travel offers.</p>
         <form id="unsubscribe-form" class="preference-form" novalidate>
           <label for="unsubscribe-email">Email address</label>
           <input id="unsubscribe-email" name="email" type="email" autocomplete="email" maxlength="320" required>
           <input class="preference-honeypot" name="company" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <button class="btn btn-primary" type="submit">Unsubscribe</button>
+          <button class="preference-submit" type="submit">Unsubscribe</button>
         </form>
         <div id="unsubscribe-status" class="preference-status" role="status" aria-live="polite"></div>
+        <p id="unsubscribe-farewell" hidden></p>
+        <button id="unsubscribe-another" class="preference-submit" type="button" hidden></button>
+        <p id="unsubscribe-home" hidden><a href="/">Back to Kridiya</a></p>
         <p class="preference-note">This stops promotional emails only. We may still send essential messages about enquiries, quotes, bookings, payments, or travel services.</p>
         <p><a href="/privacy/">Read our Privacy Policy</a></p>
       </div>
@@ -49,7 +52,7 @@
 <script src="/js/motion-controls.js?v=20260921complete2" defer></script>
 <script src="/js/main.js?v=20261109social1" defer></script>
 <script src="/js/auth.js?v=20261109-document-review" defer></script>
-<script src="/js/unsubscribe.js?v=20260801a" defer></script>
+<script src="/js/unsubscribe.js?v=20261112result3" defer></script>
 <script src="/js/consumer-ui.js?v=20261024auth4" defer></script>
 </body>
 </html>
