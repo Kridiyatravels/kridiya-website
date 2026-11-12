@@ -23,6 +23,8 @@
     confirming: "جارٍ تأكيد إلغاء الاشتراك…",
     invalid: "رابط إلغاء الاشتراك غير صالح أو منتهي الصلاحية. أدخل بريدك الإلكتروني لطلب رابط جديد.",
     error: "تعذر تحديث تفضيلاتك. يرجى المحاولة مجدداً أو مراسلتنا على deals@kridiyatravel.com.",
+    syncingTitle: "تم استلام طلب إلغاء الاشتراك",
+    syncing: "حُفظ طلبك. نُكمل تحديث قائمة البريد تلقائياً؛ لا تحتاج إلى تقديم طلب آخر.",
     another: "استخدام عنوان بريد إلكتروني آخر",
     home: "العودة إلى كريديا"
   } : {
@@ -37,6 +39,8 @@
     confirming: "Confirming your unsubscribe request…",
     invalid: "This unsubscribe link is invalid or expired. Enter your email to request a new one.",
     error: "We could not update your preference. Please try again or email deals@kridiyatravel.com.",
+    syncingTitle: "Your unsubscribe request is saved",
+    syncing: "We’re finishing the mailing-list update automatically. You don’t need to submit another request.",
     another: "Use another email address",
     home: "Back to Kridiya"
   };
@@ -65,10 +69,12 @@
     const client = await window.KridiyaAuth.client();
     const result = await client.functions.invoke("marketing-unsubscribe", { body: body });
     if (result.error) throw result.error;
+    if (expected === "confirmed" && result.data?.ok === true && result.data.pending_sync === true) return false;
     // Never show a completed unsubscribe for a pending or malformed response.
     if (!result.data || result.data.ok !== true || result.data[expected] !== true) {
       throw new Error("Unexpected preference response");
     }
+    return true;
   }
 
   another.addEventListener("click", function () {
@@ -88,8 +94,16 @@
     busy = true;
     form.hidden = true;
     setStatus(copy.confirming, "pending");
-    submitPreference({ token: linkToken }, "confirmed").then(function () {
-      showResult(true);
+    submitPreference({ token: linkToken }, "confirmed").then(function (confirmed) {
+      if (confirmed) showResult(true);
+      else {
+        form.hidden = true;
+        heading.textContent = copy.syncingTitle;
+        intro.textContent = copy.syncing;
+        home.hidden = false;
+        setStatus("", "");
+        heading.focus();
+      }
     }).catch(function (error) {
       form.hidden = false;
       setStatus(error && error.context && error.context.status === 400 ? copy.invalid : copy.error, "error");
