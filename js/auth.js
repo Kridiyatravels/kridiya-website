@@ -1053,6 +1053,24 @@ window.KridiyaAuth = (function () {
     });
   }
 
+  function travelAttentionLabel(item, requests, quotes, documentCount, paymentCount, now) {
+    const status = String(item.status || "").toLowerCase();
+    if (["cancelled", "completed", "closed", "refunded"].includes(status)) return statusLabel(status);
+    if (requests.some(function (request) { return !request.responded_at; })) return "Needs your reply";
+    const time = now === undefined ? Date.now() : now;
+    const latestQuote = quotes.slice().sort(function (a, b) {
+      return (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0);
+    })[0];
+    if (latestQuote) {
+      if (latestQuote.status === "accepted") return "Quote accepted";
+      if (latestQuote.status === "declined") return "Quote declined";
+      if (latestQuote.status === "cancelled") return "Quote cancelled";
+      if (latestQuote.status === "expired" || (latestQuote.valid_until && Date.parse(latestQuote.valid_until) <= time)) return "Quote expired";
+      if (latestQuote.status === "sent" && (!latestQuote.valid_until || Date.parse(latestQuote.valid_until) > time)) return "Quote ready";
+    }
+    return documentCount ? "Documents released" : paymentCount ? "Payment updated" : "In progress";
+  }
+
   return {
     client: client,
     session: session,
@@ -1113,7 +1131,8 @@ window.KridiyaAuth = (function () {
     passwordIssue: passwordIssue,
     passwordStrength: passwordStrength,
     escapeHTML: escapeHTML,
-    statusLabel: statusLabel
+    statusLabel: statusLabel,
+    travelAttentionLabel: travelAttentionLabel
   };
 })();
 
@@ -2260,7 +2279,7 @@ window.KridiyaAuth = (function () {
             const itemDocs = item.isEnquiry ? [] : (docsByBooking[item.id] || []);
             const itemPayments = item.isEnquiry ? (paymentsByEnquiry[item.id] || []) : (paymentsByBooking[item.id] || []);
             const itemType = item.isEnquiry ? "Enquiry" : "Booking";
-            const attention = requests.length ? "Needs your reply" : quotes.length ? "Quote ready" : itemDocs.length ? "Documents released" : itemPayments.length ? "Payment updated" : "In progress";
+            const attention = KridiyaAuth.travelAttentionLabel(item, requests, quotes, itemDocs.length, itemPayments.length);
             const detailText = item.detail || "Team will update";
             return '<article class="enq-item" data-travel-kind="' + (item.isEnquiry ? 'enquiry' : 'booking') + '">' +
               '<div class="enq-top"><div><span class="account-chip">' + KridiyaAuth.escapeHTML(itemType) + '</span><b>' + KridiyaAuth.escapeHTML(item.title || item.reference || itemType) + "</b></div>" +
@@ -2568,3 +2587,4 @@ window.KridiyaAuth = (function () {
 })();
 
 window.__KRIDIYA_AUTH_RUNTIME_READY__ = true;
+
