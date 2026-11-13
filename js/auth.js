@@ -1298,6 +1298,9 @@ window.KridiyaAuth = (function () {
       const identifierInput = form.elements.identifier;
       const passwordInput = form.elements.password;
       const codeInput = form.elements.code;
+      codeInput.addEventListener("input", function () {
+        codeInput.value = codeInput.value.replace(/[٠-٩۰-۹]/g, char => String(char.charCodeAt(0) % 16)).replace(/\D/g, "").slice(0, 8);
+      });
       const passwordField = document.getElementById("login-password-field");
       const codeField = document.getElementById("login-code-field");
       const forgotRow = document.getElementById("login-forgot-row");
@@ -1380,8 +1383,8 @@ window.KridiyaAuth = (function () {
           passwordInput.focus();
           return;
         }
-        if (mode === "otp-verify" && !/^\d{6}$/.test(codeInput.value.replace(/\s/g, ""))) {
-          setFieldError(codeInput, loginText("Enter the 6-digit code."));
+        if (mode === "otp-verify" && !/^\d{6,8}$/.test(codeInput.value.replace(/\s/g, ""))) {
+          setFieldError(codeInput, loginText("Enter the complete code from your email or SMS."));
           codeInput.focus();
           return;
         }
