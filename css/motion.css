@@ -95,7 +95,8 @@
 .t-learn-chevron svg { width: 16px; height: 16px; fill: none; }
 .service-slide-cta .t-learn-chevron svg { width: 13px; height: 13px; fill: none; transition: none; transform: none; }
 .service-slide:hover .service-slide-cta .t-learn-chevron svg { transform: none; }
-.motion-success { width: 18px; height: 18px; margin-right: 0.5em; vertical-align: middle; color: var(--success); }
+.motion-success { display: inline-flex; width: 18px; height: 18px; margin-inline-end: 0.5em; vertical-align: middle; color: var(--success); }
+.motion-success svg { display: block; width: 18px; height: 18px; flex: none; }
 .motion-success path { stroke-dasharray: var(--check-len); stroke-dashoffset: var(--check-len); }
 .motion-confirm { width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 24px; border: 1px solid var(--line); border-radius: var(--r-lg); color: var(--text); background: var(--surface); box-shadow: var(--shadow-pop); }
 .motion-confirm::backdrop { background: rgb(0 0 0 / 0.45); }

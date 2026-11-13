@@ -1235,13 +1235,17 @@ window.KridiyaAuth = (function () {
 
   function initPwToggles(scope) {
     (scope || document).querySelectorAll(".pw-toggle").forEach(function (t) {
+      const target = t.parentElement.querySelector("input");
+      if (!target) return;
+      t.setAttribute("aria-controls", target.id);
+      t.setAttribute("aria-pressed", String(target.type === "text"));
+      if (!t.querySelector("svg")) t.innerHTML = "<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/><path class=\"pw-eye-slash\" d=\"m3 3 18 18\"/></svg>";
       t.addEventListener("click", function () {
-        const input = t.parentElement.querySelector("input");
+        const input = target;
         const show = input.type === "password";
         input.type = show ? "text" : "password";
-        if (window.KridiyaMotion && KridiyaMotion.label) KridiyaMotion.label(t, show ? "HIDE" : "SHOW", false);
-        else t.textContent = show ? "HIDE" : "SHOW";
-        t.setAttribute("aria-label", show ? "Hide password" : "Show password");
+        t.setAttribute("aria-pressed", String(show));
+        t.setAttribute("aria-label", (show ? "Hide " : "Show ") + (input.name === "confirm" ? "confirm password" : "password"));
       });
     });
   }

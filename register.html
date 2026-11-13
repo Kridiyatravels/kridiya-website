@@ -15,10 +15,10 @@
 <link rel="apple-touch-icon" href="/assets/favicon-180.png">
 <link rel="canonical" href="https://www.kridiyatravel.com/register/">
 <link rel="stylesheet" href="/css/styles.css?v=20261024passengers2">
-<link rel="stylesheet" href="/css/motion.css?v=20260929release2">
+<link rel="stylesheet" href="/css/motion.css?v=20261113-t6b">
 <link rel="stylesheet" href="/css/kridiya-brand-kit/index.css?v=20260929release2">
 <link rel="stylesheet" href="/css/homepage.css?v=20261024whatsapp1">
-<link rel="stylesheet" href="/css/consumer-pages.css?v=20261112fontpair">
+<link rel="stylesheet" href="/css/consumer-pages.css?v=20261113-t6b">
 </head>
 <body class="consumer-site" data-page="register">
 <a class="home-skip" href="#main-content">Skip to content</a>
@@ -68,14 +68,15 @@
               <input id="rg-pass" name="password" type="password" autocomplete="new-password" required
                      placeholder="Create a password" minlength="8"
                      aria-describedby="pw-hint">
-              <button type="button" class="pw-toggle" aria-label="Show password">SHOW</button>
+              <button type="button" class="pw-toggle" aria-label="Show password" aria-controls="rg-pass" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="pw-eye-slash" d="m3 3 18 18"/></svg></button>
             </div>
             <div class="pw-meter" aria-hidden="true"><i></i></div>
             <span class="sub" id="pw-hint">Minimum 8 characters with at least one letter and one number.</span>
           </div>
           <div class="field">
             <label for="rg-confirm">CONFIRM PASSWORD</label>
-            <input id="rg-confirm" name="confirm" type="password" autocomplete="new-password" required placeholder="Type it again">
+            <div class="pw-wrap"><input id="rg-confirm" name="confirm" type="password" autocomplete="new-password" required placeholder="Type it again">
+<button type="button" class="pw-toggle" aria-label="Show confirm password" aria-controls="rg-confirm" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="pw-eye-slash" d="m3 3 18 18"/></svg></button></div>
           </div>
           <button class="btn btn-primary btn-block btn-lg" type="submit" data-label="Create account">Create account</button>
           <p class="form-note">By registering, you agree to Kridiya Travel's <a href="/privacy/">Privacy Policy</a> and <a href="/terms/">Terms &amp; Conditions</a>. Confirm your email address to activate the account.</p>
@@ -88,7 +89,7 @@
 <script src="/js/motion.js?v=20260921complete2" defer></script>
 <script src="/js/motion-controls.js?v=20260921complete2" defer></script>
 <script src="/js/main.js?v=20261113-t6" defer></script>
-<script src="/js/auth.js?v=20261113-t6" defer></script>
+<script src="/js/auth.js?v=20261113-t6b" defer></script>
 <script src="/js/consumer-ui.js?v=20261024auth4" defer></script>
 </body>
 </html>
