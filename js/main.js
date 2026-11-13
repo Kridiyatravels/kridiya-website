@@ -120,6 +120,18 @@ function isPublicMeasurementPage() {
   return ["/", "/about/", "/contact/", "/flights/", "/hotels/", "/holidays/", "/umrah/", "/cruise/", "/visa/", "/privacy/", "/terms/", "/guides/", "/guides/flight-booking-checklist/"].includes(KridiyaRoutes.path(location.pathname));
 }
 
+// Campaign labels are slugs, never customer names, email addresses or free text.
+function measurementCampaign() {
+  const params = new URLSearchParams(location.search);
+  const campaign = {};
+  const fields = { utm_id: "campaign_id", utm_source: "campaign_source", utm_medium: "campaign_medium", utm_campaign: "campaign_name", utm_content: "campaign_content", utm_term: "campaign_term" };
+  Object.keys(fields).forEach(function (key) {
+    const value = params.get(key) || "";
+    if (/^[a-zA-Z0-9_-]{1,80}$/.test(value) && !/\d{7,}/.test(value)) campaign[fields[key]] = value;
+  });
+  return campaign;
+}
+
 function measurementPageURL() { return location.origin + location.pathname; }
 
 function measurementReferrer() {
@@ -213,6 +225,7 @@ function writeCookieConsentRecord(analytics, advertising, source) {
 
 function setAnalyticsConsent(value, persist) {
   const granted = value === "granted";
+  window["ga-disable-" + KRIDIYA_GA4_MEASUREMENT_ID] = !granted;
   if (persist) safeStorage(localStorage, "set", ANALYTICS_CONSENT_KEY, granted ? "granted" : "denied");
   if (!granted) {
     try {
@@ -294,7 +307,8 @@ function resetMeasurementConsent() {
 
 function initGoogleAnalytics() {
   if (!isPublicMeasurementPage()) return;
-  if (!hasAnalyticsConsent()) return;
+  if (!hasAnalyticsConsent() || window.kridiyaGoogleAnalyticsLoaded) return;
+  window.kridiyaGoogleAnalyticsLoaded = true;
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
 
@@ -309,6 +323,9 @@ function initGoogleAnalytics() {
   window.gtag("js", new Date());
   window.gtag("config", KRIDIYA_GA4_MEASUREMENT_ID, {
     send_page_view: true,
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false,
+    ...measurementCampaign(),
     page_location: measurementPageURL(),
     page_referrer: measurementReferrer()
   });
