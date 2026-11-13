@@ -1995,7 +1995,7 @@ window.KridiyaAuth = (function () {
       document.getElementById("acc-email").textContent = user.email;
       const since = user.createdAt ? new Date(user.createdAt) : null;
       const memberSince = since
-        ? "Member since " + since.toLocaleDateString("en-GB", { month: "long", year: "numeric" })
+        ? (document.documentElement.lang === "ar" ? "عضو منذ " : "Member since ") + since.toLocaleDateString(document.documentElement.lang === "ar" ? "ar-AE" : "en-GB", { month: "long", year: "numeric", timeZone: "Asia/Dubai" })
         : "";
       document.getElementById("acc-since").textContent = memberSince;
       document.getElementById("acc-given-name").textContent = givenName;
